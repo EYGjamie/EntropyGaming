@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as sqlite3 from 'sqlite3';
-import { promisify } from 'util';
 
-interface DiscordUser {
+// Export interface so it can be used by controllers
+export interface DiscordUser {
   userID: string;
   username: string;
   joinedAt: string;
@@ -111,7 +111,7 @@ export class DiscordUsersService {
           isActive
         FROM discord_users 
         WHERE username LIKE ? OR nickname LIKE ? OR userID = ?
-        ORDER BY isActive DESC, lastActive DESC
+        ORDER BY messageCount DESC
         LIMIT 50
       `;
 
@@ -136,38 +136,6 @@ export class DiscordUsersService {
     });
   }
 
-  async getDiscordUserStats(): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const query = `
-        SELECT 
-          COUNT(*) as totalUsers,
-          SUM(CASE WHEN isActive = 1 THEN 1 ELSE 0 END) as activeUsers,
-          SUM(CASE WHEN isActive = 0 THEN 1 ELSE 0 END) as inactiveUsers,
-          SUM(messageCount) as totalMessages,
-          SUM(voiceMinutes) as totalVoiceMinutes,
-          AVG(messageCount) as avgMessages,
-          AVG(voiceMinutes) as avgVoiceMinutes
-        FROM discord_users
-      `;
-
-      this.db.get(query, [], (err, row: any) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({
-            totalUsers: row.totalUsers || 0,
-            activeUsers: row.activeUsers || 0,
-            inactiveUsers: row.inactiveUsers || 0,
-            totalMessages: row.totalMessages || 0,
-            totalVoiceMinutes: row.totalVoiceMinutes || 0,
-            avgMessages: Math.round(row.avgMessages || 0),
-            avgVoiceMinutes: Math.round(row.avgVoiceMinutes || 0),
-          });
-        }
-      });
-    });
-  }
-
   async getActiveDiscordUsers(limit: number = 20): Promise<DiscordUser[]> {
     return new Promise((resolve, reject) => {
       const query = `
@@ -181,8 +149,8 @@ export class DiscordUsersService {
           nickname,
           isActive
         FROM discord_users 
-        WHERE isActive = 1
-        ORDER BY lastActive DESC
+        WHERE isActive = 1 
+        ORDER BY lastActive DESC 
         LIMIT ?
       `;
 
@@ -220,8 +188,7 @@ export class DiscordUsersService {
           isActive,
           (messageCount + (voiceMinutes / 60)) as activityScore
         FROM discord_users 
-        WHERE isActive = 1
-        ORDER BY activityScore DESC
+        ORDER BY activityScore DESC 
         LIMIT ?
       `;
 
@@ -240,6 +207,36 @@ export class DiscordUsersService {
             isActive: row.isActive === 1,
           }));
           resolve(users);
+        }
+      });
+    });
+  }
+
+  async getDiscordUserStats(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT 
+          COUNT(*) as totalUsers,
+          COUNT(CASE WHEN isActive = 1 THEN 1 END) as activeUsers,
+          SUM(messageCount) as totalMessages,
+          SUM(voiceMinutes) as totalVoiceMinutes,
+          AVG(messageCount) as avgMessages,
+          MAX(messageCount) as maxMessages
+        FROM discord_users
+      `;
+
+      this.db.get(query, [], (err, row: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            totalUsers: row.totalUsers || 0,
+            activeUsers: row.activeUsers || 0,
+            totalMessages: row.totalMessages || 0,
+            totalVoiceMinutes: row.totalVoiceMinutes || 0,
+            avgMessages: Math.round(row.avgMessages || 0),
+            maxMessages: row.maxMessages || 0,
+          });
         }
       });
     });

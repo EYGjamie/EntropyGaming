@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 
-interface TicketMessage {
+// Export interfaces so they can be used by controllers
+export interface TicketMessage {
   userID: string;
   username: string;
   message: string;
@@ -11,14 +12,14 @@ interface TicketMessage {
   attachments?: TicketAttachment[];
 }
 
-interface TicketAttachment {
+export interface TicketAttachment {
   id: string;
   filename: string;
   url: string;
   localPath?: string;
 }
 
-interface TicketTranscript {
+export interface TicketTranscript {
   ticketId: string;
   channelName: string;
   createdAt: string;
@@ -43,7 +44,7 @@ export class TicketTranscriptsService {
 
   constructor(private configService: ConfigService) {
     // Pfad zu den Ticket-Transkripten aus der Konfiguration
-    this.transcriptsPath = this.configService.get<string>('TICKET_TRANSCRIPTS_PATH') || '../bot/transcripts';
+    this.transcriptsPath = this.configService.get<string>('TICKET_TRANSCRIPTS_PATH') || '../../bot/transcripts';
   }
 
   async getAllTranscripts(): Promise<any[]> {
@@ -143,7 +144,8 @@ export class TicketTranscriptsService {
 
   private extractTranscriptSummary(content: any, filename: string): any {
     const messages = content.messages || [];
-    const participants = [...new Set(messages.map((m: any) => m.username))];
+    // Fix: Use string[] for participants instead of unknown[]
+    const participants = [...new Set(messages.map((m: any) => m.username as string))] as string[];
     
     return {
       filename,
@@ -163,7 +165,8 @@ export class TicketTranscriptsService {
 
   private parseTranscript(content: any, filename: string): TicketTranscript {
     const messages = content.messages || [];
-    const participants = [...new Set(messages.map((m: any) => m.username))];
+    // Fix: Use string[] for participants instead of unknown[]
+    const participants: string[] = [...new Set<string>(messages.map((m: any) => m.username as string))];
     
     return {
       ticketId: this.extractTicketId(filename),

@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfileService } from './profile.service';
-import { UpdateProfileDto, UpdateSocialLinksDto, UpdateCustomFieldsDto } from './dto/create-profile.dto';
+import { UpdateProfileDto, UpdateSocialLinksDto, UpdateCustomFieldsDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/guards';
 
 @Controller('profiles')

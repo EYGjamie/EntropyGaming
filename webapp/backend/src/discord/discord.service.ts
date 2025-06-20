@@ -2,14 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as sqlite3 from 'sqlite3';
 
-interface DiscordGuild {
+// Export interfaces so they can be used by controllers
+export interface DiscordGuild {
   guildId: string;
   guildName: string;
   memberCount: number;
   onlineCount: number;
 }
 
-interface DiscordChannel {
+export interface DiscordChannel {
   channelId: string;
   channelName: string;
   channelType: string;
@@ -49,6 +50,62 @@ export class DiscordService {
     });
   }
 
+  async getDashboardData(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT 
+          COUNT(*) as totalMembers,
+          SUM(CASE WHEN isActive = 1 THEN 1 ELSE 0 END) as activeMembers,
+          SUM(messageCount) as totalMessages,
+          SUM(voiceMinutes) as totalVoiceMinutes,
+          AVG(messageCount) as avgMessages
+        FROM discord_users
+      `;
+
+      this.db.get(query, [], (err, row: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            totalMembers: row.totalMembers || 0,
+            activeMembers: row.activeMembers || 0,
+            totalMessages: row.totalMessages || 0,
+            totalVoiceMinutes: row.totalVoiceMinutes || 0,
+            avgMessages: Math.round(row.avgMessages || 0),
+          });
+        }
+      });
+    });
+  }
+
+  async getServerStatistics(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT 
+          COUNT(*) as totalUsers,
+          COUNT(CASE WHEN lastActive > datetime('now', '-7 days') THEN 1 END) as weeklyActive,
+          COUNT(CASE WHEN lastActive > datetime('now', '-1 day') THEN 1 END) as dailyActive,
+          SUM(messageCount) as totalMessages,
+          SUM(voiceMinutes) as totalVoiceTime
+        FROM discord_users
+      `;
+
+      this.db.get(query, [], (err, row: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            totalUsers: row.totalUsers || 0,
+            weeklyActiveUsers: row.weeklyActive || 0,
+            dailyActiveUsers: row.dailyActive || 0,
+            totalMessages: row.totalMessages || 0,
+            totalVoiceTime: row.totalVoiceTime || 0,
+          });
+        }
+      });
+    });
+  }
+
   async getRecentActivity(): Promise<any[]> {
     return new Promise((resolve, reject) => {
       const query = `
@@ -68,73 +125,7 @@ export class DiscordService {
         if (err) {
           reject(err);
         } else {
-          resolve(rows.map(row => ({
-            userID: row.userID,
-            username: row.username,
-            lastActive: row.lastActive,
-            messageCount: row.messageCount || 0,
-            voiceMinutes: row.voiceMinutes || 0,
-          })));
-        }
-      });
-    });
-  }
-
-  async getServerStatistics(): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const query = `
-        SELECT 
-          COUNT(*) as totalMembers,
-          SUM(CASE WHEN isActive = 1 THEN 1 ELSE 0 END) as activeMembers,
-          SUM(messageCount) as totalMessages,
-          SUM(voiceMinutes) as totalVoiceMinutes,
-          AVG(messageCount) as avgMessages,
-          COUNT(CASE WHEN joinedAt > datetime('now', '-30 days') THEN 1 END) as newMembersThisMonth,
-          COUNT(CASE WHEN lastActive > datetime('now', '-7 days') THEN 1 END) as activeThisWeek
-        FROM discord_users
-      `;
-
-      this.db.get(query, [], (err, row: any) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({
-            totalMembers: row.totalMembers || 0,
-            activeMembers: row.activeMembers || 0,
-            inactiveMembers: (row.totalMembers || 0) - (row.activeMembers || 0),
-            totalMessages: row.totalMessages || 0,
-            totalVoiceMinutes: row.totalVoiceMinutes || 0,
-            avgMessages: Math.round(row.avgMessages || 0),
-            newMembersThisMonth: row.newMembersThisMonth || 0,
-            activeThisWeek: row.activeThisWeek || 0,
-            totalVoiceHours: Math.round((row.totalVoiceMinutes || 0) / 60),
-          });
-        }
-      });
-    });
-  }
-
-  async getMemberGrowth(): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const query = `
-        SELECT 
-          DATE(joinedAt) as date,
-          COUNT(*) as newMembers
-        FROM discord_users 
-        WHERE joinedAt IS NOT NULL 
-          AND joinedAt > datetime('now', '-90 days')
-        GROUP BY DATE(joinedAt)
-        ORDER BY date ASC
-      `;
-
-      this.db.all(query, [], (err, rows: any[]) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows.map(row => ({
-            date: row.date,
-            newMembers: row.newMembers,
-          })));
+          resolve(rows || []);
         }
       });
     });
@@ -150,8 +141,7 @@ export class DiscordService {
           voiceMinutes,
           (messageCount + (voiceMinutes / 60)) as activityScore
         FROM discord_users 
-        WHERE isActive = 1
-        ORDER BY activityScore DESC
+        ORDER BY activityScore DESC 
         LIMIT ?
       `;
 
@@ -159,13 +149,30 @@ export class DiscordService {
         if (err) {
           reject(err);
         } else {
-          resolve(rows.map(row => ({
-            userID: row.userID,
-            username: row.username,
-            messageCount: row.messageCount || 0,
-            voiceMinutes: row.voiceMinutes || 0,
-            activityScore: Math.round(row.activityScore || 0),
-          })));
+          resolve(rows || []);
+        }
+      });
+    });
+  }
+
+  async getMemberGrowth(): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT 
+          DATE(joinedAt) as date,
+          COUNT(*) as newMembers
+        FROM discord_users 
+        WHERE joinedAt IS NOT NULL 
+          AND joinedAt > datetime('now', '-30 days')
+        GROUP BY DATE(joinedAt)
+        ORDER BY date ASC
+      `;
+
+      this.db.all(query, [], (err, rows: any[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows || []);
         }
       });
     });
@@ -178,51 +185,24 @@ export class DiscordService {
           userID,
           username,
           nickname,
-          joinedAt,
           lastActive,
           messageCount,
           voiceMinutes,
           isActive
         FROM discord_users 
-        WHERE username LIKE ? OR nickname LIKE ? OR userID = ?
-        ORDER BY isActive DESC, lastActive DESC
+        WHERE username LIKE ? OR nickname LIKE ? OR userID LIKE ?
+        ORDER BY messageCount DESC
         LIMIT 50
       `;
 
       const searchPattern = `%${searchTerm}%`;
-      this.db.all(query, [searchPattern, searchPattern, searchTerm], (err, rows: any[]) => {
+      this.db.all(query, [searchPattern, searchPattern, searchPattern], (err, rows: any[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve(rows.map(row => ({
-            userID: row.userID,
-            username: row.username,
-            nickname: row.nickname,
-            joinedAt: row.joinedAt,
-            lastActive: row.lastActive,
-            messageCount: row.messageCount || 0,
-            voiceMinutes: row.voiceMinutes || 0,
-            isActive: row.isActive === 1,
-          })));
+          resolve(rows || []);
         }
       });
     });
-  }
-
-  async getDashboardData(): Promise<any> {
-    const [guildInfo, stats, recentActivity, topUsers] = await Promise.all([
-      this.getGuildInfo(),
-      this.getServerStatistics(),
-      this.getRecentActivity(),
-      this.getTopActiveUsers(5),
-    ]);
-
-    return {
-      guild: guildInfo,
-      statistics: stats,
-      recentActivity: recentActivity.slice(0, 10),
-      topActiveUsers: topUsers,
-      lastUpdated: new Date().toISOString(),
-    };
   }
 }
