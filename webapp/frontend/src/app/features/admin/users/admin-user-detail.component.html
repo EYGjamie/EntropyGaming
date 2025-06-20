@@ -1,0 +1,311 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">
+        {{ isNewUser ? 'Neuen Benutzer erstellen' : 'Benutzer bearbeiten' }}
+      </h1>
+      <p class="text-gray-600 mt-1">
+        {{ isNewUser ? 'Erstellen Sie einen neuen Benutzeraccount' : 'Bearbeiten Sie Benutzerdetails, Rollen und Berechtigungen' }}
+      </p>
+    </div>
+    <div class="flex space-x-3">
+      <button 
+        (click)="cancel()"
+        class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 transition-colors"
+      >
+        Abbrechen
+      </button>
+      <button 
+        *ngIf="!isNewUser && user"
+        (click)="deleteUser()"
+        class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
+      >
+        Löschen
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+    {{ error }}
+    <button (click)="clearMessages()" class="float-right text-red-500 hover:text-red-700">✕</button>
+  </div>
+
+  <div *ngIf="success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+    {{ success }}
+    <button (click)="clearMessages()" class="float-right text-green-500 hover:text-green-700">✕</button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+  </div>
+
+  <!-- Form -->
+  <form *ngIf="!isLoading" [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Main Information -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Basic Info -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Grundinformationen</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Username -->
+            <div>
+              <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                Benutzername *
+              </label>
+              <input
+                id="username"
+                type="text"
+                formControlName="username"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                [class.border-red-500]="getFieldError('username')"
+              />
+              <div *ngIf="getFieldError('username')" class="text-red-500 text-sm mt-1">
+                {{ getFieldError('username') }}
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                E-Mail-Adresse *
+              </label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                [class.border-red-500]="getFieldError('email')"
+              />
+              <div *ngIf="getFieldError('email')" class="text-red-500 text-sm mt-1">
+                {{ getFieldError('email') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Password Fields (for new users or password change) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <!-- Password -->
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                {{ isNewUser ? 'Passwort *' : 'Neues Passwort (optional)' }}
+              </label>
+              <input
+                id="password"
+                type="password"
+                formControlName="password"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                [class.border-red-500]="getFieldError('password')"
+              />
+              <div *ngIf="getFieldError('password')" class="text-red-500 text-sm mt-1">
+                {{ getFieldError('password') }}
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div>
+              <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                {{ isNewUser ? 'Passwort bestätigen *' : 'Passwort bestätigen' }}
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                formControlName="confirmPassword"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                [class.border-red-500]="getFieldError('confirmPassword')"
+              />
+              <div *ngIf="getFieldError('confirmPassword')" class="text-red-500 text-sm mt-1">
+                {{ getFieldError('confirmPassword') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="bg-white shadow rounded-lg p-6" formGroupName="profile">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Profilinformationen</h2>
+          
+          <!-- Display Name -->
+          <div class="mb-4">
+            <label for="displayName" class="block text-sm font-medium text-gray-700 mb-2">
+              Anzeigename
+            </label>
+            <input
+              id="displayName"
+              type="text"
+              formControlName="displayName"
+              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Wie soll der Name angezeigt werden?"
+            />
+          </div>
+
+          <!-- Bio -->
+          <div class="mb-4">
+            <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">
+              Beschreibung
+            </label>
+            <textarea
+              id="bio"
+              formControlName="bio"
+              rows="3"
+              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Kurze Beschreibung des Benutzers..."
+            ></textarea>
+          </div>
+
+          <!-- Avatar URL -->
+          <div>
+            <label for="avatarUrl" class="block text-sm font-medium text-gray-700 mb-2">
+              Avatar URL
+            </label>
+            <input
+              id="avatarUrl"
+              type="url"
+              formControlName="avatarUrl"
+              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="https://example.com/avatar.jpg"
+            />
+          </div>
+        </div>
+
+        <!-- Permissions -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Berechtigungen</h2>
+          <p class="text-sm text-gray-600 mb-4">
+            Wählen Sie die spezifischen Berechtigungen für diesen Benutzer aus. Diese ergänzen die Rollenberechtigungen.
+          </p>
+          
+          <div class="space-y-6" formArrayName="permissions">
+            <div *ngFor="let category of getPermissionsByCategory() | keyvalue" class="space-y-3">
+              <h3 class="text-sm font-medium text-gray-900 border-b border-gray-200 pb-2">
+                {{ category.key }}
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div *ngFor="let item of category.value" class="flex items-start">
+                  <div class="flex items-center h-5">
+                    <input
+                      [id]="'permission-' + item.index"
+                      type="checkbox"
+                      [formControlName]="item.index"
+                      class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    />
+                  </div>
+                  <div class="ml-3 text-sm">
+                    <label [for]="'permission-' + item.index" class="font-medium text-gray-700 cursor-pointer">
+                      {{ item.permission.displayName }}
+                    </label>
+                    <p *ngIf="item.permission.description" class="text-gray-500">
+                      {{ item.permission.description }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Role & Status -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Rolle & Status</h2>
+          
+          <!-- Role -->
+          <div class="mb-4">
+            <label for="role" class="block text-sm font-medium text-gray-700 mb-2">
+              Rolle *
+            </label>
+            <select
+              id="role"
+              formControlName="roleId"
+              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              [class.border-red-500]="getFieldError('roleId')"
+            >
+              <option value="">Rolle auswählen</option>
+              <option *ngFor="let role of availableRoles" [value]="role.id">
+                {{ role.displayName }}
+              </option>
+            </select>
+            <div *ngIf="getFieldError('roleId')" class="text-red-500 text-sm mt-1">
+              {{ getFieldError('roleId') }}
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="flex items-center">
+            <input
+              id="isActive"
+              type="checkbox"
+              formControlName="isActive"
+              class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+            />
+            <label for="isActive" class="ml-2 block text-sm text-gray-900">
+              Benutzer ist aktiv
+            </label>
+          </div>
+          <p class="text-sm text-gray-500 mt-1">
+            Inaktive Benutzer können sich nicht anmelden
+          </p>
+        </div>
+
+        <!-- User Info (for existing users) -->
+        <div *ngIf="!isNewUser && user" class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Benutzerinformationen</h2>
+          
+          <div class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Erstellt am</dt>
+              <dd class="text-sm text-gray-900">
+                {{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Letzter Login</dt>
+              <dd class="text-sm text-gray-900">
+                {{ user.lastLogin ? (user.lastLogin | date:'dd.MM.yyyy HH:mm') : 'Nie' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Aktualisiert am</dt>
+              <dd class="text-sm text-gray-900">
+                {{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}
+              </dd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Aktionen</h2>
+          
+          <div class="space-y-3">
+            <button
+              type="submit"
+              [disabled]="isSaving || userForm.invalid"
+              class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors"
+            >
+              <span *ngIf="!isSaving">
+                {{ isNewUser ? 'Benutzer erstellen' : 'Änderungen speichern' }}
+              </span>
+              <span *ngIf="isSaving">Speichern...</span>
+            </button>
+            
+            <button
+              type="button"
+              (click)="cancel()"
+              class="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 transition-colors"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

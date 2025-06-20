@@ -1,0 +1,171 @@
+/* Admin Users Component Styles */
+
+.user-table {
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.user-row {
+  @apply hover:bg-gray-50 transition-colors duration-150;
+}
+
+.user-avatar {
+  @apply h-10 w-10 rounded-full object-cover;
+}
+
+.user-avatar-placeholder {
+  @apply h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center;
+}
+
+.user-status-active {
+  @apply bg-green-100 text-green-800;
+}
+
+.user-status-inactive {
+  @apply bg-red-100 text-red-800;
+}
+
+.role-badge {
+  @apply inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800;
+}
+
+.action-button {
+  @apply text-sm font-medium transition-colors duration-150;
+}
+
+.action-button.edit {
+  @apply text-indigo-600 hover:text-indigo-900;
+}
+
+.action-button.activate {
+  @apply text-green-600 hover:text-green-900;
+}
+
+.action-button.deactivate {
+  @apply text-red-600 hover:text-red-900;
+}
+
+.action-button.delete {
+  @apply text-red-600 hover:text-red-900;
+}
+
+.filter-container {
+  @apply bg-white shadow rounded-lg p-6;
+}
+
+.filter-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.filter-input {
+  @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500;
+}
+
+.filter-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+.pagination-container {
+  @apply bg-white px-4 py-3 border-t border-gray-200 sm:px-6;
+}
+
+.pagination-info {
+  @apply text-sm text-gray-700;
+}
+
+.pagination-buttons {
+  @apply flex space-x-1;
+}
+
+.pagination-button {
+  @apply px-3 py-2 text-sm font-medium border border-gray-300 rounded-md transition-colors duration-150;
+}
+
+.pagination-button.active {
+  @apply bg-indigo-600 text-white;
+}
+
+.pagination-button.inactive {
+  @apply text-gray-500 bg-white hover:bg-gray-50;
+}
+
+.pagination-button:disabled {
+  @apply bg-gray-100 text-gray-400 cursor-not-allowed;
+}
+
+.empty-state {
+  @apply px-6 py-12 text-center;
+}
+
+.empty-state-title {
+  @apply text-lg font-medium text-gray-500;
+}
+
+.empty-state-description {
+  @apply mt-1 text-gray-500;
+}
+
+.loading-container {
+  @apply flex justify-center items-center h-64;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600;
+}
+
+.error-message {
+  @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative;
+}
+
+.error-close {
+  @apply float-right text-red-500 hover:text-red-700 cursor-pointer;
+}
+
+.header-actions {
+  @apply flex space-x-3;
+}
+
+.export-button {
+  @apply bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 transition-colors;
+}
+
+.create-button {
+  @apply bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filter-grid {
+    @apply grid-cols-1 gap-3;
+  }
+  
+  .header-actions {
+    @apply flex-col space-x-0 space-y-2;
+  }
+  
+  .pagination-buttons {
+    @apply flex-wrap gap-1;
+  }
+}
+
+/* Animation for table rows */
+.user-row {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus styles for accessibility */
+.filter-input:focus,
+.pagination-button:focus,
+.action-button:focus {
+  @apply outline-none ring-2 ring-indigo-500 ring-offset-1;
+}

@@ -1,0 +1,271 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Benutzerverwaltung</h1>
+      <p class="text-gray-600 mt-1">Verwalten Sie Benutzerkonten, Rollen und Berechtigungen</p>
+    </div>
+    <div class="flex space-x-3">
+      <button 
+        (click)="exportUsers()"
+        class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 transition-colors"
+      >
+        📊 Exportieren
+      </button>
+      <a 
+        routerLink="/admin/users/new"
+        class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+      >
+        ➕ Neuer Benutzer
+      </a>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+    {{ error }}
+    <button (click)="error = null" class="float-right text-red-500 hover:text-red-700">✕</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white shadow rounded-lg p-6">
+    <h2 class="text-lg font-medium text-gray-900 mb-4">Filter</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Search -->
+      <div>
+        <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Suche</label>
+        <input
+          id="search"
+          type="text"
+          [(ngModel)]="filters.search"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Name, E-Mail oder Benutzername"
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
+      <!-- Role Filter -->
+      <div>
+        <label for="role" class="block text-sm font-medium text-gray-700 mb-2">Rolle</label>
+        <select
+          id="role"
+          [(ngModel)]="filters.role"
+          (ngModelChange)="onFilterChange()"
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="">Alle Rollen</option>
+          <option *ngFor="let role of availableRoles" [value]="role.id">
+            {{ role.displayName }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+        <select
+          id="status"
+          [(ngModel)]="filters.status"
+          (ngModelChange)="onFilterChange()"
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="">Alle Status</option>
+          <option value="active">Aktiv</option>
+          <option value="inactive">Inaktiv</option>
+        </select>
+      </div>
+
+      <!-- Permission Filter -->
+      <div>
+        <label for="permission" class="block text-sm font-medium text-gray-700 mb-2">Berechtigung</label>
+        <select
+          id="permission"
+          [(ngModel)]="filters.permission"
+          (ngModelChange)="onFilterChange()"
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="">Alle Berechtigungen</option>
+          <option *ngFor="let permission of availablePermissions" [value]="permission.name">
+            {{ permission.displayName }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-end">
+      <button 
+        (click)="clearFilters()"
+        class="text-sm text-gray-600 hover:text-gray-900"
+      >
+        Filter zurücksetzen
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+  </div>
+
+  <!-- Users Table -->
+  <div *ngIf="!isLoading" class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-medium text-gray-900">
+          Benutzer ({{ totalUsers }})
+        </h2>
+        <div class="text-sm text-gray-500">
+          Seite {{ currentPage }} von {{ totalPages }}
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Benutzer
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Rolle
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Erstellt
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Letzter Login
+            </th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Aktionen
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let user of filteredUsers" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10">
+                  <img 
+                    *ngIf="user.profile?.avatarUrl" 
+                    [src]="user.profile.avatarUrl" 
+                    [alt]="user.username"
+                    class="h-10 w-10 rounded-full object-cover"
+                  />
+                  <div 
+                    *ngIf="!user.profile?.avatarUrl"
+                    class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center"
+                  >
+                    <span class="text-white text-sm font-medium">
+                      {{ user.username.charAt(0).toUpperCase() }}
+                    </span>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ user.profile?.displayName || user.username }}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {{ user.email }}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                {{ user.role?.displayName || user.role?.name }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span 
+                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                [class]="getUserStatusBadgeClass(user)"
+              >
+                {{ getUserStatusText(user) }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ formatDate(user.createdAt) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ user.lastLogin ? formatDate(user.lastLogin) : 'Nie' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex justify-end space-x-2">
+                <a 
+                  [routerLink]="['/admin/users', user.id]"
+                  class="text-indigo-600 hover:text-indigo-900"
+                >
+                  Bearbeiten
+                </a>
+                <button 
+                  (click)="toggleUserStatus(user)"
+                  [class]="user.isActive ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'"
+                >
+                  {{ user.isActive ? 'Deaktivieren' : 'Aktivieren' }}
+                </button>
+                <button 
+                  (click)="deleteUser(user)"
+                  class="text-red-600 hover:text-red-900"
+                >
+                  Löschen
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="filteredUsers.length === 0">
+            <td colspan="6" class="px-6 py-12 text-center">
+              <div class="text-gray-500">
+                <p class="text-lg font-medium">Keine Benutzer gefunden</p>
+                <p class="mt-1">Versuchen Sie, Ihre Filter anzupassen oder erstellen Sie einen neuen Benutzer.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+          Zeige {{ (currentPage - 1) * pageSize + 1 }} bis {{ Math.min(currentPage * pageSize, totalUsers) }} von {{ totalUsers }} Benutzern
+        </div>
+        <div class="flex space-x-1">
+          <!-- Previous Page -->
+          <button 
+            (click)="onPageChange(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            ‹ Zurück
+          </button>
+
+          <!-- Page Numbers -->
+          <button 
+            *ngFor="let page of getPageNumbers()"
+            (click)="onPageChange(page)"
+            [class]="page === currentPage ? 'bg-indigo-600 text-white' : 'text-gray-500 bg-white hover:bg-gray-50'"
+            class="px-3 py-2 text-sm font-medium border border-gray-300 rounded-md"
+          >
+            {{ page }}
+          </button>
+
+          <!-- Next Page -->
+          <button 
+            (click)="onPageChange(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            Weiter ›
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
