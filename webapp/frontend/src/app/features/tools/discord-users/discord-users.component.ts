@@ -15,228 +15,28 @@ interface DiscordUser {
   isActive: boolean;
 }
 
+interface DiscordUsersStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalMessages: number;
+  totalVoiceMinutes: number;
+}
+
 @Component({
   selector: 'app-discord-users',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   providers: [DiscordUsersService],
-  template: `
-    <div class="space-y-6">
-      <!-- Header -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">Discord Benutzer</h1>
-          <p class="text-gray-600">Verwalten Sie Discord-Server-Mitglieder und fügen Sie Kommentare hinzu.</p>
-        </div>
-      </div>
-
-      <!-- Search and Filters -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-          <div class="flex flex-col sm:flex-row gap-4">
-            <!-- Search -->
-            <div class="flex-1">
-              <label for="search" class="sr-only">Benutzer suchen</label>
-              <div class="relative">
-                <input
-                  type="text"
-                  id="search"
-                  [(ngModel)]="searchTerm"
-                  (input)="onSearch()"
-                  placeholder="Benutzer suchen (Name, Nickname oder ID)..."
-                  class="block w-full pr-10 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  🔍
-                </div>
-              </div>
-            </div>
-
-            <!-- Filter buttons -->
-            <div class="flex space-x-2">
-              <button
-                (click)="filterBy = ''; loadUsers()"
-                [class.bg-indigo-600]="filterBy === ''"
-                [class.text-white]="filterBy === ''"
-                [class.bg-gray-200]="filterBy !== ''"
-                [class.text-gray-700]="filterBy !== ''"
-                class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Alle
-              </button>
-              <button
-                (click)="filterBy = 'active'; loadActiveUsers()"
-                [class.bg-indigo-600]="filterBy === 'active'"
-                [class.text-white]="filterBy === 'active'"
-                [class.bg-gray-200]="filterBy !== 'active'"
-                [class.text-gray-700]="filterBy !== 'active'"
-                class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Aktive
-              </button>
-              <button
-                (click)="filterBy = 'most-active'; loadMostActiveUsers()"
-                [class.bg-indigo-600]="filterBy === 'most-active'"
-                [class.text-white]="filterBy === 'most-active'"
-                [class.bg-gray-200]="filterBy !== 'most-active'"
-                [class.text-gray-700]="filterBy !== 'most-active'"
-                class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Aktivste
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6" *ngIf="stats">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 text-2xl">👥</div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Gesamt Benutzer</dt>
-                  <dd class="text-lg font-medium text-gray-900">{{ stats.totalUsers }}</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 text-2xl">✅</div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Aktive Benutzer</dt>
-                  <dd class="text-lg font-medium text-gray-900">{{ stats.activeUsers }}</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 text-2xl">💬</div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Nachrichten</dt>
-                  <dd class="text-lg font-medium text-gray-900">{{ formatNumber(stats.totalMessages) }}</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Users Table -->
-      <div class="bg-white shadow rounded-lg overflow-hidden">
-        <div class="px-4 py-5 sm:p-6">
-          <div class="mb-4 flex justify-between items-center">
-            <h2 class="text-lg font-medium text-gray-900">
-              Benutzer {{ filterBy ? '(' + filterBy + ')' : '' }}
-            </h2>
-            <div class="text-sm text-gray-500">
-              {{ users.length }} Benutzer gefunden
-            </div>
-          </div>
-
-          <div *ngIf="isLoading" class="text-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-            <p class="mt-2 text-gray-500">Lade Benutzer...</p>
-          </div>
-
-          <div *ngIf="!isLoading && users.length === 0" class="text-center py-8">
-            <p class="text-gray-500">Keine Benutzer gefunden.</p>
-          </div>
-
-          <div *ngIf="!isLoading && users.length > 0" class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Benutzer
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aktivität
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Beigetreten
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aktionen
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr *ngFor="let user of users" class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">
-                        {{ user.nickname || user.username }}
-                      </div>
-                      <div class="text-sm text-gray-500" *ngIf="user.nickname">
-                        @{{ user.username }}
-                      </div>
-                      <div class="text-xs text-gray-400">
-                        ID: {{ user.userID }}
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">
-                      💬 {{ user.messageCount }} Nachrichten
-                    </div>
-                    <div class="text-sm text-gray-500">
-                      🎤 {{ Math.round(user.voiceMinutes / 60) }}h Voice
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ formatDate(user.joinedAt) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span 
-                      [class.bg-green-100]="user.isActive"
-                      [class.text-green-800]="user.isActive"
-                      [class.bg-red-100]="!user.isActive"
-                      [class.text-red-800]="!user.isActive"
-                      class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                    >
-                      {{ user.isActive ? 'Aktiv' : 'Inaktiv' }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      [routerLink]="['/tools/discord-users', user.userID]"
-                      class="text-indigo-600 hover:text-indigo-900 mr-4"
-                    >
-                      Details
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
+  templateUrl: './discord-users.component.html',
+  styleUrl: './discord-users.component.css'
 })
 export class DiscordUsersComponent implements OnInit {
   users: DiscordUser[] = [];
-  stats: any = null;
-  isLoading = true;
+  stats: DiscordUsersStats | null = null;
   searchTerm = '';
   filterBy = '';
-  private searchTimeout: any;
+  isLoading = true;
+  searchTimeout: any;
 
   constructor(private discordUsersService: DiscordUsersService) {}
 
@@ -245,9 +45,9 @@ export class DiscordUsersComponent implements OnInit {
     this.loadStats();
   }
 
-  loadUsers(): void {
+  private loadUsers(): void {
     this.isLoading = true;
-    this.discordUsersService.getAllUsers().subscribe({
+    this.discordUsersService.getUsers().subscribe({
       next: (users) => {
         this.users = users;
         this.isLoading = false;
@@ -259,7 +59,7 @@ export class DiscordUsersComponent implements OnInit {
     });
   }
 
-  loadActiveUsers(): void {
+  private loadActiveUsers(): void {
     this.isLoading = true;
     this.discordUsersService.getActiveUsers().subscribe({
       next: (users) => {
@@ -273,7 +73,7 @@ export class DiscordUsersComponent implements OnInit {
     });
   }
 
-  loadMostActiveUsers(): void {
+  private loadMostActiveUsers(): void {
     this.isLoading = true;
     this.discordUsersService.getMostActiveUsers().subscribe({
       next: (users) => {
@@ -287,7 +87,7 @@ export class DiscordUsersComponent implements OnInit {
     });
   }
 
-  loadStats(): void {
+  private loadStats(): void {
     this.discordUsersService.getStats().subscribe({
       next: (stats) => {
         this.stats = stats;
@@ -317,6 +117,21 @@ export class DiscordUsersComponent implements OnInit {
         this.loadUsers();
       }
     }, 300);
+  }
+
+  onFilterChange(filter: string): void {
+    this.filterBy = filter;
+    switch (filter) {
+      case 'active':
+        this.loadActiveUsers();
+        break;
+      case 'most-active':
+        this.loadMostActiveUsers();
+        break;
+      default:
+        this.loadUsers();
+        break;
+    }
   }
 
   formatNumber(num: number): string {

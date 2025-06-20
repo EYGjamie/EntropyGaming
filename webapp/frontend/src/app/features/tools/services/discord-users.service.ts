@@ -1,43 +1,56 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
+interface DiscordUser {
+  userID: string;
+  username: string;
+  nickname?: string;
+  joinedAt: string;
+  lastActive: string;
+  messageCount: number;
+  voiceMinutes: number;
+  isActive: boolean;
+}
+
+interface DiscordUsersStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalMessages: number;
+  totalVoiceMinutes: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class DiscordUsersService {
-  private readonly API_BASE = '/api/tools';
+  private apiUrl = '/api/tools/discord-users';
 
   constructor(private http: HttpClient) {}
 
-  getAllUsers(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_BASE}/discord-users`);
+  getUsers(): Observable<DiscordUser[]> {
+    return this.http.get<DiscordUser[]>(this.apiUrl);
   }
 
-  getActiveUsers(limit: number = 20): Observable<any[]> {
-    const params = new HttpParams().set('limit', limit.toString());
-    return this.http.get<any[]>(`${this.API_BASE}/discord-users/active`, { params });
+  getUserById(userId: string): Observable<DiscordUser> {
+    return this.http.get<DiscordUser>(`${this.apiUrl}/${userId}`);
   }
 
-  getMostActiveUsers(limit: number = 20): Observable<any[]> {
-    const params = new HttpParams().set('limit', limit.toString());
-    return this.http.get<any[]>(`${this.API_BASE}/discord-users/most-active`, { params });
+  getActiveUsers(): Observable<DiscordUser[]> {
+    return this.http.get<DiscordUser[]>(`${this.apiUrl}/active`);
   }
 
-  getUser(userId: string): Observable<any> {
-    return this.http.get(`${this.API_BASE}/discord-users/${userId}`);
+  getMostActiveUsers(): Observable<DiscordUser[]> {
+    return this.http.get<DiscordUser[]>(`${this.apiUrl}/most-active`);
   }
 
-  searchUsers(searchTerm: string): Observable<any[]> {
-    const params = new HttpParams().set('search', searchTerm);
-    return this.http.get<any[]>(`${this.API_BASE}/discord-users`, { params });
+  searchUsers(searchTerm: string): Observable<DiscordUser[]> {
+    return this.http.get<DiscordUser[]>(`${this.apiUrl}/search`, {
+      params: { q: searchTerm }
+    });
   }
 
-  getStats(): Observable<any> {
-    return this.http.get(`${this.API_BASE}/discord-users/stats`);
-  }
-
-  getUserComments(userId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_BASE}/discord-users/${userId}/comments`);
+  getStats(): Observable<DiscordUsersStats> {
+    return this.http.get<DiscordUsersStats>(`${this.apiUrl}/stats`);
   }
 }

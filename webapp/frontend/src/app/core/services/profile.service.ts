@@ -2,90 +2,53 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface Profile {
-  id: number;
-  displayName: string;
-  bio?: string;
-  avatarUrl?: string;
-  profileColor: string;
-  location?: string;
-  website?: string;
-  socialLinks?: {
-    twitter?: string;
-    github?: string;
-    linkedin?: string;
-    discord?: string;
-    website?: string;
+interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  profile: {
+    displayName: string;
+    bio: string;
+    avatarUrl: string;
   };
-  customFields?: Record<string, any>;
-  isPublic: boolean;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-    role: {
-      name: string;
-      color: string;
-    };
+  role: {
+    name: string;
+    displayName: string;
   };
-}
-
-export interface UpdateProfileRequest {
-  displayName?: string;
-  bio?: string;
-  profileColor?: string;
-  location?: string;
-  website?: string;
-  isPublic?: boolean;
+  permissions: string[];
+  createdAt: string;
+  lastLogin: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProfileService {
-  private readonly API_BASE = '/api/profiles';
+  private apiUrl = '/api/profile';
 
   constructor(private http: HttpClient) {}
 
-  getMyProfile(): Observable<Profile> {
-    return this.http.get<Profile>(`${this.API_BASE}/me`);
+  getUserProfile(userId: string): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.apiUrl}/${userId}`);
   }
 
-  getProfileByUserId(userId: number): Observable<Profile> {
-    return this.http.get<Profile>(`${this.API_BASE}/user/${userId}`);
+  updateProfile(formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}`, formData);
   }
 
-  getProfile(profileId: number): Observable<Profile> {
-    return this.http.get<Profile>(`${this.API_BASE}/${profileId}`);
+  updateEmail(data: { newEmail: string; password: string }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/email`, data);
   }
 
-  getPublicProfiles(): Observable<Profile[]> {
-    return this.http.get<Profile[]>(`${this.API_BASE}/public`);
+  updatePassword(data: { currentPassword: string; newPassword: string }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/password`, data);
   }
 
-  updateMyProfile(updates: UpdateProfileRequest): Observable<Profile> {
-    return this.http.patch<Profile>(`${this.API_BASE}/me`, updates);
+  deactivateAccount(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/deactivate`, {});
   }
 
-  updateProfile(userId: number, updates: UpdateProfileRequest): Observable<Profile> {
-    return this.http.patch<Profile>(`${this.API_BASE}/${userId}`, updates);
-  }
-
-  uploadAvatar(file: File): Observable<Profile> {
-    const formData = new FormData();
-    formData.append('avatar', file);
-    return this.http.post<Profile>(`${this.API_BASE}/me/avatar`, formData);
-  }
-
-  updateSocialLinks(socialLinks: any): Observable<Profile> {
-    return this.http.patch<Profile>(`${this.API_BASE}/me/social-links`, socialLinks);
-  }
-
-  updateCustomFields(customFields: Record<string, any>): Observable<Profile> {
-    return this.http.patch<Profile>(`${this.API_BASE}/me/custom-fields`, { customFields });
-  }
-
-  toggleVisibility(): Observable<Profile> {
-    return this.http.post<Profile>(`${this.API_BASE}/me/toggle-visibility`, {});
+  deleteAccount(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}`);
   }
 }

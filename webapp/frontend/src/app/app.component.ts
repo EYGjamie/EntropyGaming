@@ -9,20 +9,12 @@ import { LayoutComponent } from './shared/components/layout/layout.component';
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, RouterOutlet, LayoutComponent],
-  template: `
-    <div class="app-root">
-      <!-- Show layout only for authenticated users and not on login page -->
-      <app-layout *ngIf="showLayout">
-        <router-outlet></router-outlet>
-      </app-layout>
-      
-      <!-- Show router outlet directly for login page -->
-      <router-outlet *ngIf="!showLayout"></router-outlet>
-    </div>
-  `
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
   showLayout = false;
+  title = 'Discord Bot Portal';
 
   constructor(
     private authService: AuthService,

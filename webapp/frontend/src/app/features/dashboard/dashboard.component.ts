@@ -34,162 +34,8 @@ interface ToolCard {
   standalone: true,
   imports: [CommonModule, RouterModule],
   providers: [DashboardService],
-  template: `
-    <div class="space-y-6">
-      <!-- Welcome Section -->
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="h-12 w-12 rounded-full bg-indigo-600 flex items-center justify-center">
-                <img 
-                  *ngIf="currentUser?.profile?.avatarUrl" 
-                  [src]="currentUser.profile.avatarUrl" 
-                  [alt]="currentUser.username"
-                  class="h-12 w-12 rounded-full object-cover"
-                />
-                <span 
-                  *ngIf="!currentUser?.profile?.avatarUrl" 
-                  class="text-white text-lg font-medium"
-                >
-                  {{ currentUser?.username.charAt(0).toUpperCase() }}
-                </span>
-              </div>
-            </div>
-            <div class="ml-4">
-              <h1 class="text-2xl font-bold text-gray-900">
-                Willkommen, {{ currentUser?.profile?.displayName || currentUser?.username }}!
-              </h1>
-              <p class="text-gray-600">
-                Rolle: {{ currentUser?.role.name }} • 
-                Letzter Login: {{ currentUser ? 'heute' : 'unbekannt' }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" *ngIf="dashboardStats">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="text-2xl">👥</div>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Discord Benutzer</dt>
-                  <dd class="text-lg font-medium text-gray-900">
-                    {{ dashboardStats.discordUsers.activeUsers }} / {{ dashboardStats.discordUsers.totalUsers }}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="text-2xl">💬</div>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Nachrichten</dt>
-                  <dd class="text-lg font-medium text-gray-900">
-                    {{ formatNumber(dashboardStats.discordUsers.totalMessages) }}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="text-2xl">📝</div>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Tickets</dt>
-                  <dd class="text-lg font-medium text-gray-900">
-                    {{ dashboardStats.ticketTranscripts.totalTranscripts }}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="text-2xl">🎤</div>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Voice Stunden</dt>
-                  <dd class="text-lg font-medium text-gray-900">
-                    {{ Math.round(dashboardStats.discordUsers.totalVoiceMinutes / 60) }}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Available Tools -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Verfügbare Tools</h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div 
-              *ngFor="let tool of availableTools" 
-              class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer"
-              [routerLink]="tool.route"
-            >
-              <div class="flex items-center mb-2">
-                <div class="text-2xl mr-3">{{ tool.icon }}</div>
-                <h3 class="text-lg font-medium text-gray-900">{{ tool.name }}</h3>
-              </div>
-              <p class="text-gray-600 text-sm mb-3">{{ tool.description }}</p>
-              
-              <!-- Tool-specific stats -->
-              <div *ngIf="tool.stats" class="text-xs text-gray-500">
-                <span *ngIf="tool.id === 'discord-users'">
-                  {{ tool.stats.totalUsers }} Benutzer
-                </span>
-                <span *ngIf="tool.id === 'ticket-transcripts'">
-                  {{ tool.stats.totalTranscripts }} Transkripte
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="availableTools.length === 0" class="text-center py-6">
-            <p class="text-gray-500">Keine Tools verfügbar. Wenden Sie sich an einen Administrator.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recent Activity (placeholder for future implementation) -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Letzte Aktivitäten</h2>
-          <div class="text-center py-6">
-            <p class="text-gray-500">Aktivitätsfeed wird in einer zukünftigen Version implementiert.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
@@ -244,43 +90,52 @@ export class DashboardComponent implements OnInit {
   }
 
   private getToolIcon(toolId: string): string {
-    const icons: Record<string, string> = {
+    const iconMap: { [key: string]: string } = {
       'discord-users': '👥',
       'ticket-transcripts': '📝',
-      'user-management': '👤',
-      'admin-panel': '⚙️'
+      'server-stats': '📊',
+      'moderation': '🛡️',
+      'admin': '⚙️'
     };
-    return icons[toolId] || '🔧';
+    return iconMap[toolId] || '🔧';
   }
 
   private getToolStats(toolId: string): any {
     if (!this.dashboardStats) return null;
-
+    
     switch (toolId) {
       case 'discord-users':
-        return {
-          totalUsers: this.dashboardStats.discordUsers.totalUsers,
-          activeUsers: this.dashboardStats.discordUsers.activeUsers
-        };
+        return this.dashboardStats.discordUsers;
       case 'ticket-transcripts':
-        return {
-          totalTranscripts: this.dashboardStats.ticketTranscripts.totalTranscripts,
-          avgMessages: this.dashboardStats.ticketTranscripts.avgMessages
-        };
+        return this.dashboardStats.ticketTranscripts;
       default:
         return null;
     }
   }
 
-  formatNumber(num: number): string {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
+  getUserInitial(): string {
+    return this.currentUser?.username?.charAt(0)?.toUpperCase() || '?';
   }
 
-  // Make Math available in template
-  Math = Math;
+  getUserDisplayName(): string {
+    return this.currentUser?.profile?.displayName || this.currentUser?.username || 'Unbekannt';
+  }
+
+  getUserRole(): string {
+    return this.currentUser?.role?.name || 'Keine Rolle';
+  }
+
+  getLastLogin(): string {
+    const lastLogin = this.currentUser?.lastLogin;
+    if (!lastLogin) return 'Unbekannt';
+    return new Date(lastLogin).toLocaleDateString('de-DE');
+  }
+
+  hasAvatar(): boolean {
+    return !!(this.currentUser?.profile?.avatarUrl);
+  }
+
+  getAvatarUrl(): string {
+    return this.currentUser?.profile?.avatarUrl || '';
+  }
 }

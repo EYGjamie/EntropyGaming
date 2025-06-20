@@ -1,0 +1,9 @@
+<div class="app-root">
+  <!-- Show layout only for authenticated users and not on login page -->
+  <app-layout *ngIf="showLayout">
+    <router-outlet></router-outlet>
+  </app-layout>
+  
+  <!-- Show router outlet directly for login page -->
+  <router-outlet *ngIf="!showLayout"></router-outlet>
+</div>
