@@ -253,7 +253,7 @@ export class CommentsComponent implements OnInit, OnChanges {
     if (!comment.editContent?.trim()) return;
 
     comment.isUpdating = true;
-    this.commentsService.updateComment(comment.id, comment.editContent.trim(), comment.editIsPrivate)
+    this.commentsService.updateComment(comment.id, comment.editContent.trim())
       .subscribe({
         next: (updatedComment) => {
           Object.assign(comment, updatedComment);

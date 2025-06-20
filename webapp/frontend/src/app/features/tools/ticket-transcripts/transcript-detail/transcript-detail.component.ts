@@ -39,6 +39,7 @@ interface Comment {
   selector: 'app-transcript-detail',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
+  providers: [TicketTranscriptsService, CommentsService],
   template: `
     <div class="space-y-6">
       <!-- Back Button -->
@@ -254,14 +255,14 @@ export class TranscriptDetailComponent implements OnInit {
     this.error = null;
     
     this.ticketTranscriptsService.getTranscriptDetail(this.filename).subscribe({
-      next: (transcript) => {
-        this.transcript = transcript;
-        this.isLoading = false;
+      next: (transcript: TranscriptDetail) => {
+      this.transcript = transcript;
+      this.isLoading = false;
       },
-      error: (error) => {
-        console.error('Error loading transcript:', error);
-        this.error = 'Transkript konnte nicht geladen werden.';
-        this.isLoading = false;
+      error: (error: any) => {
+      console.error('Error loading transcript:', error);
+      this.error = 'Transkript konnte nicht geladen werden.';
+      this.isLoading = false;
       }
     });
   }
