@@ -27,3 +27,4 @@ go.work.sum
 # web files
 
 # db files
+/bot/reports
