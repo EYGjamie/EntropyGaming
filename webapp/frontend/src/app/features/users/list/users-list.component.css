@@ -136,6 +136,14 @@
   @apply bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 transition-colors;
 }
 
+/* Line clamp utility for bio text */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .users-grid {
@@ -147,83 +155,14 @@
   }
   
   .pagination-buttons {
-    @apply flex-wrap gap-1;
+    @apply space-x-1;
   }
-  
-  .header-actions {
-    @apply flex-col space-x-0 space-y-2;
+
+  .user-card {
+    @apply transform-none;
   }
-}
 
-@media (max-width: 1024px) {
-  .users-grid {
-    @apply grid-cols-1 md:grid-cols-2;
+  .user-card:hover {
+    @apply transform-none scale-100;
   }
-}
-
-/* Animation for user cards */
-.user-card {
-  animation: fadeInUp 0.3s ease-out;
-}
-
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hover effects */
-.user-card:hover .user-display-name {
-  @apply text-indigo-600;
-}
-
-.user-card:hover .user-avatar-placeholder {
-  @apply transform scale-110;
-}
-
-/* Focus styles for accessibility */
-.filter-input:focus,
-.pagination-button:focus {
-  @apply outline-none ring-2 ring-indigo-500 ring-offset-1;
-}
-
-.user-card:focus {
-  @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
-}
-
-/* Custom styles for role colors */
-.role-badge-custom {
-  opacity: 0.8;
-}
-
-/* Grid item hover effect */
-.user-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.05));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.user-card:hover::before {
-  opacity: 1;
-}
-
-/* Status indicator styles */
-.online-indicator {
-  @apply absolute -top-1 -right-1 h-4 w-4 bg-green-500 border-2 border-white rounded-full;
-}
-
-.offline-indicator {
-  @apply absolute -top-1 -right-1 h-4 w-4 bg-gray-400 border-2 border-white rounded-full;
 }

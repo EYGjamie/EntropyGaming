@@ -117,6 +117,40 @@ export class UsersListComponent implements OnInit {
     this.loadUsers();
   }
 
+  exportUsers(): void {
+    this.userService.getUsers(1, this.totalUsers, this.getApiFilters()).subscribe({
+      next: (response) => {
+        this.downloadUsersCSV(response.users);
+      },
+      error: (error) => {
+        console.error('Error exporting users:', error);
+        this.error = 'Fehler beim Exportieren der Benutzer';
+      }
+    });
+  }
+
+  private downloadUsersCSV(users: User[]): void {
+    const headers = ['Name', 'E-Mail', 'Rolle', 'Status', 'Erstellt am', 'Letzter Login'];
+    const csvContent = [
+      headers.join(','),
+      ...users.map(user => [
+        `"${this.formatDisplayName(user)}"`,
+        `"${user.email}"`,
+        `"${user.role.displayName}"`,
+        `"${this.getUserStatusText(user)}"`,
+        `"${this.formatDate(user.createdAt)}"`,
+        `"${user.lastLogin ? this.formatDate(user.lastLogin) : 'Nie'}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `benutzer_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
   getUserStatusBadgeClass(user: User): string {
     return user.isActive 
       ? 'bg-green-100 text-green-800' 
@@ -131,12 +165,20 @@ export class UsersListComponent implements OnInit {
     return role.color ? `bg-${role.color}-100 text-${role.color}-800` : 'bg-gray-100 text-gray-800';
   }
 
+  getRoleColor(user: User): string {
+    return user.role.color || '#6b7280';
+  }
+
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('de-DE');
   }
 
   formatDisplayName(user: User): string {
     return user.profile?.displayName || user.username;
+  }
+
+  getUserDisplayName(user: User): string {
+    return this.formatDisplayName(user);
   }
 
   getAvatarUrl(user: User): string | null {

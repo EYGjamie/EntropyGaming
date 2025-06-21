@@ -1,0 +1,359 @@
+/* Discord User Detail Component Styles */
+
+.user-header {
+  @apply bg-white shadow rounded-lg overflow-hidden;
+}
+
+.user-cover {
+  @apply bg-gradient-to-r from-indigo-500 to-purple-600 h-24;
+}
+
+.user-info-section {
+  @apply px-6 py-4;
+}
+
+.user-avatar-container {
+  @apply flex items-center -mt-12;
+}
+
+.user-avatar {
+  @apply h-20 w-20 rounded-full border-4 border-white shadow-lg object-cover;
+}
+
+.user-avatar-placeholder {
+  @apply h-20 w-20 rounded-full bg-indigo-600 border-4 border-white shadow-lg flex items-center justify-center;
+}
+
+.status-indicator {
+  @apply absolute bottom-1 right-1 h-5 w-5 rounded-full border-2 border-white;
+}
+
+.status-online {
+  @apply bg-green-500;
+}
+
+.status-idle {
+  @apply bg-yellow-500;
+}
+
+.status-dnd {
+  @apply bg-red-500;
+}
+
+.status-offline {
+  @apply bg-gray-500;
+}
+
+.user-display-name {
+  @apply text-3xl font-bold text-gray-900;
+}
+
+.user-tag {
+  @apply text-lg text-gray-600;
+}
+
+.user-id {
+  @apply text-sm text-gray-500;
+}
+
+.user-meta {
+  @apply flex items-center space-x-4 mt-2;
+}
+
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800;
+}
+
+.stats-grid {
+  @apply grid grid-cols-1 md:grid-cols-4 gap-6;
+}
+
+.stats-card {
+  @apply bg-white shadow rounded-lg p-6;
+}
+
+.stats-content {
+  @apply flex items-center;
+}
+
+.stats-icon {
+  @apply text-3xl mr-4;
+}
+
+.stats-value {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.stats-label {
+  @apply text-sm text-gray-500;
+}
+
+.content-grid {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+}
+
+.main-content {
+  @apply lg:col-span-2 space-y-6;
+}
+
+.sidebar-content {
+  @apply space-y-6;
+}
+
+.info-card {
+  @apply bg-white shadow rounded-lg p-6;
+}
+
+.card-title {
+  @apply text-lg font-medium text-gray-900 mb-4;
+}
+
+.info-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.info-item {
+  @apply space-y-1;
+}
+
+.info-label {
+  @apply text-sm font-medium text-gray-500;
+}
+
+.info-value {
+  @apply text-sm text-gray-900;
+}
+
+.roles-container {
+  @apply flex flex-wrap gap-2;
+}
+
+.role-badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.role-badge.default {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.activities-list {
+  @apply space-y-2;
+}
+
+.activity-item {
+  @apply flex items-center space-x-2;
+}
+
+.activity-text {
+  @apply text-sm text-gray-600;
+}
+
+.activity-details {
+  @apply text-xs text-gray-500;
+}
+
+.notes-form {
+  @apply space-y-4;
+}
+
+.notes-textarea {
+  @apply mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.notes-textarea.error {
+  @apply border-red-300 focus:ring-red-500 focus:border-red-500;
+}
+
+.notes-meta {
+  @apply mt-1 flex justify-between;
+}
+
+.character-counter {
+  @apply text-xs text-gray-500;
+}
+
+.character-counter.warning {
+  @apply text-yellow-600;
+}
+
+.character-counter.error {
+  @apply text-red-600;
+}
+
+.save-button {
+  @apply bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors;
+}
+
+.quick-stats {
+  @apply space-y-3;
+}
+
+.stat-row {
+  @apply flex justify-between;
+}
+
+.stat-label {
+  @apply text-sm text-gray-500;
+}
+
+.stat-value {
+  @apply text-sm font-medium text-gray-900;
+}
+
+.avatar-display {
+  @apply text-center;
+}
+
+.large-avatar {
+  @apply h-32 w-32 rounded-full mx-auto object-cover border-4 border-gray-200;
+}
+
+.large-avatar-placeholder {
+  @apply h-32 w-32 rounded-full bg-indigo-600 mx-auto flex items-center justify-center border-4 border-gray-200;
+}
+
+.avatar-name {
+  @apply text-sm text-gray-500 mt-2;
+}
+
+.avatar-tag {
+  @apply text-xs text-gray-400;
+}
+
+.actions-list {
+  @apply space-y-2;
+}
+
+.action-button {
+  @apply w-full px-4 py-2 rounded-md text-sm font-medium transition-colors;
+}
+
+.action-button.primary {
+  @apply bg-indigo-600 text-white hover:bg-indigo-700;
+}
+
+.action-button.secondary {
+  @apply bg-gray-300 text-gray-700 hover:bg-gray-400;
+}
+
+.action-button.warning {
+  @apply bg-yellow-300 text-yellow-800 hover:bg-yellow-400;
+}
+
+.back-button {
+  @apply text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center transition-colors;
+}
+
+.loading-skeleton {
+  @apply animate-pulse;
+}
+
+.skeleton-avatar {
+  @apply h-20 w-20 bg-gray-300 rounded-full;
+}
+
+.skeleton-text {
+  @apply h-4 bg-gray-300 rounded;
+}
+
+.skeleton-text-small {
+  @apply h-3 bg-gray-300 rounded;
+}
+
+.error-container {
+  @apply bg-red-50 border border-red-200 rounded-lg p-6;
+}
+
+.error-title {
+  @apply text-lg font-medium text-red-900 mb-2;
+}
+
+.error-message {
+  @apply text-red-700;
+}
+
+.retry-button {
+  @apply mt-4 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors;
+}
+
+.success-message {
+  @apply text-green-600 text-sm;
+}
+
+.error-text {
+  @apply text-red-500 text-sm;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .content-grid {
+    @apply grid-cols-1;
+  }
+  
+  .main-content {
+    @apply col-span-1;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    @apply grid-cols-1 gap-4;
+  }
+  
+  .info-grid {
+    @apply grid-cols-1;
+  }
+  
+  .user-avatar-container {
+    @apply flex-col items-start space-y-4;
+  }
+  
+  .user-info-section {
+    @apply -mt-6;
+  }
+  
+  .user-meta {
+    @apply flex-col items-start space-y-2 space-x-0;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    @apply grid-cols-2;
+  }
+  
+  .stats-content {
+    @apply flex-col items-center text-center;
+  }
+  
+  .stats-icon {
+    @apply text-2xl mr-0 mb-2;
+  }
+}
+
+/* Focus states for accessibility */
+.action-button:focus {
+  @apply outline-none ring-2 ring-offset-2;
+}
+
+.action-button.primary:focus {
+  @apply ring-indigo-500;
+}
+
+.action-button.secondary:focus {
+  @apply ring-gray-500;
+}
+
+.action-button.warning:focus {
+  @apply ring-yellow-500;
+}
+
+.save-button:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-indigo-500;
+}
+
+.back-button:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-indigo-500 rounded;
+}

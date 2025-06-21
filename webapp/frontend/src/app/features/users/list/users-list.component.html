@@ -70,10 +70,11 @@
       </div>
     </div>
 
-    <div class="mt-4 flex justify-end">
-      <button 
+    <!-- Clear Filters -->
+    <div class="mt-4">
+      <button
         (click)="clearFilters()"
-        class="text-sm text-gray-600 hover:text-gray-900"
+        class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
       >
         Filter zurücksetzen
       </button>
@@ -86,14 +87,14 @@
   </div>
 
   <!-- Users Grid -->
-  <div *ngIf="!isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <div *ngIf="!isLoading && filteredUsers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     <div 
-      *ngFor="let user of filteredUsers" 
-      class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      *ngFor="let user of filteredUsers"
+      class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer"
       [routerLink]="['/users', user.id]"
     >
       <div class="p-6">
-        <!-- Avatar and Basic Info -->
+        <!-- User Avatar and Info -->
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">
             <img 
@@ -144,66 +145,84 @@
           </p>
         </div>
 
-        <!-- Join Date -->
-        <div class="mt-4 text-xs text-gray-500">
+        <!-- User Meta -->
+        <div class="mt-3 text-xs text-gray-500">
           Beigetreten: {{ formatDate(user.createdAt) }}
-        </div>
-
-        <!-- Last Login -->
-        <div *ngIf="user.lastLogin" class="text-xs text-gray-500">
-          Letzter Login: {{ formatDate(user.lastLogin) }}
-        </div>
-        <div *ngIf="!user.lastLogin" class="text-xs text-gray-500">
-          Noch nie angemeldet
-        </div>
-      </div>
-    </div>
-
-    <!-- Empty State -->
-    <div *ngIf="filteredUsers.length === 0" class="col-span-full">
-      <div class="text-center py-12">
-        <div class="text-gray-500">
-          <p class="text-lg font-medium">Keine Benutzer gefunden</p>
-          <p class="mt-1">Versuchen Sie, Ihre Filter anzupassen.</p>
+          <span *ngIf="user.lastLogin">
+            · Letzter Login: {{ formatDate(user.lastLogin) }}
+          </span>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredUsers.length === 0" class="text-center py-12">
+    <div class="text-gray-500">
+      <p class="text-lg font-medium">Keine Benutzer gefunden</p>
+      <p class="mt-1">Versuchen Sie, die Filter anzupassen.</p>
+    </div>
+  </div>
+
   <!-- Pagination -->
   <div *ngIf="!isLoading && totalPages > 1" class="bg-white shadow rounded-lg">
-    <div class="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-      <div class="text-sm text-gray-700">
-        Zeige {{ (currentPage - 1) * pageSize + 1 }} bis {{ Math.min(currentPage * pageSize, totalUsers) }} von {{ totalUsers }} Benutzern
-      </div>
-      <div class="flex space-x-1">
-        <!-- Previous Page -->
-        <button 
+    <div class="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <button
           (click)="onPageChange(currentPage - 1)"
           [disabled]="currentPage === 1"
-          class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
         >
-          ‹ Zurück
+          Zurück
         </button>
-
-        <!-- Page Numbers -->
-        <button 
-          *ngFor="let page of getPageNumbers()"
-          (click)="onPageChange(page)"
-          [class]="page === currentPage ? 'bg-indigo-600 text-white' : 'text-gray-500 bg-white hover:bg-gray-50'"
-          class="px-3 py-2 text-sm font-medium border border-gray-300 rounded-md"
-        >
-          {{ page }}
-        </button>
-
-        <!-- Next Page -->
-        <button 
+        <button
           (click)="onPageChange(currentPage + 1)"
           [disabled]="currentPage === totalPages"
-          class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
         >
-          Weiter ›
+          Weiter
         </button>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Zeige <span class="font-medium">{{ getStartEntry() }}</span> bis 
+            <span class="font-medium">{{ getEndEntry() }}</span> von 
+            <span class="font-medium">{{ totalUsers }}</span> Ergebnissen
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            <!-- Previous Button -->
+            <button
+              (click)="onPageChange(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              ←
+            </button>
+
+            <!-- Page Numbers -->
+            <button
+              *ngFor="let page of getPageNumbers()"
+              (click)="onPageChange(page)"
+              [class]="page === currentPage ? 
+                'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-600 text-sm font-medium text-white' :
+                'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'"
+            >
+              {{ page }}
+            </button>
+
+            <!-- Next Button -->
+            <button
+              (click)="onPageChange(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              →
+            </button>
+          </nav>
+        </div>
       </div>
     </div>
   </div>

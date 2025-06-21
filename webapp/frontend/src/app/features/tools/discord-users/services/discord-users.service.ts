@@ -5,21 +5,21 @@ import { tap } from 'rxjs/operators';
 
 export interface DiscordUser {
   id: string;
-  discordId: string;
   username: string;
   discriminator: string;
+  displayName?: string;
   nickname?: string;
-  avatarUrl?: string;
+  avatar?: string;
   joinedAt: string;
-  lastSeen?: string;
-  isOnline: boolean;
-  messageCount: number;
-  voiceMinutes: number;
   roles: DiscordRole[];
-  comments?: number;
-  status: 'active' | 'inactive' | 'banned';
-  createdAt: string;
-  updatedAt: string;
+  isBot: boolean;
+  status: 'online' | 'offline' | 'idle' | 'dnd';
+  activities: DiscordActivity[];
+  messageCount: number;
+  voiceTime: number;
+  lastMessage?: string;
+  lastSeen?: string;
+  notes?: string;
 }
 
 export interface DiscordRole {
@@ -27,27 +27,34 @@ export interface DiscordRole {
   name: string;
   color: string;
   position: number;
+  permissions: string;
+}
+
+export interface DiscordActivity {
+  name: string;
+  type: number;
+  state?: string;
+  details?: string;
 }
 
 export interface DiscordUserStats {
   totalUsers: number;
   activeUsers: number;
-  onlineUsers: number;
   totalMessages: number;
   totalVoiceMinutes: number;
-  avgMessagesPerUser: number;
-  avgVoiceMinutesPerUser: number;
+  averageMessagesPerUser: number;
+  mostActiveUser: {
+    id: string;
+    username: string;
+    messageCount: number;
+  };
 }
 
 export interface DiscordUserFilters {
   search?: string;
-  status?: 'active' | 'inactive' | 'banned' | 'all';
-  isOnline?: boolean;
-  roleId?: string;
-  minMessages?: number;
-  maxMessages?: number;
-  minVoiceMinutes?: number;
-  maxVoiceMinutes?: number;
+  status?: string;
+  role?: string;
+  hasMessages?: boolean;
   joinedAfter?: string;
   joinedBefore?: string;
 }
@@ -100,6 +107,13 @@ export class DiscordUsersService {
   }
 
   /**
+   * Get a specific Discord user by ID (alternative method name)
+   */
+  getUserById(userId: string): Observable<DiscordUser> {
+    return this.getUser(userId);
+  }
+
+  /**
    * Search Discord users
    */
   searchUsers(query: string, limit: number = 20): Observable<DiscordUser[]> {
@@ -122,6 +136,13 @@ export class DiscordUsersService {
    */
   updateUserStatus(userId: string, status: 'active' | 'inactive' | 'banned'): Observable<DiscordUser> {
     return this.http.patch<DiscordUser>(`${this.apiUrl}/${userId}/status`, { status });
+  }
+
+  /**
+   * Update user notes
+   */
+  updateUserNotes(userId: string, notes: string): Observable<DiscordUser> {
+    return this.http.patch<DiscordUser>(`${this.apiUrl}/${userId}/notes`, { notes });
   }
 
   /**
@@ -150,7 +171,7 @@ export class DiscordUsersService {
    */
   exportUsers(filters?: DiscordUserFilters): Observable<Blob> {
     let params = new HttpParams();
-
+    
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -166,61 +187,80 @@ export class DiscordUsersService {
   }
 
   /**
-   * Get user activity timeline
+   * Get user avatar URL
    */
-  getUserActivity(userId: string, days: number = 30): Observable<any[]> {
-    const params = new HttpParams().set('days', days.toString());
-    return this.http.get<any[]>(`${this.apiUrl}/${userId}/activity`, { params });
-  }
-
-  /**
-   * Clear the local users cache
-   */
-  clearUsers(): void {
-    this.usersSubject.next([]);
+  getAvatarUrl(user: DiscordUser, size: number = 64): string {
+    if (user.avatar) {
+      return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=${size}`;
+    }
+    // Default avatar based on discriminator
+    const defaultAvatarNum = parseInt(user.discriminator) % 5;
+    return `https://cdn.discordapp.com/embed/avatars/${defaultAvatarNum}.png`;
   }
 
   /**
    * Format user display name
    */
-  formatUserDisplayName(user: DiscordUser): string {
-    if (user.nickname) {
-      return user.nickname;
-    }
-    return user.discriminator && user.discriminator !== '0' 
-      ? `${user.username}#${user.discriminator}`
-      : user.username;
+  getDisplayName(user: DiscordUser): string {
+    return user.displayName || user.nickname || user.username;
   }
 
   /**
-   * Get user status color
+   * Get user tag (username#discriminator)
    */
-  getUserStatusColor(user: DiscordUser): string {
-    switch (user.status) {
-      case 'active':
-        return 'text-green-600';
-      case 'inactive':
-        return 'text-yellow-600';
-      case 'banned':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
+  getUserTag(user: DiscordUser): string {
+    return `${user.username}#${user.discriminator}`;
+  }
+
+  /**
+   * Format user status
+   */
+  getStatusText(status: string): string {
+    switch (status) {
+      case 'online': return 'Online';
+      case 'idle': return 'Abwesend';
+      case 'dnd': return 'Nicht stören';
+      case 'offline': return 'Offline';
+      default: return 'Unbekannt';
     }
   }
 
   /**
-   * Get user status badge color
+   * Get status color class
    */
-  getUserStatusBadgeColor(user: DiscordUser): string {
-    switch (user.status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'banned':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  getStatusColorClass(status: string): string {
+    switch (status) {
+      case 'online': return 'bg-green-500';
+      case 'idle': return 'bg-yellow-500';
+      case 'dnd': return 'bg-red-500';
+      case 'offline': return 'bg-gray-500';
+      default: return 'bg-gray-400';
     }
+  }
+
+  /**
+   * Format join date
+   */
+  formatJoinDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('de-DE');
+  }
+
+  /**
+   * Format voice time
+   */
+  formatVoiceTime(minutes: number): string {
+    if (minutes < 60) {
+      return `${minutes} Min`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
+  }
+
+  /**
+   * Clear users cache
+   */
+  clearUsers(): void {
+    this.usersSubject.next([]);
   }
 }

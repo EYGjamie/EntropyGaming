@@ -1,0 +1,174 @@
+/* Profile Settings Component Styles */
+
+.settings-section {
+  @apply bg-white shadow rounded-lg p-6;
+}
+
+.section-header {
+  @apply flex justify-between items-start;
+}
+
+.section-title {
+  @apply text-lg font-medium text-gray-900;
+}
+
+.section-description {
+  @apply text-sm text-gray-500 mt-1;
+}
+
+.toggle-button {
+  @apply bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors;
+}
+
+.cancel-button {
+  @apply bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 transition-colors;
+}
+
+.form-section {
+  @apply mt-6 space-y-4;
+}
+
+.form-input {
+  @apply mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500;
+}
+
+.form-input.error {
+  @apply border-red-300 focus:ring-red-500 focus:border-red-500;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700;
+}
+
+.form-actions {
+  @apply flex justify-end space-x-3;
+}
+
+.primary-button {
+  @apply bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors;
+}
+
+.secondary-button {
+  @apply bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 transition-colors;
+}
+
+.error-message {
+  @apply text-red-500 text-sm;
+}
+
+.success-message {
+  @apply text-green-600 text-sm;
+}
+
+.subsection-title {
+  @apply text-base font-medium text-gray-900 mb-4;
+}
+
+.checkbox-group {
+  @apply space-y-3;
+}
+
+.checkbox-item {
+  @apply flex items-center;
+}
+
+.checkbox-input {
+  @apply rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50;
+}
+
+.checkbox-label {
+  @apply ml-2 text-sm text-gray-700;
+}
+
+.settings-grid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+}
+
+.select-input {
+  @apply mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500;
+}
+
+.danger-zone {
+  @apply bg-white shadow rounded-lg p-6;
+}
+
+.danger-title {
+  @apply text-lg font-medium text-red-600 mb-4;
+}
+
+.danger-content {
+  @apply bg-red-50 border border-red-200 rounded-lg p-4;
+}
+
+.danger-section-title {
+  @apply text-base font-medium text-red-900;
+}
+
+.danger-description {
+  @apply text-sm text-red-700 mt-1;
+}
+
+.danger-button {
+  @apply mt-3 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 disabled:bg-red-400 transition-colors;
+}
+
+.loading-skeleton {
+  @apply animate-pulse;
+}
+
+.skeleton-title {
+  @apply h-4 bg-gray-300 rounded w-1/4 mb-4;
+}
+
+.skeleton-line {
+  @apply h-3 bg-gray-300 rounded;
+}
+
+.skeleton-line-short {
+  @apply h-3 bg-gray-300 rounded w-5/6;
+}
+
+/* Form validation styles */
+.form-group {
+  @apply space-y-1;
+}
+
+.form-group.has-error .form-input {
+  @apply border-red-300 focus:ring-red-500 focus:border-red-500;
+}
+
+.form-group .error-text {
+  @apply text-red-500 text-xs mt-1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .section-header {
+    @apply flex-col items-start space-y-3;
+  }
+  
+  .form-actions {
+    @apply flex-col space-y-2 space-x-0;
+  }
+  
+  .settings-grid {
+    @apply grid-cols-1;
+  }
+}
+
+/* Focus and interaction states */
+.toggle-button:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-indigo-500;
+}
+
+.primary-button:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-indigo-500;
+}
+
+.secondary-button:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-gray-500;
+}
+
+.danger-button:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-red-500;
+}

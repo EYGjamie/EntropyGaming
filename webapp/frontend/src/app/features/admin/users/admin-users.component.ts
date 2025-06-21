@@ -211,4 +211,39 @@ export class AdminUsersComponent implements OnInit {
   getEndEntry(): number {
     return Math.min(this.currentPage * this.pageSize, this.totalUsers);
   }
+
+  exportUsers(): void {
+    this.userService.getUsers(1, this.totalUsers, this.getApiFilters()).subscribe({
+      next: (response) => {
+        this.downloadUsersCSV(response.users);
+      },
+      error: (error) => {
+        console.error('Error exporting users:', error);
+        this.error = 'Fehler beim Exportieren der Benutzer';
+      }
+    });
+  }
+
+  private downloadUsersCSV(users: User[]): void {
+    const headers = ['Name', 'E-Mail', 'Rolle', 'Status', 'Berechtigungen', 'Erstellt am', 'Letzter Login'];
+    const csvContent = [
+      headers.join(','),
+      ...users.map(user => [
+        `"${this.formatDisplayName(user)}"`,
+        `"${user.email}"`,
+        `"${user.role.displayName}"`,
+        `"${this.getUserStatusText(user)}"`,
+        `"${user.permissions.map(p => p.displayName).join('; ')}"`,
+        `"${this.formatDate(user.createdAt)}"`,
+        `"${user.lastLogin ? this.formatDate(user.lastLogin) : 'Nie'}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `admin_benutzer_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
 }

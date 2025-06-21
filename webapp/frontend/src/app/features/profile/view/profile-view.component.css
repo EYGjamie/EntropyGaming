@@ -1,0 +1,254 @@
+/* Profile View Component Styles */
+
+.profile-header {
+  @apply bg-white shadow rounded-lg overflow-hidden;
+}
+
+.profile-cover {
+  @apply bg-gradient-to-r from-indigo-500 to-purple-600 h-32;
+}
+
+.profile-info-section {
+  @apply px-6 py-4;
+}
+
+.profile-avatar-container {
+  @apply flex items-center -mt-16;
+}
+
+.profile-avatar {
+  @apply h-24 w-24 rounded-full border-4 border-white shadow-lg object-cover;
+}
+
+.profile-avatar-placeholder {
+  @apply h-24 w-24 rounded-full border-4 border-white shadow-lg bg-indigo-600 flex items-center justify-center;
+}
+
+.profile-name {
+  @apply text-3xl font-bold text-gray-900;
+}
+
+.profile-username {
+  @apply text-lg text-gray-600;
+}
+
+.profile-meta {
+  @apply flex items-center space-x-4 mt-2;
+}
+
+.profile-actions {
+  @apply flex space-x-2;
+}
+
+.profile-card {
+  @apply bg-white shadow rounded-lg p-6;
+}
+
+.card-title {
+  @apply text-lg font-medium text-gray-900 mb-4;
+}
+
+.card-content {
+  @apply text-gray-700;
+}
+
+.completion-badge {
+  @apply text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded;
+}
+
+.permissions-category {
+  @apply mb-6 last:mb-0;
+}
+
+.category-title {
+  @apply text-sm font-medium text-gray-700 mb-2;
+}
+
+.permissions-list {
+  @apply flex flex-wrap gap-2;
+}
+
+.permission-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.permission-badge.admin {
+  @apply bg-red-100 text-red-800;
+}
+
+.permission-badge.user {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.permission-badge.tools {
+  @apply bg-green-100 text-green-800;
+}
+
+.permission-badge.comments {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.permission-badge.default {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.stats-grid {
+  @apply space-y-3;
+}
+
+.stats-item {
+  @apply flex justify-between;
+}
+
+.stats-label {
+  @apply text-sm text-gray-500;
+}
+
+.stats-value {
+  @apply text-sm font-medium text-gray-900;
+}
+
+.progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-2;
+}
+
+.progress-fill {
+  @apply bg-indigo-600 h-2 rounded-full transition-all duration-300;
+}
+
+.role-badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.status-badge {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.status-badge.active {
+  @apply bg-green-100 text-green-800;
+}
+
+.contact-item {
+  @apply flex items-center;
+}
+
+.contact-label {
+  @apply text-sm text-gray-500 w-16;
+}
+
+.contact-value {
+  @apply text-sm text-gray-900;
+}
+
+.quick-actions {
+  @apply space-y-2;
+}
+
+.action-button {
+  @apply w-full px-4 py-2 rounded-md text-sm font-medium transition-colors;
+}
+
+.action-button.primary {
+  @apply bg-indigo-600 text-white hover:bg-indigo-700;
+}
+
+.action-button.secondary {
+  @apply bg-gray-300 text-gray-700 hover:bg-gray-400;
+}
+
+.empty-state {
+  @apply text-center py-8;
+}
+
+.empty-state-icon {
+  @apply text-gray-400 text-lg mb-2;
+}
+
+.empty-state-text {
+  @apply text-gray-500;
+}
+
+/* Loading states */
+.loading-skeleton {
+  @apply animate-pulse;
+}
+
+.skeleton-avatar {
+  @apply h-20 w-20 bg-gray-300 rounded-full;
+}
+
+.skeleton-text {
+  @apply h-4 bg-gray-300 rounded;
+}
+
+.skeleton-text-small {
+  @apply h-3 bg-gray-300 rounded;
+}
+
+/* Error states */
+.error-container {
+  @apply bg-red-50 border border-red-200 rounded-lg p-6;
+}
+
+.error-title {
+  @apply text-lg font-medium text-red-900 mb-2;
+}
+
+.error-message {
+  @apply text-red-700;
+}
+
+/* Profile completion indicator */
+.completion-indicator {
+  @apply flex items-center justify-between mb-4;
+}
+
+.completion-text {
+  @apply text-sm text-gray-600;
+}
+
+.completion-percentage {
+  @apply text-sm font-medium text-indigo-600;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .profile-avatar-container {
+    @apply flex-col items-start space-y-4;
+  }
+  
+  .profile-info-section {
+    @apply -mt-12;
+  }
+  
+  .profile-actions {
+    @apply w-full justify-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-meta {
+    @apply flex-col items-start space-y-2 space-x-0;
+  }
+  
+  .profile-actions {
+    @apply flex-col space-y-2 space-x-0;
+  }
+  
+  .action-button {
+    @apply w-full;
+  }
+}
+
+/* Focus states for accessibility */
+.action-button:focus {
+  @apply outline-none ring-2 ring-offset-2;
+}
+
+.action-button.primary:focus {
+  @apply ring-indigo-500;
+}
+
+.action-button.secondary:focus {
+  @apply ring-gray-500;
+}
