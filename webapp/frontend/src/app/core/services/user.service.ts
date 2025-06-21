@@ -13,6 +13,7 @@ export interface User {
     name: string;
     displayName: string;
     color?: string;
+    permissions?: Permission[]; // permissions hinzugefügt
   };
   permissions: Permission[];
   profile?: {
@@ -174,163 +175,58 @@ export class UserService {
   }
 
   /**
-   * Update user status (active/inactive)
-   */
-  updateUserStatus(userId: string, status: 'active' | 'inactive'): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${userId}/status`, { 
-      isActive: status === 'active' 
-    })
-      .pipe(
-        tap(updatedUser => {
-          const currentUsers = this.usersSubject.value;
-          const index = currentUsers.findIndex(u => u.id.toString() === userId);
-          if (index !== -1) {
-            currentUsers[index] = updatedUser;
-            this.usersSubject.next([...currentUsers]);
-          }
-        })
-      );
-  }
-
-  /**
-   * Update user role
-   */
-  updateUserRole(userId: string, roleId: number): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${userId}/role`, { roleId })
-      .pipe(
-        tap(updatedUser => {
-          const currentUsers = this.usersSubject.value;
-          const index = currentUsers.findIndex(u => u.id.toString() === userId);
-          if (index !== -1) {
-            currentUsers[index] = updatedUser;
-            this.usersSubject.next([...currentUsers]);
-          }
-        })
-      );
-  }
-
-  /**
-   * Update user permissions
-   */
-  updateUserPermissions(userId: string, permissionIds: number[]): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${userId}/permissions`, { permissionIds })
-      .pipe(
-        tap(updatedUser => {
-          const currentUsers = this.usersSubject.value;
-          const index = currentUsers.findIndex(u => u.id.toString() === userId);
-          if (index !== -1) {
-            currentUsers[index] = updatedUser;
-            this.usersSubject.next([...currentUsers]);
-          }
-        })
-      );
-  }
-
-  /**
-   * Search users
-   */
-  searchUsers(query: string, limit: number = 20): Observable<User[]> {
-    const params = new HttpParams()
-      .set('search', query)
-      .set('limit', limit.toString());
-
-    return this.http.get<User[]>(`${this.apiUrl}/search`, { params });
-  }
-
-  /**
    * Get available roles
    */
   getRoles(): Observable<Role[]> {
-    return this.http.get<Role[]>('/api/roles');
+    return this.http.get<Role[]>(`${this.apiUrl}/roles`);
   }
 
   /**
    * Get available permissions
    */
   getPermissions(): Observable<Permission[]> {
-    return this.http.get<Permission[]>('/api/permissions');
+    return this.http.get<Permission[]>(`${this.apiUrl}/permissions`);
   }
 
   /**
-   * Export users as CSV
+   * Activate/Deactivate user
    */
-  exportUsers(filters?: UserFilters): Observable<Blob> {
-    let params = new HttpParams();
+  toggleUserStatus(userId: string, isActive: boolean): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${userId}/status`, { isActive })
+      .pipe(
+        tap(updatedUser => {
+          const currentUsers = this.usersSubject.value;
+          const index = currentUsers.findIndex(u => u.id.toString() === userId);
+          if (index !== -1) {
+            currentUsers[index] = updatedUser;
+            this.usersSubject.next([...currentUsers]);
+          }
+        })
+      );
+  }
 
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          params = params.set(key, value.toString());
-        }
-      });
+  /**
+   * Check if user has specific permission
+   */
+  hasPermission(user: User, permission: string): boolean {
+    // Check direct permissions
+    if (user.permissions?.some(p => p.name === permission)) {
+      return true;
     }
-
-    return this.http.get(`${this.apiUrl}/export`, { 
-      params, 
-      responseType: 'blob' 
-    });
+    
+    // Check role permissions
+    return user.role?.permissions?.some(p => p.name === permission) || false;
   }
 
   /**
-   * Get user statistics
+   * Check if current user has permission
    */
-  getUserStats(): Observable<{
-    total: number;
-    active: number;
-    inactive: number;
-    newThisWeek: number;
-    newThisMonth: number;
-    byRole: { role: string; count: number }[];
-  }> {
-    return this.http.get<{
-      total: number;
-      active: number;
-      inactive: number;
-      newThisWeek: number;
-      newThisMonth: number;
-      byRole: { role: string; count: number }[];
-    }>(`${this.apiUrl}/stats`);
+  checkPermission(permission: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/check-permission/${permission}`);
   }
 
   /**
-   * Get user activity log
-   */
-  getUserActivity(userId: string, page: number = 1, limit: number = 50): Observable<{
-    activities: any[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('limit', limit.toString());
-
-    return this.http.get<{
-      activities: any[];
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    }>(`${this.apiUrl}/${userId}/activity`, { params });
-  }
-
-  /**
-   * Reset user password (admin only)
-   */
-  resetUserPassword(userId: string): Observable<{ temporaryPassword: string }> {
-    return this.http.post<{ temporaryPassword: string }>(`${this.apiUrl}/${userId}/reset-password`, {});
-  }
-
-  /**
-   * Impersonate user (admin only)
-   */
-  impersonateUser(userId: string): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/${userId}/impersonate`, {});
-  }
-
-  /**
-   * Clear the local users cache
+   * Clear users cache
    */
   clearUsers(): void {
     this.usersSubject.next([]);
@@ -339,36 +235,22 @@ export class UserService {
   /**
    * Format user display name
    */
-  formatUserDisplayName(user: User): string {
+  formatDisplayName(user: User): string {
     return user.profile?.displayName || user.username;
   }
 
   /**
-   * Get user status color
+   * Get user avatar URL or generate initials
    */
-  getUserStatusColor(user: User): string {
-    return user.isActive ? 'text-green-600' : 'text-red-600';
+  getAvatarUrl(user: User): string | null {
+    return user.profile?.avatarUrl || null;
   }
 
   /**
-   * Get user status badge color
+   * Get user initials for avatar placeholder
    */
-  getUserStatusBadgeColor(user: User): string {
-    return user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-  }
-
-  /**
-   * Check if user has specific permission
-   */
-  userHasPermission(user: User, permission: string): boolean {
-    return user.permissions.some(p => p.name === permission) ||
-           user.role.permissions?.some(p => p.name === permission);
-  }
-
-  /**
-   * Get user role color
-   */
-  getUserRoleColor(user: User): string {
-    return user.role.color || '#6366f1';
+  getUserInitials(user: User): string {
+    const name = this.formatDisplayName(user);
+    return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
   }
 }

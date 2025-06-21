@@ -1,26 +1,36 @@
 /* Comments Component Styles */
 
-.comments-container {
-  @apply space-y-6;
+.comment-form {
+  @apply bg-gray-50 rounded-lg p-4;
+}
+
+.comment-textarea {
+  @apply mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.comment-textarea.error {
+  @apply border-red-300 focus:ring-red-500 focus:border-red-500;
+}
+
+.comment-submit-btn {
+  @apply bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors duration-200;
 }
 
 .comment-item {
-  @apply bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200;
+  @apply bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200;
 }
 
-.comment-item:hover {
-  @apply border-gray-300 shadow-sm;
+.comment-avatar {
+  @apply h-8 w-8 rounded-full object-cover;
 }
 
-.comment-author-avatar {
-  @apply h-10 w-10 rounded-full object-cover;
+.comment-avatar-placeholder {
+  @apply h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center;
 }
 
-.comment-author-placeholder {
-  @apply h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-medium;
-}
-
-.comment-author-name {
+.comment-author {
   @apply text-sm font-medium text-gray-900;
 }
 
@@ -29,215 +39,68 @@
 }
 
 .comment-content {
-  @apply text-gray-900 whitespace-pre-wrap leading-relaxed;
+  @apply text-gray-700 whitespace-pre-wrap mt-2;
+  word-wrap: break-word;
 }
 
 .comment-actions {
-  @apply flex space-x-4 mt-3;
+  @apply flex items-center space-x-2;
 }
 
-.comment-action-button {
-  @apply text-sm text-gray-500 hover:text-indigo-600 transition-colors cursor-pointer;
+.comment-action-btn {
+  @apply text-gray-400 hover:text-gray-600 text-sm cursor-pointer transition-colors duration-200;
 }
 
-.comment-action-button.delete:hover {
+.comment-action-btn:hover {
+  transform: scale(1.1);
+}
+
+.comment-delete-btn:hover {
   @apply text-red-600;
 }
 
-.new-comment-form {
-  @apply bg-white border border-gray-300 rounded-lg p-4;
-}
-
-.new-comment-textarea {
-  @apply block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 resize-none;
-}
-
-.new-comment-actions {
-  @apply flex justify-between items-center mt-3;
-}
-
-.new-comment-hint {
-  @apply text-sm text-gray-500;
-}
-
-.new-comment-buttons {
-  @apply flex space-x-3;
-}
-
-.edit-form {
-  @apply space-y-3;
-}
-
-.edit-textarea {
-  @apply block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500;
-}
-
-.edit-actions {
-  @apply flex justify-end space-x-3;
-}
-
-.btn-primary {
-  @apply bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors;
-}
-
-.btn-secondary {
-  @apply text-sm text-gray-500 hover:text-gray-700;
-}
-
-.btn-cancel {
-  @apply text-sm text-gray-500 hover:text-gray-700;
-}
-
-.empty-state {
+.comments-empty {
   @apply text-center py-8;
 }
 
-.empty-state-title {
-  @apply text-lg font-medium text-gray-500;
+.comments-empty-icon {
+  @apply text-gray-400 text-lg mb-2;
 }
 
-.empty-state-description {
-  @apply mt-1 text-gray-500;
+.comments-count {
+  @apply text-sm text-gray-500 text-center border-t pt-4;
 }
 
-.login-prompt {
-  @apply text-center py-8;
-}
-
-.login-button {
-  @apply mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors;
-}
-
-.loading-container {
-  @apply flex justify-center items-center h-32;
-}
-
-.loading-spinner {
-  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600;
+.loading-skeleton {
+  @apply bg-white border border-gray-200 rounded-lg p-4 animate-pulse;
 }
 
 .error-message {
-  @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4;
+  @apply bg-red-50 border border-red-200 rounded-lg p-4;
 }
 
-.error-close {
-  @apply float-right text-red-500 hover:text-red-700 cursor-pointer;
+.success-message {
+  @apply bg-green-50 border border-green-200 rounded-lg p-4;
 }
 
-.comments-header {
-  @apply flex justify-between items-center mb-6;
+/* Character counter */
+.character-counter {
+  @apply text-xs text-gray-500;
 }
 
-.comments-title {
-  @apply text-lg font-medium text-gray-900;
+.character-counter.warning {
+  @apply text-yellow-600;
 }
 
-.refresh-button {
-  @apply text-sm text-gray-500 hover:text-gray-700 cursor-pointer;
+.character-counter.error {
+  @apply text-red-600;
 }
 
-/* Animation for new comments */
-.comment-item {
-  animation: slideInUp 0.3s ease-out;
+/* Login prompt */
+.login-prompt {
+  @apply bg-gray-50 rounded-lg p-4 text-center;
 }
 
-@keyframes slideInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hover effects */
-.comment-item:hover .comment-author-name {
-  @apply text-indigo-600;
-}
-
-.comment-item:hover .comment-author-placeholder {
-  @apply transform scale-110;
-}
-
-/* Focus styles for accessibility */
-.new-comment-textarea:focus,
-.edit-textarea:focus {
-  @apply outline-none ring-2 ring-indigo-500 ring-offset-1;
-}
-
-.comment-action-button:focus,
-.refresh-button:focus {
-  @apply outline-none ring-2 ring-indigo-500 ring-offset-1 rounded;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .new-comment-actions {
-    @apply flex-col space-y-3 items-start;
-  }
-  
-  .new-comment-buttons {
-    @apply w-full justify-between;
-  }
-  
-  .edit-actions {
-    @apply justify-start;
-  }
-  
-  .comments-header {
-    @apply flex-col space-y-2 items-start;
-  }
-}
-
-/* Custom scrollbar for comment content */
-.comment-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.comment-content::-webkit-scrollbar-track {
-  @apply bg-gray-100;
-}
-
-.comment-content::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded;
-}
-
-.comment-content::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
-}
-
-/* Comment nesting indicators (for future use) */
-.comment-thread {
-  @apply border-l-2 border-gray-200 ml-6 pl-4;
-}
-
-.comment-reply-indicator {
-  @apply text-xs text-gray-400 mb-2;
-}
-
-/* Special styling for edited comments */
-.comment-edited {
-  @apply text-xs text-gray-400 italic;
-}
-
-/* Mention styling (for future use) */
-.comment-mention {
-  @apply text-indigo-600 font-medium;
-}
-
-/* Link styling in comments */
-.comment-content a {
-  @apply text-indigo-600 hover:text-indigo-800 underline;
-}
-
-/* Code styling in comments */
-.comment-content code {
-  @apply bg-gray-100 px-1 py-0.5 rounded text-sm font-mono;
-}
-
-/* Blockquote styling in comments */
-.comment-content blockquote {
-  @apply border-l-4 border-gray-300 pl-4 text-gray-600 italic;
+.login-link {
+  @apply text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200;
 }

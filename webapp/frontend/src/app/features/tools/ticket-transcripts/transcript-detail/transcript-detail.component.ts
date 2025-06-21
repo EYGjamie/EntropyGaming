@@ -1,223 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { TicketTranscriptsService } from '../services/ticket-transcripts.service';
-import { CommentsService } from '../../../shared/services/comments.service';
-
-interface TranscriptMessage {
-  id: string;
-  author: string;
-  authorId: string;
-  content: string;
-  timestamp: string;
-  attachments?: string[];
-  embeds?: any[];
-}
-
-interface TranscriptDetail {
-  filename: string;
-  ticketId: string;
-  userId: string;
-  username: string;
-  category: string;
-  createdAt: string;
-  closedAt: string;
-  messageCount: number;
-  messages: TranscriptMessage[];
-}
-
-interface Comment {
-  id: string;
-  content: string;
-  authorId: string;
-  authorName: string;
-  createdAt: string;
-}
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TicketTranscriptsService, TranscriptDetail, TranscriptMessage, TranscriptParticipant } from '../services/ticket-transcripts.service';
+import { CommentsService, Comment } from '../../../../shared/services/comments.service';
 
 @Component({
   selector: 'app-transcript-detail',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  providers: [TicketTranscriptsService, CommentsService],
-  template: `
-    <div class="space-y-6">
-      <!-- Back Button -->
-      <div>
-        <button
-          (click)="goBack()"
-          class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-        >
-          ← Zurück zur Übersicht
-        </button>
-      </div>
-
-      <!-- Transcript Header -->
-      <div class="bg-white shadow rounded-lg" *ngIf="transcript">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <div class="flex justify-between items-start">
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900">Ticket {{ transcript.ticketId }}</h1>
-              <div class="mt-2 flex items-center space-x-4 text-sm text-gray-600">
-                <span>👤 {{ transcript.username }}</span>
-                <span>📁 {{ transcript.category }}</span>
-                <span>💬 {{ transcript.messageCount }} Nachrichten</span>
-                <span>📅 {{ formatDate(transcript.createdAt) }}</span>
-              </div>
-            </div>
-            <div class="flex space-x-2">
-              <button
-                (click)="downloadTranscript()"
-                class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700"
-              >
-                Download
-              </button>
-              <span 
-                [class.bg-green-100]="transcript.closedAt"
-                [class.text-green-800]="transcript.closedAt"
-                [class.bg-yellow-100]="!transcript.closedAt"
-                [class.text-yellow-800]="!transcript.closedAt"
-                class="inline-flex px-3 py-1 text-sm font-medium rounded-full"
-              >
-                {{ transcript.closedAt ? 'Geschlossen' : 'Offen' }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Messages Container -->
-      <div class="bg-white shadow rounded-lg" *ngIf="transcript">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">Nachrichten</h2>
-        </div>
-        
-        <div class="px-6 py-4 max-h-96 overflow-y-auto">
-          <div *ngFor="let message of transcript.messages; let i = index" class="mb-4 last:mb-0">
-            <div class="flex space-x-3">
-              <!-- Avatar -->
-              <div class="flex-shrink-0">
-                <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <span class="text-white text-xs font-medium">
-                    {{ message.author.charAt(0).toUpperCase() }}
-                  </span>
-                </div>
-              </div>
-              
-              <!-- Message Content -->
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center space-x-2">
-                  <h4 class="text-sm font-medium text-gray-900">{{ message.author }}</h4>
-                  <span class="text-xs text-gray-500">{{ formatDateTime(message.timestamp) }}</span>
-                </div>
-                
-                <div class="mt-1">
-                  <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ message.content }}</p>
-                  
-                  <!-- Attachments -->
-                  <div *ngIf="message.attachments && message.attachments.length > 0" class="mt-2">
-                    <div class="text-xs text-gray-500 mb-1">Anhänge:</div>
-                    <div class="space-y-1">
-                      <div *ngFor="let attachment of message.attachments" 
-                           class="text-sm text-indigo-600 hover:text-indigo-800">
-                        📎 {{ attachment }}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Embeds -->
-                  <div *ngIf="message.embeds && message.embeds.length > 0" class="mt-2">
-                    <div *ngFor="let embed of message.embeds" 
-                         class="border-l-4 border-indigo-500 pl-3 py-2 bg-gray-50 rounded-r">
-                      <div class="text-sm text-gray-700">{{ embed.title || 'Embed' }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Message separator -->
-            <div *ngIf="i < transcript.messages.length - 1" class="mt-4 border-b border-gray-100"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Comments Section -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">Kommentare zu diesem Ticket</h2>
-        </div>
-        
-        <!-- Add Comment Form -->
-        <div class="px-6 py-4 border-b border-gray-200">
-          <form [formGroup]="commentForm" (ngSubmit)="addComment()">
-            <div class="mb-3">
-              <textarea
-                formControlName="content"
-                rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Kommentar zu diesem Ticket hinzufügen..."
-              ></textarea>
-            </div>
-            <div class="flex justify-end">
-              <button
-                type="submit"
-                [disabled]="commentForm.invalid || isSubmittingComment"
-                class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors"
-              >
-                <span *ngIf="isSubmittingComment">Hinzufügen...</span>
-                <span *ngIf="!isSubmittingComment">Kommentar hinzufügen</span>
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Comments List -->
-        <div class="px-6 py-4">
-          <div *ngIf="comments.length === 0" class="text-center py-8">
-            <p class="text-gray-500">Noch keine Kommentare zu diesem Ticket vorhanden.</p>
-          </div>
-          
-          <div *ngFor="let comment of comments" class="mb-6 last:mb-0">
-            <div class="flex space-x-3">
-              <div class="flex-shrink-0">
-                <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <span class="text-white text-sm font-medium">
-                    {{ comment.authorName.charAt(0).toUpperCase() }}
-                  </span>
-                </div>
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center space-x-2">
-                  <h4 class="text-sm font-medium text-gray-900">{{ comment.authorName }}</h4>
-                  <span class="text-sm text-gray-500">{{ formatDateTime(comment.createdAt) }}</span>
-                </div>
-                <p class="mt-1 text-sm text-gray-700">{{ comment.content }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading State -->
-      <div *ngIf="isLoading" class="text-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-        <p class="mt-2 text-gray-500">Lade Transkript...</p>
-      </div>
-
-      <!-- Error State -->
-      <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 class="text-lg font-medium text-red-900 mb-2">Fehler beim Laden</h3>
-        <p class="text-red-700">{{ error }}</p>
-        <button
-          (click)="loadTranscript()"
-          class="mt-4 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700"
-        >
-          Erneut versuchen
-        </button>
-      </div>
-    </div>
-  `
+  templateUrl: './transcript-detail.component.html',
+  styleUrl: './transcript-detail.component.css'
 })
 export class TranscriptDetailComponent implements OnInit {
   transcript: TranscriptDetail | null = null;
@@ -227,6 +20,10 @@ export class TranscriptDetailComponent implements OnInit {
   isSubmittingComment = false;
   error: string | null = null;
   filename: string | null = null;
+  showMessages = true;
+  filteredMessages: TranscriptMessage[] = [];
+  messageFilter = '';
+  selectedParticipant = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -235,9 +32,7 @@ export class TranscriptDetailComponent implements OnInit {
     private ticketTranscriptsService: TicketTranscriptsService,
     private commentsService: CommentsService
   ) {
-    this.commentForm = this.fb.group({
-      content: ['']
-    });
+    this.commentForm = this.createCommentForm();
   }
 
   ngOnInit(): void {
@@ -245,7 +40,16 @@ export class TranscriptDetailComponent implements OnInit {
     if (this.filename) {
       this.loadTranscript();
       this.loadComments();
+    } else {
+      this.error = 'Transkript-Dateiname nicht gefunden';
+      this.isLoading = false;
     }
+  }
+
+  private createCommentForm(): FormGroup {
+    return this.fb.group({
+      content: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(1000)]]
+    });
   }
 
   private loadTranscript(): void {
@@ -255,14 +59,15 @@ export class TranscriptDetailComponent implements OnInit {
     this.error = null;
     
     this.ticketTranscriptsService.getTranscriptDetail(this.filename).subscribe({
-      next: (transcript: TranscriptDetail) => {
-      this.transcript = transcript;
-      this.isLoading = false;
+      next: (transcript) => {
+        this.transcript = transcript;
+        this.filteredMessages = transcript.messages;
+        this.isLoading = false;
       },
-      error: (error: any) => {
-      console.error('Error loading transcript:', error);
-      this.error = 'Transkript konnte nicht geladen werden.';
-      this.isLoading = false;
+      error: (error) => {
+        console.error('Error loading transcript:', error);
+        this.error = 'Transkript konnte nicht geladen werden';
+        this.isLoading = false;
       }
     });
   }
@@ -270,7 +75,7 @@ export class TranscriptDetailComponent implements OnInit {
   private loadComments(): void {
     if (!this.filename) return;
     
-    this.commentsService.getComments('ticket_transcript', this.filename).subscribe({
+    this.commentsService.getCommentsForEntity('ticket_transcript', this.filename).subscribe({
       next: (comments) => {
         this.comments = comments;
       },
@@ -281,16 +86,16 @@ export class TranscriptDetailComponent implements OnInit {
   }
 
   addComment(): void {
-    if (this.commentForm.valid && this.filename) {
+    if (this.commentForm.valid && this.filename && !this.isSubmittingComment) {
       this.isSubmittingComment = true;
       
       const commentData = {
-        content: this.commentForm.get('content')?.value,
+        content: this.commentForm.get('content')?.value.trim(),
         entityType: 'ticket_transcript',
         entityId: this.filename
       };
 
-      this.commentsService.addComment(commentData).subscribe({
+      this.commentsService.createComment(commentData).subscribe({
         next: (comment) => {
           this.comments.unshift(comment);
           this.commentForm.reset();
@@ -324,15 +129,156 @@ export class TranscriptDetailComponent implements OnInit {
     }
   }
 
+  toggleMessages(): void {
+    this.showMessages = !this.showMessages;
+  }
+
+  filterMessages(): void {
+    if (!this.transcript) return;
+
+    let filtered = this.transcript.messages;
+
+    // Filter by content
+    if (this.messageFilter.trim()) {
+      const searchTerm = this.messageFilter.toLowerCase();
+      filtered = filtered.filter(message => 
+        message.content.toLowerCase().includes(searchTerm) ||
+        message.author.username.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Filter by participant
+    if (this.selectedParticipant) {
+      filtered = filtered.filter(message => 
+        message.author.id === this.selectedParticipant
+      );
+    }
+
+    this.filteredMessages = filtered;
+  }
+
+  clearFilters(): void {
+    this.messageFilter = '';
+    this.selectedParticipant = '';
+    if (this.transcript) {
+      this.filteredMessages = this.transcript.messages;
+    }
+  }
+
   formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('de-DE');
+    return this.ticketTranscriptsService.formatDate(dateString);
   }
 
   formatDateTime(dateString: string): string {
-    return new Date(dateString).toLocaleString('de-DE');
+    return this.ticketTranscriptsService.formatDateTime(dateString);
+  }
+
+  formatFileSize(bytes: number): string {
+    return this.ticketTranscriptsService.formatFileSize(bytes);
+  }
+
+  getDisplayName(user: { username: string; nickname?: string }): string {
+    return this.ticketTranscriptsService.getDisplayName(user);
+  }
+
+  getAvatarUrl(user: { id: string; avatar?: string }, size: number = 32): string {
+    return this.ticketTranscriptsService.getAvatarUrl(user, size);
+  }
+
+  getUserInitials(user: { username: string; nickname?: string }): string {
+    const name = this.getDisplayName(user);
+    return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
+  }
+
+  hasAttachments(message: TranscriptMessage): boolean {
+    return this.ticketTranscriptsService.hasAttachments(message);
+  }
+
+  hasEmbeds(message: TranscriptMessage): boolean {
+    return this.ticketTranscriptsService.hasEmbeds(message);
+  }
+
+  hasReactions(message: TranscriptMessage): boolean {
+    return this.ticketTranscriptsService.hasReactions(message);
+  }
+
+  getMessageTypeText(type: string): string {
+    return this.ticketTranscriptsService.getMessageTypeText(type);
+  }
+
+  isSystemMessage(message: TranscriptMessage): boolean {
+    return message.type === 'system';
+  }
+
+  getParticipantMessageCount(participant: TranscriptParticipant): number {
+    return participant.messageCount;
+  }
+
+  getTopParticipants(): TranscriptParticipant[] {
+    if (!this.transcript) return [];
+    return this.transcript.participants
+      .sort((a, b) => b.messageCount - a.messageCount)
+      .slice(0, 5);
+  }
+
+  getTranscriptDuration(): string {
+    if (!this.transcript) return '';
+    
+    const start = new Date(this.transcript.createdAt);
+    const end = new Date(this.transcript.closedAt);
+    const diffInMinutes = Math.floor((end.getTime() - start.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} Minute${diffInMinutes !== 1 ? 'n' : ''}`;
+    } else if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      const remainingMinutes = diffInMinutes % 60;
+      return `${hours}h ${remainingMinutes}m`;
+    } else {
+      const days = Math.floor(diffInMinutes / 1440);
+      const remainingHours = Math.floor((diffInMinutes % 1440) / 60);
+      return `${days}d ${remainingHours}h`;
+    }
   }
 
   goBack(): void {
     this.router.navigate(['/tools/ticket-transcripts']);
+  }
+
+  // Form validation helpers
+  get commentErrors(): string[] {
+    const control = this.commentForm.get('content');
+    const errors: string[] = [];
+    
+    if (control?.touched && control?.errors) {
+      if (control.errors['required']) {
+        errors.push('Kommentar darf nicht leer sein');
+      }
+      if (control.errors['minlength']) {
+        errors.push('Kommentar ist zu kurz');
+      }
+      if (control.errors['maxlength']) {
+        errors.push('Kommentar ist zu lang (max. 1000 Zeichen)');
+      }
+    }
+    
+    return errors;
+  }
+
+  get commentLength(): number {
+    return this.commentForm.get('content')?.value?.length || 0;
+  }
+
+  // TrackBy functions for performance
+  trackByMessageId(index: number, message: TranscriptMessage): string {
+    return message.id;
+  }
+
+  trackByParticipantId(index: number, participant: TranscriptParticipant): string {
+    return participant.id;
+  }
+
+  trackByCommentId(index: number, comment: Comment): number {
+    return comment.id;
   }
 }

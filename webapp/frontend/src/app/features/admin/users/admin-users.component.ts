@@ -40,6 +40,9 @@ export class AdminUsersComponent implements OnInit {
   totalUsers = 0;
   totalPages = 0;
 
+  // Math object für Templates verfügbar machen
+  Math = Math;
+
   constructor(
     private userService: UserService,
     private authService: AuthService
@@ -133,9 +136,8 @@ export class AdminUsersComponent implements OnInit {
   }
 
   toggleUserStatus(user: User): void {
-    const newStatus = user.isActive ? 'inactive' : 'active';
-    
-    this.userService.updateUserStatus(user.id.toString(), newStatus).subscribe({
+    const newStatus = !user.isActive;
+    this.userService.toggleUserStatus(user.id.toString(), newStatus).subscribe({
       next: (updatedUser) => {
         const index = this.users.findIndex(u => u.id === user.id);
         if (index !== -1) {
@@ -154,9 +156,7 @@ export class AdminUsersComponent implements OnInit {
     if (confirm(`Sind Sie sicher, dass Sie den Benutzer "${user.username}" löschen möchten?`)) {
       this.userService.deleteUser(user.id.toString()).subscribe({
         next: () => {
-          this.users = this.users.filter(u => u.id !== user.id);
-          this.filteredUsers = [...this.users];
-          this.totalUsers--;
+          this.loadUsers(); // Reload the list
         },
         error: (error) => {
           console.error('Error deleting user:', error);
@@ -176,44 +176,39 @@ export class AdminUsersComponent implements OnInit {
     return user.isActive ? 'Aktiv' : 'Inaktiv';
   }
 
+  getRoleBadgeClass(role: any): string {
+    return role.color ? `bg-${role.color}-100 text-${role.color}-800` : 'bg-gray-100 text-gray-800';
+  }
+
   formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('de-DE', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return new Date(dateString).toLocaleDateString('de-DE');
+  }
+
+  formatDisplayName(user: User): string {
+    return user.profile?.displayName || user.username;
+  }
+
+  hasPermission(user: User, permission: string): boolean {
+    return this.userService.hasPermission(user, permission);
   }
 
   getPageNumbers(): number[] {
-    const pages: number[] = [];
-    const start = Math.max(1, this.currentPage - 2);
-    const end = Math.min(this.totalPages, this.currentPage + 2);
+    const maxPages = 5;
+    const startPage = Math.max(1, this.currentPage - Math.floor(maxPages / 2));
+    const endPage = Math.min(this.totalPages, startPage + maxPages - 1);
     
-    for (let i = start; i <= end; i++) {
+    const pages: number[] = [];
+    for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-    
     return pages;
   }
 
-  exportUsers(): void {
-    this.userService.exportUsers(this.getApiFilters()).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `users-export-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      },
-      error: (error) => {
-        console.error('Error exporting users:', error);
-        this.error = 'Fehler beim Exportieren der Benutzerdaten';
-      }
-    });
+  getStartEntry(): number {
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  getEndEntry(): number {
+    return Math.min(this.currentPage * this.pageSize, this.totalUsers);
   }
 }

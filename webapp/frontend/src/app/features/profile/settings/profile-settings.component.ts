@@ -1,324 +1,306 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { ProfileService } from '../../../core/services/profile.service';
+import { RouterModule } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ProfileService, UserProfile, ChangeEmailRequest, ChangePasswordRequest, ProfileSettings } from '../../../core/services/profile.service';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-profile-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  template: `
-    <div class="space-y-6">
-      <!-- Header -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-900">Account Einstellungen</h1>
-            <button
-              type="button"
-              (click)="backToProfile()"
-              class="text-gray-600 hover:text-gray-800"
-            >
-              Zurück zum Profil
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Email Settings -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">E-Mail Adresse</h2>
-        </div>
-        <form [formGroup]="emailForm" (ngSubmit)="updateEmail()" class="p-6 space-y-4">
-          <div>
-            <label for="currentEmail" class="block text-sm font-medium text-gray-700 mb-2">
-              Aktuelle E-Mail
-            </label>
-            <input
-              type="email"
-              id="currentEmail"
-              [value]="currentUser?.email || ''"
-              disabled
-              class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
-            />
-          </div>
-          
-          <div>
-            <label for="newEmail" class="block text-sm font-medium text-gray-700 mb-2">
-              Neue E-Mail Adresse
-            </label>
-            <input
-              type="email"
-              id="newEmail"
-              formControlName="newEmail"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="neue@email.com"
-            />
-            <div *ngIf="emailForm.get('newEmail')?.invalid && emailForm.get('newEmail')?.touched" 
-                 class="text-red-500 text-sm mt-1">
-              Bitte geben Sie eine gültige E-Mail Adresse ein
-            </div>
-          </div>
-
-          <div>
-            <label for="emailPassword" class="block text-sm font-medium text-gray-700 mb-2">
-              Aktuelles Passwort bestätigen
-            </label>
-            <input
-              type="password"
-              id="emailPassword"
-              formControlName="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Passwort eingeben"
-            />
-            <div *ngIf="emailForm.get('password')?.invalid && emailForm.get('password')?.touched" 
-                 class="text-red-500 text-sm mt-1">
-              Passwort ist erforderlich
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            [disabled]="emailForm.invalid || isUpdatingEmail"
-            class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors"
-          >
-            <span *ngIf="isUpdatingEmail">E-Mail aktualisieren...</span>
-            <span *ngIf="!isUpdatingEmail">E-Mail aktualisieren</span>
-          </button>
-        </form>
-      </div>
-
-      <!-- Password Settings -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">Passwort ändern</h2>
-        </div>
-        <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()" class="p-6 space-y-4">
-          <div>
-            <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-2">
-              Aktuelles Passwort
-            </label>
-            <input
-              type="password"
-              id="currentPassword"
-              formControlName="currentPassword"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Aktuelles Passwort"
-            />
-            <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched" 
-                 class="text-red-500 text-sm mt-1">
-              Aktuelles Passwort ist erforderlich
-            </div>
-          </div>
-
-          <div>
-            <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">
-              Neues Passwort
-            </label>
-            <input
-              type="password"
-              id="newPassword"
-              formControlName="newPassword"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Neues Passwort (min. 8 Zeichen)"
-            />
-            <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched" 
-                 class="text-red-500 text-sm mt-1">
-              Passwort muss mindestens 8 Zeichen lang sein
-            </div>
-          </div>
-
-          <div>
-            <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
-              Neues Passwort bestätigen
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              formControlName="confirmPassword"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Passwort wiederholen"
-            />
-            <div *ngIf="passwordForm.hasError('passwordMismatch') && passwordForm.get('confirmPassword')?.touched" 
-                 class="text-red-500 text-sm mt-1">
-              Passwörter stimmen nicht überein
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            [disabled]="passwordForm.invalid || isUpdatingPassword"
-            class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors"
-          >
-            <span *ngIf="isUpdatingPassword">Passwort aktualisieren...</span>
-            <span *ngIf="!isUpdatingPassword">Passwort aktualisieren</span>
-          </button>
-        </form>
-      </div>
-
-      <!-- Account Actions -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">Account Aktionen</h2>
-        </div>
-        <div class="p-6 space-y-4">
-          <div class="flex justify-between items-center py-3 border-b border-gray-200">
-            <div>
-              <h3 class="text-sm font-medium text-gray-900">Account deaktivieren</h3>
-              <p class="text-sm text-gray-500">Sie können Ihren Account jederzeit wieder aktivieren lassen.</p>
-            </div>
-            <button
-              type="button"
-              (click)="confirmDeactivation()"
-              class="bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-yellow-700 transition-colors"
-            >
-              Deaktivieren
-            </button>
-          </div>
-
-          <div class="flex justify-between items-center py-3">
-            <div>
-              <h3 class="text-sm font-medium text-gray-900">Account löschen</h3>
-              <p class="text-sm text-gray-500">Warnung: Diese Aktion kann nicht rückgängig gemacht werden.</p>
-            </div>
-            <button
-              type="button"
-              (click)="confirmDeletion()"
-              class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
-            >
-              Löschen
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  templateUrl: './profile-settings.component.html',
+  styleUrl: './profile-settings.component.css'
 })
 export class ProfileSettingsComponent implements OnInit {
+  userProfile: UserProfile | null = null;
   emailForm: FormGroup;
   passwordForm: FormGroup;
-  currentUser: any = null;
+  settingsForm: FormGroup;
+  
+  isLoading = true;
   isUpdatingEmail = false;
   isUpdatingPassword = false;
+  isUpdatingSettings = false;
+  isDeactivating = false;
+  
+  error: string | null = null;
+  emailSuccess: string | null = null;
+  passwordSuccess: string | null = null;
+  settingsSuccess: string | null = null;
+  
+  profileSettings: ProfileSettings | null = null;
+  showEmailForm = false;
+  showPasswordForm = false;
 
   constructor(
     private fb: FormBuilder,
     private profileService: ProfileService,
-    private authService: AuthService,
-    private router: Router
+    private authService: AuthService
   ) {
-    this.emailForm = this.fb.group({
+    this.emailForm = this.createEmailForm();
+    this.passwordForm = this.createPasswordForm();
+    this.settingsForm = this.createSettingsForm();
+  }
+
+  ngOnInit(): void {
+    this.loadProfile();
+    this.loadSettings();
+  }
+
+  private createEmailForm(): FormGroup {
+    return this.fb.group({
       newEmail: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
+  }
 
-    this.passwordForm = this.fb.group({
+  private createPasswordForm(): FormGroup {
+    return this.fb.group({
       currentPassword: ['', Validators.required],
       newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
   }
 
-  ngOnInit(): void {
-    this.currentUser = this.authService.getCurrentUser();
+  private createSettingsForm(): FormGroup {
+    return this.fb.group({
+      notifications: this.fb.group({
+        email: [true],
+        discord: [true],
+        browser: [true]
+      }),
+      privacy: this.fb.group({
+        showEmail: [false],
+        showLastLogin: [true],
+        allowDirectMessages: [true]
+      }),
+      preferences: this.fb.group({
+        theme: ['auto'],
+        language: ['de'],
+        timezone: ['Europe/Berlin']
+      })
+    });
   }
 
-  passwordMatchValidator(form: FormGroup) {
+  private passwordMatchValidator(form: FormGroup): { [key: string]: boolean } | null {
     const newPassword = form.get('newPassword');
     const confirmPassword = form.get('confirmPassword');
     
     if (newPassword && confirmPassword && newPassword.value !== confirmPassword.value) {
       return { passwordMismatch: true };
     }
+    
     return null;
   }
 
-  updateEmail(): void {
-    if (this.emailForm.valid) {
+  private loadProfile(): void {
+    this.profileService.getCurrentProfile().subscribe({
+      next: (profile) => {
+        this.userProfile = profile;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading profile:', error);
+        this.error = 'Fehler beim Laden des Profils';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadSettings(): void {
+    this.profileService.getProfileSettings().subscribe({
+      next: (settings) => {
+        this.profileSettings = settings;
+        this.populateSettingsForm(settings);
+      },
+      error: (error) => {
+        console.error('Error loading settings:', error);
+        // Use default settings if loading fails
+        this.profileSettings = {
+          notifications: { email: true, discord: true, browser: true },
+          privacy: { showEmail: false, showLastLogin: true, allowDirectMessages: true },
+          preferences: { theme: 'auto', language: 'de', timezone: 'Europe/Berlin' }
+        };
+      }
+    });
+  }
+
+  private populateSettingsForm(settings: ProfileSettings): void {
+    this.settingsForm.patchValue(settings);
+  }
+
+  toggleEmailForm(): void {
+    this.showEmailForm = !this.showEmailForm;
+    if (!this.showEmailForm) {
+      this.emailForm.reset();
+      this.emailSuccess = null;
+    }
+  }
+
+  togglePasswordForm(): void {
+    this.showPasswordForm = !this.showPasswordForm;
+    if (!this.showPasswordForm) {
+      this.passwordForm.reset();
+      this.passwordSuccess = null;
+    }
+  }
+
+  onEmailSubmit(): void {
+    if (this.emailForm.valid && !this.isUpdatingEmail) {
       this.isUpdatingEmail = true;
-      
-      const emailData = {
-        newEmail: this.emailForm.get('newEmail')?.value,
-        password: this.emailForm.get('password')?.value
-      };
+      this.error = null;
+      this.emailSuccess = null;
+
+      const emailData: ChangeEmailRequest = this.emailForm.value;
 
       this.profileService.updateEmail(emailData).subscribe({
         next: (response) => {
-          console.log('Email updated successfully');
-          this.emailForm.reset();
+          this.emailSuccess = response.message || 'E-Mail erfolgreich aktualisiert';
           this.isUpdatingEmail = false;
-          // Update current user info
-          this.authService.refreshUser();
+          this.emailForm.reset();
+          this.showEmailForm = false;
+          
+          // Reload profile to get updated email
+          this.loadProfile();
         },
         error: (error) => {
           console.error('Error updating email:', error);
+          this.error = error.error?.message || 'Fehler beim Aktualisieren der E-Mail';
           this.isUpdatingEmail = false;
         }
       });
     }
   }
 
-  updatePassword(): void {
-    if (this.passwordForm.valid) {
+  onPasswordSubmit(): void {
+    if (this.passwordForm.valid && !this.isUpdatingPassword) {
       this.isUpdatingPassword = true;
-      
-      const passwordData = {
-        currentPassword: this.passwordForm.get('currentPassword')?.value,
-        newPassword: this.passwordForm.get('newPassword')?.value
-      };
+      this.error = null;
+      this.passwordSuccess = null;
+
+      const passwordData: ChangePasswordRequest = this.passwordForm.value;
 
       this.profileService.updatePassword(passwordData).subscribe({
         next: (response) => {
-          console.log('Password updated successfully');
-          this.passwordForm.reset();
+          this.passwordSuccess = response.message || 'Passwort erfolgreich aktualisiert';
           this.isUpdatingPassword = false;
+          this.passwordForm.reset();
+          this.showPasswordForm = false;
         },
         error: (error) => {
           console.error('Error updating password:', error);
+          this.error = error.error?.message || 'Fehler beim Aktualisieren des Passworts';
           this.isUpdatingPassword = false;
         }
       });
     }
   }
 
-  confirmDeactivation(): void {
-    if (confirm('Sind Sie sicher, dass Sie Ihren Account deaktivieren möchten?')) {
+  onSettingsSubmit(): void {
+    if (this.settingsForm.valid && !this.isUpdatingSettings) {
+      this.isUpdatingSettings = true;
+      this.settingsSuccess = null;
+
+      const settingsData = this.settingsForm.value;
+
+      this.profileService.updateProfileSettings(settingsData).subscribe({
+        next: (updatedSettings) => {
+          this.profileSettings = updatedSettings;
+          this.settingsSuccess = 'Einstellungen erfolgreich gespeichert';
+          this.isUpdatingSettings = false;
+        },
+        error: (error) => {
+          console.error('Error updating settings:', error);
+          this.error = 'Fehler beim Speichern der Einstellungen';
+          this.isUpdatingSettings = false;
+        }
+      });
+    }
+  }
+
+  onDeactivateAccount(): void {
+    if (confirm('Sind Sie sicher, dass Sie Ihr Konto deaktivieren möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+      this.isDeactivating = true;
+      this.error = null;
+
       this.profileService.deactivateAccount().subscribe({
-        next: () => {
-          console.log('Account deactivated');
+        next: (response) => {
+          alert(response.message || 'Konto wurde erfolgreich deaktiviert');
           this.authService.logout();
         },
         error: (error) => {
           console.error('Error deactivating account:', error);
+          this.error = error.error?.message || 'Fehler beim Deaktivieren des Kontos';
+          this.isDeactivating = false;
         }
       });
     }
   }
 
-  confirmDeletion(): void {
-    const confirmation = prompt('Geben Sie "LÖSCHEN" ein, um Ihren Account permanent zu löschen:');
-    if (confirmation === 'LÖSCHEN') {
-      const password = prompt('Bitte geben Sie Ihr aktuelles Passwort zur Bestätigung ein:');
-      if (password && password.trim().length > 0) {
-        this.profileService.deleteAccount(password, confirmation).subscribe({
-          next: () => {
-            console.log('Account deleted');
-            this.authService.logout();
-          },
-          error: (error) => {
-            console.error('Error deleting account:', error);
-          }
-        });
-      } else {
-        alert('Passwort ist erforderlich, um den Account zu löschen.');
+  // Form validation helpers
+  get emailErrors(): string[] {
+    const errors: string[] = [];
+    const newEmailControl = this.emailForm.get('newEmail');
+    const passwordControl = this.emailForm.get('password');
+    
+    if (newEmailControl?.touched && newEmailControl?.errors) {
+      if (newEmailControl.errors['required']) {
+        errors.push('E-Mail ist erforderlich');
+      }
+      if (newEmailControl.errors['email']) {
+        errors.push('Ungültige E-Mail-Adresse');
       }
     }
+    
+    if (passwordControl?.touched && passwordControl?.errors) {
+      if (passwordControl.errors['required']) {
+        errors.push('Passwort ist erforderlich');
+      }
+    }
+    
+    return errors;
   }
 
-  backToProfile(): void {
-    this.router.navigate(['/profile']);
+  get passwordErrors(): string[] {
+    const errors: string[] = [];
+    const currentPasswordControl = this.passwordForm.get('currentPassword');
+    const newPasswordControl = this.passwordForm.get('newPassword');
+    const confirmPasswordControl = this.passwordForm.get('confirmPassword');
+    
+    if (currentPasswordControl?.touched && currentPasswordControl?.errors) {
+      if (currentPasswordControl.errors['required']) {
+        errors.push('Aktuelles Passwort ist erforderlich');
+      }
+    }
+    
+    if (newPasswordControl?.touched && newPasswordControl?.errors) {
+      if (newPasswordControl.errors['required']) {
+        errors.push('Neues Passwort ist erforderlich');
+      }
+      if (newPasswordControl.errors['minlength']) {
+        errors.push('Passwort muss mindestens 8 Zeichen lang sein');
+      }
+    }
+    
+    if (confirmPasswordControl?.touched && confirmPasswordControl?.errors) {
+      if (confirmPasswordControl.errors['required']) {
+        errors.push('Passwort bestätigen ist erforderlich');
+      }
+    }
+    
+    if (this.passwordForm.errors && this.passwordForm.errors['passwordMismatch']) {
+      errors.push('Passwörter stimmen nicht überein');
+    }
+    
+    return errors;
+  }
+
+  getCurrentEmail(): string {
+    return this.userProfile?.email || '';
+  }
+
+  getDisplayName(): string {
+    return this.userProfile?.profile?.displayName || this.userProfile?.username || '';
   }
 }

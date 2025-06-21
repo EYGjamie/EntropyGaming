@@ -1,204 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { DiscordUsersService } from '../services/discord-users.service';
-import { CommentsService } from '../../../shared/services/comments.service';
-
-interface DiscordUser {
-  userID: string;
-  username: string;
-  nickname?: string;
-  joinedAt: string;
-  lastActive: string;
-  messageCount: number;
-  voiceMinutes: number;
-  isActive: boolean;
-  avatar?: string;
-  roles?: string[];
-}
-
-interface Comment {
-  id: string;
-  content: string;
-  authorId: string;
-  authorName: string;
-  createdAt: string;
-  updatedAt?: string;
-}
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DiscordUsersService, DiscordUser } from '../services/discord-users.service';
+import { CommentsService, Comment } from '../../../../shared/services/comments.service';
 
 @Component({
   selector: 'app-discord-user-detail',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  template: `
-    <div class="space-y-6">
-      <!-- Back Button -->
-      <div>
-        <button
-          (click)="goBack()"
-          class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-        >
-          ← Zurück zur Übersicht
-        </button>
-      </div>
-
-      <!-- User Details -->
-      <div class="bg-white shadow rounded-lg overflow-hidden" *ngIf="user">
-        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-24"></div>
-        <div class="px-6 py-4">
-          <div class="flex items-center -mt-12">
-            <div class="relative">
-              <div class="h-20 w-20 rounded-full bg-indigo-600 border-4 border-white shadow-lg flex items-center justify-center">
-                <span class="text-white text-2xl font-bold">
-                  {{ (user.nickname || user.username).charAt(0).toUpperCase() }}
-                </span>
-              </div>
-              <div 
-                [class.bg-green-400]="user.isActive"
-                [class.bg-red-400]="!user.isActive"
-                class="absolute bottom-1 right-1 h-5 w-5 rounded-full border-2 border-white"
-              ></div>
-            </div>
-            <div class="ml-6 flex-1">
-              <h1 class="text-3xl font-bold text-gray-900">
-                {{ user.nickname || user.username }}
-              </h1>
-              <p class="text-lg text-gray-600" *ngIf="user.nickname">@{{ user.username }}</p>
-              <p class="text-sm text-gray-500">Discord ID: {{ user.userID }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6" *ngIf="user">
-        <div class="bg-white shadow rounded-lg p-6">
-          <div class="flex items-center">
-            <div class="text-3xl mr-4">💬</div>
-            <div>
-              <p class="text-2xl font-bold text-gray-900">{{ formatNumber(user.messageCount) }}</p>
-              <p class="text-sm text-gray-600">Nachrichten</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white shadow rounded-lg p-6">
-          <div class="flex items-center">
-            <div class="text-3xl mr-4">🎤</div>
-            <div>
-              <p class="text-2xl font-bold text-gray-900">{{ Math.round(user.voiceMinutes / 60) }}h</p>
-              <p class="text-sm text-gray-600">Voice Zeit</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white shadow rounded-lg p-6">
-          <div class="flex items-center">
-            <div class="text-3xl mr-4">📅</div>
-            <div>
-              <p class="text-lg font-bold text-gray-900">{{ formatDate(user.joinedAt) }}</p>
-              <p class="text-sm text-gray-600">Beigetreten</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white shadow rounded-lg p-6">
-          <div class="flex items-center">
-            <div class="text-3xl mr-4">⏰</div>
-            <div>
-              <p class="text-lg font-bold text-gray-900">{{ formatDate(user.lastActive) }}</p>
-              <p class="text-sm text-gray-600">Letzte Aktivität</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Comments Section -->
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">Kommentare</h2>
-        </div>
-        
-        <!-- Add Comment Form -->
-        <div class="px-6 py-4 border-b border-gray-200">
-          <form [formGroup]="commentForm" (ngSubmit)="addComment()">
-            <div class="mb-3">
-              <textarea
-                formControlName="content"
-                rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Kommentar hinzufügen..."
-              ></textarea>
-            </div>
-            <div class="flex justify-end">
-              <button
-                type="submit"
-                [disabled]="commentForm.invalid || isSubmittingComment"
-                class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors"
-              >
-                <span *ngIf="isSubmittingComment">Hinzufügen...</span>
-                <span *ngIf="!isSubmittingComment">Kommentar hinzufügen</span>
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Comments List -->
-        <div class="px-6 py-4">
-          <div *ngIf="comments.length === 0" class="text-center py-8">
-            <p class="text-gray-500">Noch keine Kommentare vorhanden.</p>
-          </div>
-          
-          <div *ngFor="let comment of comments" class="mb-6 last:mb-0">
-            <div class="flex space-x-3">
-              <div class="flex-shrink-0">
-                <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <span class="text-white text-sm font-medium">
-                    {{ comment.authorName.charAt(0).toUpperCase() }}
-                  </span>
-                </div>
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center space-x-2">
-                  <h4 class="text-sm font-medium text-gray-900">{{ comment.authorName }}</h4>
-                  <span class="text-sm text-gray-500">{{ formatDateTime(comment.createdAt) }}</span>
-                  <span *ngIf="comment.updatedAt" class="text-xs text-gray-400">(bearbeitet)</span>
-                </div>
-                <p class="mt-1 text-sm text-gray-700">{{ comment.content }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading State -->
-      <div *ngIf="isLoading" class="text-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-        <p class="mt-2 text-gray-500">Lade Benutzerdetails...</p>
-      </div>
-
-      <!-- Error State -->
-      <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 class="text-lg font-medium text-red-900 mb-2">Fehler beim Laden</h3>
-        <p class="text-red-700">{{ error }}</p>
-        <button
-          (click)="loadUserDetails()"
-          class="mt-4 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700"
-        >
-          Erneut versuchen
-        </button>
-      </div>
-    </div>
-  `
+  templateUrl: './discord-user-detail.component.html',
+  styleUrl: './discord-user-detail.component.css'
 })
 export class DiscordUserDetailComponent implements OnInit {
   user: DiscordUser | null = null;
   comments: Comment[] = [];
-  commentForm: FormGroup;
+  notesForm: FormGroup;
   isLoading = true;
-  isSubmittingComment = false;
+  isSavingNotes = false;
   error: string | null = null;
+  success: string | null = null;
   userId: string | null = null;
 
   constructor(
@@ -208,33 +29,41 @@ export class DiscordUserDetailComponent implements OnInit {
     private discordUsersService: DiscordUsersService,
     private commentsService: CommentsService
   ) {
-    this.commentForm = this.fb.group({
-      content: ['']
-    });
+    this.notesForm = this.createNotesForm();
   }
 
   ngOnInit(): void {
     this.userId = this.route.snapshot.paramMap.get('userId');
     if (this.userId) {
-      this.loadUserDetails();
+      this.loadUser();
       this.loadComments();
+    } else {
+      this.error = 'Benutzer-ID nicht gefunden';
+      this.isLoading = false;
     }
   }
 
-  private loadUserDetails(): void {
+  private createNotesForm(): FormGroup {
+    return this.fb.group({
+      notes: ['', [Validators.maxLength(1000)]]
+    });
+  }
+
+  private loadUser(): void {
     if (!this.userId) return;
-    
+
     this.isLoading = true;
     this.error = null;
-    
+
     this.discordUsersService.getUserById(this.userId).subscribe({
       next: (user) => {
         this.user = user;
+        this.populateNotesForm(user);
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading user details:', error);
-        this.error = 'Benutzer konnte nicht geladen werden.';
+        console.error('Error loading Discord user:', error);
+        this.error = 'Fehler beim Laden des Discord-Benutzers';
         this.isLoading = false;
       }
     });
@@ -242,8 +71,8 @@ export class DiscordUserDetailComponent implements OnInit {
 
   private loadComments(): void {
     if (!this.userId) return;
-    
-    this.commentsService.getComments('discord_user', this.userId).subscribe({
+
+    this.commentsService.getCommentsForEntity('discord_user', this.userId).subscribe({
       next: (comments) => {
         this.comments = comments;
       },
@@ -253,51 +82,140 @@ export class DiscordUserDetailComponent implements OnInit {
     });
   }
 
-  addComment(): void {
-    if (this.commentForm.valid && this.userId) {
-      this.isSubmittingComment = true;
-      
-      const commentData = {
-        content: this.commentForm.get('content')?.value,
-        entityType: 'discord_user',
-        entityId: this.userId
-      };
+  private populateNotesForm(user: DiscordUser): void {
+    this.notesForm.patchValue({
+      notes: user.notes || ''
+    });
+  }
 
-      this.commentsService.addComment(commentData).subscribe({
-        next: (comment) => {
-          this.comments.unshift(comment);
-          this.commentForm.reset();
-          this.isSubmittingComment = false;
+  onSaveNotes(): void {
+    if (this.notesForm.valid && this.userId && !this.isSavingNotes) {
+      this.isSavingNotes = true;
+      this.error = null;
+      this.success = null;
+
+      const notes = this.notesForm.get('notes')?.value || '';
+
+      this.discordUsersService.updateUserNotes(this.userId, notes).subscribe({
+        next: (updatedUser) => {
+          this.user = updatedUser;
+          this.success = 'Notizen erfolgreich gespeichert';
+          this.isSavingNotes = false;
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.success = null;
+          }, 3000);
         },
         error: (error) => {
-          console.error('Error adding comment:', error);
-          this.isSubmittingComment = false;
+          console.error('Error updating notes:', error);
+          this.error = 'Fehler beim Speichern der Notizen';
+          this.isSavingNotes = false;
         }
       });
     }
-  }
-
-  formatNumber(num: number): string {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
-  }
-
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('de-DE');
-  }
-
-  formatDateTime(dateString: string): string {
-    return new Date(dateString).toLocaleString('de-DE');
   }
 
   goBack(): void {
     this.router.navigate(['/tools/discord-users']);
   }
 
-  // Make Math available in template
-  Math = Math;
+  getDisplayName(): string {
+    if (!this.user) return '';
+    return this.discordUsersService.getDisplayName(this.user);
+  }
+
+  getUserTag(): string {
+    if (!this.user) return '';
+    return this.discordUsersService.getUserTag(this.user);
+  }
+
+  getAvatarUrl(): string {
+    if (!this.user) return '';
+    return this.discordUsersService.getAvatarUrl(this.user, 80);
+  }
+
+  getStatusText(): string {
+    if (!this.user) return '';
+    return this.discordUsersService.getStatusText(this.user.status);
+  }
+
+  getStatusColorClass(): string {
+    if (!this.user) return 'bg-gray-500';
+    return this.discordUsersService.getStatusColorClass(this.user.status);
+  }
+
+  formatJoinDate(): string {
+    if (!this.user) return '';
+    return this.discordUsersService.formatJoinDate(this.user.joinedAt);
+  }
+
+  formatVoiceTime(): string {
+    if (!this.user) return '';
+    return this.discordUsersService.formatVoiceTime(this.user.voiceTime);
+  }
+
+  formatLastSeen(): string {
+    if (!this.user?.lastSeen) return 'Nie';
+    return new Date(this.user.lastSeen).toLocaleString('de-DE');
+  }
+
+  formatLastMessage(): string {
+    if (!this.user?.lastMessage) return 'Keine Nachrichten';
+    return new Date(this.user.lastMessage).toLocaleString('de-DE');
+  }
+
+  hasRoles(): boolean {
+    return !!(this.user?.roles && this.user.roles.length > 0);
+  }
+
+  getRoleBadgeClass(role: any): string {
+    if (role.color && role.color !== '#000000') {
+      return 'text-white';
+    }
+    return 'bg-gray-100 text-gray-800';
+  }
+
+  getRoleStyle(role: any): any {
+    if (role.color && role.color !== '#000000') {
+      return {
+        'background-color': role.color,
+        'color': 'white'
+      };
+    }
+    return {};
+  }
+
+  hasActivities(): boolean {
+    return !!(this.user?.activities && this.user.activities.length > 0);
+  }
+
+  getActivityText(activity: any): string {
+    switch (activity.type) {
+      case 0: return `Spielt ${activity.name}`;
+      case 1: return `Streamt ${activity.name}`;
+      case 2: return `Hört ${activity.name}`;
+      case 3: return `Schaut ${activity.name}`;
+      case 5: return `Wetteifert in ${activity.name}`;
+      default: return activity.name;
+    }
+  }
+
+  // Form validation helpers
+  get notesErrors(): string[] {
+    const control = this.notesForm.get('notes');
+    const errors: string[] = [];
+    
+    if (control?.touched && control?.errors) {
+      if (control.errors['maxlength']) {
+        errors.push('Notizen dürfen maximal 1000 Zeichen lang sein');
+      }
+    }
+    
+    return errors;
+  }
+
+  get notesLength(): number {
+    return this.notesForm.get('notes')?.value?.length || 0;
+  }
 }

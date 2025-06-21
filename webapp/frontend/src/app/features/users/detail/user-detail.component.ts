@@ -45,7 +45,8 @@ export class UserDetailComponent implements OnInit {
     this.profileService.getUserProfile(userId).subscribe({
       next: (profile) => {
         this.userProfile = profile;
-        this.isOwnProfile = this.currentUser?.id === profile.id;
+        this.isOwnProfile = this.currentUser && 
+          (this.currentUser.id.toString() === profile.id.toString());
         this.isLoading = false;
       },
       error: (error) => {
@@ -67,48 +68,26 @@ export class UserDetailComponent implements OnInit {
   }
 
   hasAvatar(): boolean {
-    return !!(this.userProfile?.profile?.avatarUrl);
+    return !!this.userProfile?.profile?.avatarUrl;
   }
 
-  getAvatarUrl(): string {
-    return this.userProfile?.profile?.avatarUrl || '';
+  formatDate(dateString?: string): string {
+    if (!dateString) return 'Nie';
+    return new Date(dateString).toLocaleDateString('de-DE');
   }
 
-  getRoleColor(): string {
-    return this.userProfile?.role?.color || '#6366f1';
+  formatDateTime(dateString?: string): string {
+    if (!dateString) return 'Nie';
+    return new Date(dateString).toLocaleString('de-DE');
   }
 
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('de-DE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  formatDateShort(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('de-DE', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
-
-  getProfileCompletionPercentage(): number {
-    if (!this.userProfile) return 0;
-    return this.profileService.getProfileCompletionPercentage(this.userProfile);
-  }
-
-  isProfileComplete(): boolean {
-    if (!this.userProfile) return false;
-    return this.profileService.isProfileComplete(this.userProfile);
-  }
-
-  canViewProfile(): boolean {
-    if (!this.userProfile || !this.currentUser) return false;
-    return this.profileService.canViewProfile(this.userProfile, this.currentUser.id);
+  canViewContactInfo(): boolean {
+    // User can always see their own contact info
+    if (this.isOwnProfile) return true;
+    
+    // Check privacy settings or permissions
+    // For now, only show if it's the user's own profile
+    return false;
   }
 
   canEditProfile(): boolean {
@@ -116,60 +95,70 @@ export class UserDetailComponent implements OnInit {
     return this.profileService.canEditProfile(this.userProfile, this.currentUser.id);
   }
 
-  hasPermission(permission: string): boolean {
-    return this.userProfile?.permissions?.some(p => p.name === permission) || false;
+  getRoleBadgeClass(): string {
+    if (!this.userProfile?.role.color) return 'bg-gray-100 text-gray-800';
+    return `bg-${this.userProfile.role.color}-100 text-${this.userProfile.role.color}-800`;
   }
 
-  getPermissionsByCategory(): { [category: string]: any[] } {
-    if (!this.userProfile?.permissions) return {};
-    
-    const categorized: { [category: string]: any[] } = {};
-    
-    this.userProfile.permissions.forEach(permission => {
-      const category = (permission as any).category || 'Allgemein';
-      if (!categorized[category]) {
-        categorized[category] = [];
-      }
-      categorized[category].push(permission);
-    });
-
-    return categorized;
+  hasPermissions(): boolean {
+    return !!(this.userProfile?.permissions && this.userProfile.permissions.length > 0);
   }
 
-  getUserStats(): any {
-    // This would typically come from an API
-    // For now, return mock data
-    return {
-      postsCount: 0,
-      commentsCount: 0,
-      likesReceived: 0,
-      joinedDaysAgo: this.userProfile ? 
-        Math.floor((new Date().getTime() - new Date(this.userProfile.createdAt).getTime()) / (1000 * 3600 * 24)) : 0
-    };
-  }
-
-  shareProfile(): void {
-    if (navigator.share && this.userProfile) {
-      navigator.share({
-        title: `Profil von ${this.getUserDisplayName()}`,
-        url: window.location.href
-      });
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        // Show success message
-        console.log('Link kopiert!');
-      });
+  getPermissionBadgeClass(permission: any): string {
+    const category = permission.category || 'general';
+    switch (category.toLowerCase()) {
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'user': return 'bg-blue-100 text-blue-800';
+      case 'tools': return 'bg-green-100 text-green-800';
+      case 'comments': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   }
 
-  reportUser(): void {
-    // Implement user reporting functionality
-    console.log('User reported');
+  getAccountAge(): string {
+    if (!this.userProfile?.createdAt) return '';
+    
+    const created = new Date(this.userProfile.createdAt);
+    const now = new Date();
+    const diffInDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays < 30) {
+      return `${diffInDays} Tag${diffInDays !== 1 ? 'e' : ''}`;
+    } else if (diffInDays < 365) {
+      const months = Math.floor(diffInDays / 30);
+      return `${months} Monat${months !== 1 ? 'e' : ''}`;
+    } else {
+      const years = Math.floor(diffInDays / 365);
+      return `${years} Jahr${years !== 1 ? 'e' : ''}`;
+    }
   }
 
-  blockUser(): void {
-    // Implement user blocking functionality
-    console.log('User blocked');
+  getLastSeenText(): string {
+    if (!this.userProfile?.lastLogin) return 'Nie online gewesen';
+    
+    const lastLogin = new Date(this.userProfile.lastLogin);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - lastLogin.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 5) {
+      return 'Gerade online';
+    } else if (diffInMinutes < 60) {
+      return `vor ${diffInMinutes} Minute${diffInMinutes !== 1 ? 'n' : ''}`;
+    } else if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      return `vor ${hours} Stunde${hours !== 1 ? 'n' : ''}`;
+    } else {
+      return this.formatDate(this.userProfile.lastLogin);
+    }
+  }
+
+  isProfileComplete(): boolean {
+    if (!this.userProfile) return false;
+    return this.profileService.isProfileComplete(this.userProfile);
+  }
+
+  getProfileCompletionPercentage(): number {
+    if (!this.userProfile) return 0;
+    return this.profileService.getProfileCompletionPercentage(this.userProfile);
   }
 }

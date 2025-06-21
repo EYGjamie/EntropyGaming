@@ -4,80 +4,93 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 export interface TicketTranscript {
-  id: string;
-  ticketId: number;
+  filename: string;
+  ticketId: string;
+  guildId: string;
   channelId: string;
-  channelName: string;
-  creatorId: string;
-  creatorUsername: string;
   createdAt: string;
-  closedAt?: string;
+  closedAt: string;
   messageCount: number;
-  participantCount: number;
-  status: 'open' | 'closed' | 'archived';
-  category?: string;
+  participants: string[];
   topic?: string;
-  tags: string[];
-  fileSize: number;
-  filePath: string;
+  size: number;
+}
+
+export interface TranscriptDetail {
+  filename: string;
+  ticketId: string;
+  guildId: string;
+  channelId: string;
+  createdAt: string;
+  closedAt: string;
+  topic?: string;
   participants: TranscriptParticipant[];
-  comments?: number;
+  messages: TranscriptMessage[];
+  messageCount: number;
+  attachments: TranscriptAttachment[];
 }
 
 export interface TranscriptParticipant {
-  userId: string;
+  id: string;
   username: string;
+  discriminator: string;
+  nickname?: string;
+  avatar?: string;
   messageCount: number;
-  joinedAt: string;
-  leftAt?: string;
 }
 
 export interface TranscriptMessage {
   id: string;
-  userId: string;
-  username: string;
-  content: string;
   timestamp: string;
-  attachments?: TranscriptAttachment[];
-  embeds?: any[];
-  reactions?: any[];
-  isBot: boolean;
-  isSystemMessage: boolean;
+  author: {
+    id: string;
+    username: string;
+    discriminator: string;
+    nickname?: string;
+    avatar?: string;
+  };
+  content: string;
+  attachments: TranscriptAttachment[];
+  embeds: any[];
+  reactions: TranscriptReaction[];
+  type: 'default' | 'system';
 }
 
 export interface TranscriptAttachment {
   id: string;
   filename: string;
-  url: string;
   size: number;
-  contentType: string;
-  localPath?: string;
+  url: string;
+  contentType?: string;
 }
 
-export interface TicketTranscriptStats {
+export interface TranscriptReaction {
+  emoji: {
+    name: string;
+    id?: string;
+    animated: boolean;
+  };
+  count: number;
+  users: string[];
+}
+
+export interface TranscriptStats {
   totalTranscripts: number;
-  openTickets: number;
-  closedTickets: number;
-  archivedTickets: number;
   totalMessages: number;
-  avgMessagesPerTicket: number;
-  avgResolutionTime: number; // in hours
-  topCategories: { category: string; count: number }[];
+  avgMessages: number;
+  totalParticipants: number;
+  totalAttachments: number;
+  oldestTranscript: string;
+  newestTranscript: string;
 }
 
 export interface TranscriptFilters {
   search?: string;
-  status?: 'open' | 'closed' | 'archived' | 'all';
-  category?: string;
-  creatorId?: string;
-  participantId?: string;
-  createdAfter?: string;
-  createdBefore?: string;
-  closedAfter?: string;
-  closedBefore?: string;
+  startDate?: string;
+  endDate?: string;
   minMessages?: number;
   maxMessages?: number;
-  tags?: string[];
+  participant?: string;
 }
 
 export interface PaginatedTranscripts {
@@ -99,7 +112,7 @@ export class TicketTranscriptsService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Get paginated list of ticket transcripts
+   * Get paginated list of transcripts
    */
   getTranscripts(page: number = 1, limit: number = 50, filters?: TranscriptFilters): Observable<PaginatedTranscripts> {
     let params = new HttpParams()
@@ -109,11 +122,7 @@ export class TicketTranscriptsService {
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          if (Array.isArray(value)) {
-            params = params.set(key, value.join(','));
-          } else {
-            params = params.set(key, value.toString());
-          }
+          params = params.set(key, value.toString());
         }
       });
     }
@@ -125,123 +134,17 @@ export class TicketTranscriptsService {
   }
 
   /**
-   * Get a specific ticket transcript by ID
+   * Get a specific transcript by filename
    */
-  getTranscript(transcriptId: string): Observable<TicketTranscript> {
-    return this.http.get<TicketTranscript>(`${this.apiUrl}/${transcriptId}`);
+  getTranscript(filename: string): Observable<TranscriptDetail> {
+    return this.http.get<TranscriptDetail>(`${this.apiUrl}/${filename}`);
   }
 
   /**
-   * Get messages from a ticket transcript
+   * Get a specific transcript detail by filename (alternative method name)
    */
-  getTranscriptMessages(transcriptId: string, page: number = 1, limit: number = 100): Observable<{
-    messages: TranscriptMessage[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('limit', limit.toString());
-
-    return this.http.get<{
-      messages: TranscriptMessage[];
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    }>(`${this.apiUrl}/${transcriptId}/messages`, { params });
-  }
-
-  /**
-   * Search within transcript messages
-   */
-  searchTranscriptMessages(transcriptId: string, query: string): Observable<TranscriptMessage[]> {
-    const params = new HttpParams().set('query', query);
-    return this.http.get<TranscriptMessage[]>(`${this.apiUrl}/${transcriptId}/search`, { params });
-  }
-
-  /**
-   * Get ticket transcript statistics
-   */
-  getStats(): Observable<TicketTranscriptStats> {
-    return this.http.get<TicketTranscriptStats>(`${this.apiUrl}/stats`);
-  }
-
-  /**
-   * Download transcript as JSON
-   */
-  downloadTranscript(transcriptId: string): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${transcriptId}/download`, { 
-      responseType: 'blob' 
-    });
-  }
-
-  /**
-   * Download transcript as HTML
-   */
-  downloadTranscriptHTML(transcriptId: string): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${transcriptId}/download/html`, { 
-      responseType: 'blob' 
-    });
-  }
-
-  /**
-   * Export transcripts as CSV
-   */
-  exportTranscripts(filters?: TranscriptFilters): Observable<Blob> {
-    let params = new HttpParams();
-
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          if (Array.isArray(value)) {
-            params = params.set(key, value.join(','));
-          } else {
-            params = params.set(key, value.toString());
-          }
-        }
-      });
-    }
-
-    return this.http.get(`${this.apiUrl}/export`, { 
-      params, 
-      responseType: 'blob' 
-    });
-  }
-
-  /**
-   * Update transcript metadata (admin only)
-   */
-  updateTranscript(transcriptId: string, updates: {
-    category?: string;
-    topic?: string;
-    tags?: string[];
-    status?: 'open' | 'closed' | 'archived';
-  }): Observable<TicketTranscript> {
-    return this.http.patch<TicketTranscript>(`${this.apiUrl}/${transcriptId}`, updates);
-  }
-
-  /**
-   * Delete transcript (admin only)
-   */
-  deleteTranscript(transcriptId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${transcriptId}`);
-  }
-
-  /**
-   * Get available categories
-   */
-  getCategories(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/categories`);
-  }
-
-  /**
-   * Get available tags
-   */
-  getTags(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/tags`);
+  getTranscriptDetail(filename: string): Observable<TranscriptDetail> {
+    return this.getTranscript(filename);
   }
 
   /**
@@ -256,43 +159,82 @@ export class TicketTranscriptsService {
   }
 
   /**
-   * Clear the local transcripts cache
+   * Get transcript statistics
    */
-  clearTranscripts(): void {
-    this.transcriptsSubject.next([]);
+  getStats(): Observable<TranscriptStats> {
+    return this.http.get<TranscriptStats>(`${this.apiUrl}/stats`);
   }
 
   /**
-   * Format transcript duration
+   * Get transcripts by date range
    */
-  formatDuration(createdAt: string, closedAt?: string): string {
-    const start = new Date(createdAt);
-    const end = closedAt ? new Date(closedAt) : new Date();
-    const diffMs = end.getTime() - start.getTime();
-    
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
+  getTranscriptsByDateRange(startDate: string, endDate: string): Observable<TicketTranscript[]> {
+    const params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+
+    return this.http.get<TicketTranscript[]>(`${this.apiUrl}/date-range`, { params });
   }
 
   /**
-   * Get status color class
+   * Download transcript as JSON
    */
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'open':
-        return 'text-green-600 bg-green-100';
-      case 'closed':
-        return 'text-blue-600 bg-blue-100';
-      case 'archived':
-        return 'text-gray-600 bg-gray-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
+  downloadTranscript(filename: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${filename}/download`, { 
+      responseType: 'blob' 
+    });
+  }
+
+  /**
+   * Export transcripts as CSV
+   */
+  exportTranscripts(filters?: TranscriptFilters): Observable<Blob> {
+    let params = new HttpParams();
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params = params.set(key, value.toString());
+        }
+      });
     }
+
+    return this.http.get(`${this.apiUrl}/export`, { 
+      params, 
+      responseType: 'blob' 
+    });
+  }
+
+  /**
+   * Delete a transcript (admin only)
+   */
+  deleteTranscript(filename: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/${filename}`)
+      .pipe(
+        tap(() => {
+          const currentTranscripts = this.transcriptsSubject.value;
+          const filteredTranscripts = currentTranscripts.filter(t => t.filename !== filename);
+          this.transcriptsSubject.next(filteredTranscripts);
+        })
+      );
+  }
+
+  /**
+   * Get user avatar URL
+   */
+  getAvatarUrl(user: { id: string; avatar?: string }, size: number = 32): string {
+    if (user.avatar) {
+      return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=${size}`;
+    }
+    // Default avatar
+    return `https://cdn.discordapp.com/embed/avatars/0.png`;
+  }
+
+  /**
+   * Format user display name
+   */
+  getDisplayName(user: { username: string; nickname?: string }): string {
+    return user.nickname || user.username;
   }
 
   /**
@@ -306,5 +248,58 @@ export class TicketTranscriptsService {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  /**
+   * Format date
+   */
+  formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('de-DE');
+  }
+
+  /**
+   * Format datetime
+   */
+  formatDateTime(dateString: string): string {
+    return new Date(dateString).toLocaleString('de-DE');
+  }
+
+  /**
+   * Get message type display text
+   */
+  getMessageTypeText(type: string): string {
+    switch (type) {
+      case 'default': return 'Nachricht';
+      case 'system': return 'System';
+      default: return 'Unbekannt';
+    }
+  }
+
+  /**
+   * Check if message has attachments
+   */
+  hasAttachments(message: TranscriptMessage): boolean {
+    return message.attachments && message.attachments.length > 0;
+  }
+
+  /**
+   * Check if message has embeds
+   */
+  hasEmbeds(message: TranscriptMessage): boolean {
+    return message.embeds && message.embeds.length > 0;
+  }
+
+  /**
+   * Check if message has reactions
+   */
+  hasReactions(message: TranscriptMessage): boolean {
+    return message.reactions && message.reactions.length > 0;
+  }
+
+  /**
+   * Clear transcripts cache
+   */
+  clearTranscripts(): void {
+    this.transcriptsSubject.next([]);
   }
 }
