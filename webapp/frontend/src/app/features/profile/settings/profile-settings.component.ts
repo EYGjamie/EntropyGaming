@@ -301,15 +301,20 @@ export class ProfileSettingsComponent implements OnInit {
   confirmDeletion(): void {
     const confirmation = prompt('Geben Sie "LÖSCHEN" ein, um Ihren Account permanent zu löschen:');
     if (confirmation === 'LÖSCHEN') {
-      this.profileService.deleteAccount().subscribe({
-        next: () => {
-          console.log('Account deleted');
-          this.authService.logout();
-        },
-        error: (error) => {
-          console.error('Error deleting account:', error);
-        }
-      });
+      const password = prompt('Bitte geben Sie Ihr aktuelles Passwort zur Bestätigung ein:');
+      if (password && password.trim().length > 0) {
+        this.profileService.deleteAccount(password, confirmation).subscribe({
+          next: () => {
+            console.log('Account deleted');
+            this.authService.logout();
+          },
+          error: (error) => {
+            console.error('Error deleting account:', error);
+          }
+        });
+      } else {
+        alert('Passwort ist erforderlich, um den Account zu löschen.');
+      }
     }
   }
 

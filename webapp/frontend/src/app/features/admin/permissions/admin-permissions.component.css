@@ -1,0 +1,62 @@
+/* Admin Permissions Component Styles */
+
+/* Placeholder styles for future implementation */
+.permissions-container {
+  @apply space-y-6;
+}
+
+.permission-category {
+  @apply bg-white shadow rounded-lg p-6;
+}
+
+.category-header {
+  @apply flex justify-between items-center mb-4 pb-4 border-b border-gray-200;
+}
+
+.category-title {
+  @apply text-lg font-medium text-gray-900;
+}
+
+.permission-list {
+  @apply space-y-3;
+}
+
+.permission-item {
+  @apply flex items-center justify-between p-3 bg-gray-50 rounded-md;
+}
+
+.permission-info {
+  @apply flex-1;
+}
+
+.permission-name {
+  @apply text-sm font-medium text-gray-900;
+}
+
+.permission-description {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+.permission-actions {
+  @apply flex space-x-2;
+}
+
+.btn-assign {
+  @apply text-indigo-600 hover:text-indigo-900 text-sm font-medium;
+}
+
+.btn-revoke {
+  @apply text-red-600 hover:text-red-900 text-sm font-medium;
+}
+
+.permission-badge {
+  @apply inline-flex px-2 py-1 text-xs font-semibold rounded-full;
+}
+
+.permission-badge.active {
+  @apply bg-green-100 text-green-800;
+}
+
+.permission-badge.inactive {
+  @apply bg-gray-100 text-gray-800;
+}

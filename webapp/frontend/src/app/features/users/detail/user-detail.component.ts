@@ -126,7 +126,7 @@ export class UserDetailComponent implements OnInit {
     const categorized: { [category: string]: any[] } = {};
     
     this.userProfile.permissions.forEach(permission => {
-      const category = permission.category || 'Allgemein';
+      const category = (permission as any).category || 'Allgemein';
       if (!categorized[category]) {
         categorized[category] = [];
       }

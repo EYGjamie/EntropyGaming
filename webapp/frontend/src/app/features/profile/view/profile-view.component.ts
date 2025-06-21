@@ -151,7 +151,7 @@ interface UserProfile {
               </div>
               <div class="flex items-center">
                 <span class="text-gray-400 mr-3">👤</span>
-                <span class="text-sm text-gray-600">@{{ userProfile?.username }}</span>
+                <span class="text-sm text-gray-600">&#64;{{ userProfile?.username }}</span>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export class ProfileViewComponent implements OnInit {
     } else {
       // Viewing own profile
       if (currentUser) {
-        this.loadUserProfile(currentUser.id);
+        this.loadUserProfile(String(currentUser.id));
         this.isOwnProfile = true;
       }
     }
