@@ -1,0 +1,44 @@
+<nav class="fixed top-0 left-0 h-full w-64 bg-sidebar-bg shadow-lg z-50">
+  <!-- User Profile Section -->
+  <div class="p-4 border-b border-gray-600">
+    <div class="flex items-center space-x-3">
+      <img [src]="getUserAvatarUrl()" 
+           alt="Avatar" 
+           class="w-10 h-10 rounded-full border-2"
+           [style.border-color]="getUserRoleColor()">
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-white truncate">
+          {{ getUserDisplayName() }}
+        </p>
+        <p class="text-xs text-gray-400 truncate">
+          {{ currentUser?.role?.name | titlecase }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Items -->
+  <div class="p-4 space-y-2">
+    <a *ngFor="let item of filteredNavItems" 
+       [routerLink]="item.route"
+       routerLinkActive="active"
+       class="sidebar-item">
+      <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"></path>
+      </svg>
+      {{ item.label }}
+    </a>
+  </div>
+
+  <!-- Logout Button -->
+  <div class="absolute bottom-4 left-4 right-4">
+    <button (click)="logout()" 
+            class="w-full btn btn-secondary text-left flex items-center">
+      <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+      </svg>
+      Abmelden
+    </button>
+  </div>
+</nav>

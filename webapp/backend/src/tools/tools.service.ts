@@ -52,7 +52,6 @@ export class ToolsService {
         permissions: ['tools.ticket_transcripts'],
         route: '/tools/ticket-transcripts',
       },
-      // Weitere Tools können hier hinzugefügt werden
     ];
   }
 

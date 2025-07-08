@@ -1,0 +1,21 @@
+/* App component specific styles */
+.app-container {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.content-area {
+  min-height: calc(100vh - 64px);
+  padding: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .content-area {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .content-area {
+    padding: 0.75rem;
+  }
+}

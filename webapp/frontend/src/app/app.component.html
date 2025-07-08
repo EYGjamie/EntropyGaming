@@ -1,0 +1,20 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Loading Spinner -->
+  <app-loading-spinner *ngIf="isLoading$ | async"></app-loading-spinner>
+
+  <!-- Navigation (only show when authenticated) -->
+  <app-navigation *ngIf="isAuthenticated$ | async"></app-navigation>
+
+  <!-- Main Content -->
+  <div class="transition-all duration-300" 
+       [ngClass]="(isAuthenticated$ | async) ? 'ml-64' : ''">
+    
+    <!-- Content Area -->
+    <main class="min-h-screen">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Global Notifications -->
+  <app-notification></app-notification>
+</div>
