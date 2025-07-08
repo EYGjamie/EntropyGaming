@@ -3,15 +3,12 @@ package discord
 import (
 	"log"
 	"os"
-	"strings"
 	"bot/database"
-	"bot/handlers/staffmember"
-	"bot/handlers/surveys"
-	"bot/handlers/tickets"
 	"bot/handlers/discord_administration"
 	"bot/handlers/tracking"
 	"bot/handlers/quiz"
 	"bot/handlers/weekly_updates"
+	"bot/handlers/advertising/staff"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -30,7 +27,6 @@ func StartBot() error {
 	voiceTracker := tracking.NewVoiceTracker(database.DB)
 	msgTracker := tracking.NewMessageTracker(database.DB)
 	voiceVis := discord_administration.NewVoiceVisibilityTracker(database.DB)
-	
 
 	// Creation Discord-Session
 	dg, err := discordgo.New("Bot " + Token)
@@ -55,6 +51,9 @@ func StartBot() error {
 	// TimedPurger (Regelmäßiges Löschen von alten Nachrichten in bestimmten Kanälen)
 	discord_administration.StartChannelPurger(dg)
 
+	// Advertising-Staff Handler initialisieren
+	advertisingManager, err := staff.InitializeAdvertisingStaff(dg)
+
 	// Voice Visibility Tracker
 	dg.AddHandler(voiceVis.OnVoiceStateUpdate)
 
@@ -73,13 +72,20 @@ func StartBot() error {
 	// Weekly Updates Handler
 	weeklyManager, err := weekly_updates.InitializeWeeklyUpdates(database.DB, dg)
 	if err != nil {
-		discord_administration.LogAndNotifyAdmins(dg, "Fehler", "Wöchentlichen Berichte", "bot.go", 74, err, "Fehler beim Initialisieren der wöchentlichen Berichte")
+		discord_administration.LogAndNotifyAdmins(dg, "Fehler", "Wöchentlichen Berichte", "bot.go", 0, err, "Fehler beim Initialisieren der wöchentlichen Berichte")
 	}
 
 	// Test Weekly Updates Scheduler
 	if os.Getenv("WEEKLY_GENERATE_REPORTS_NOW") == "true" {
 		if err := weeklyManager.GenerateReportsNow(); err != nil {
-			discord_administration.LogAndNotifyAdmins(dg, "Fehler", "Wöchentlichen Berichte", "bot.go", 80, err, "Fehler beim TEST von Generieren der wöchentlichen Berichte")
+			discord_administration.LogAndNotifyAdmins(dg, "Fehler", "Wöchentlichen Berichte", "bot.go", 0, err, "Fehler beim TEST von Generieren der wöchentlichen Berichte")
+		}
+	}
+
+	// Test Advertising System (falls gewünscht)
+	if os.Getenv("ADVERTISING_TEST_SEND_NOW") == "true" {
+		if err := advertisingManager.SendNow(); err != nil {
+			discord_administration.LogAndNotifyAdmins(dg, "Mittel", "Error", "bot.go", 0, err, "Fehler beim TEST-Senden der Stellenausschreibung")
 		}
 	}
 
@@ -87,21 +93,9 @@ func StartBot() error {
 	log.Println("Bot has been started and successfully connected to Discord!")
 	
 	// Bot start Info
-	discord_administration.LogAndNotifyAdmins(dg, "Keine", "Info", "bot.go", 77, nil, "Bot gestartet")
+	discord_administration.LogAndNotifyAdmins(dg, "Keine", "Info", "bot.go", 0, nil, "Bot gestartet")
 
 	select {}
 }
 
-/*--------------------------------------------------------------------------------------------------------------------------*/
 
-// ready-Handler wird noch ausgelagert in ready.go
-func ready(s *discordgo.Session, event *discordgo.Ready) {
-	staffmember.StartRoleUpdater(s, database.DB, os.Getenv("GUILD_ID"))           				// Starting Role-Updater for Database
-	tickets.CheckAndNotifyInactiveUsers(s, database.DB, os.Getenv("GUILD_ID")) 					// Starting Inaktive-User-Notifier 
-	// tickets.StartTicketStatusUpdater(s, database.DB, os.Getenv("CHANNEL_TICKET_STATUS_ID"))   	// Starting Ticket-Status-Updater
-	log.Printf("Bot logged in as %s#%s", event.User.Username, event.User.Discriminator) 		// Stauts-Update "Bot is working"
-
-	
-}
-
-/*--------------------------------------------------------------------------------------------------------------------------*/
