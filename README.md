@@ -2,6 +2,11 @@
 
 Dieses Projekt besteht aus einem Discord-Bot in Go und einer internen Webseite mit Angular Frontend und NestJS Backend.
 
+## ToDo
+
+- Create Ticket als Befehl einbauen
+- Transcripts Ordner auslagern?
+
 ## 📁 Projektstruktur
 
 ```

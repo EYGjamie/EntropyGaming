@@ -1,0 +1,1 @@
+// ToDo: Im onReady Event Handler sollen alle aktiven Slash Commands gelöscht werden BEVOR die neuen registriert werden, um Duplukate zu vermeiden
