@@ -3,15 +3,7 @@ package discord
 import (
 	"log"
 	"os"
-	"strings"
-	"bot/database"
-	"bot/handlers/staffmember"
 	"bot/handlers/surveys"
-	"bot/handlers/tickets"
-	"bot/handlers/discord_administration"
-	"bot/handlers/tracking"
-	"bot/handlers/quiz"
-	"bot/handlers/weekly_updates"
 
 	"github.com/bwmarrin/discordgo"
 )

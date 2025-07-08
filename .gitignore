@@ -30,3 +30,4 @@ go.work.sum
 # db files
 /db/data
 db/data/entropy.db
+/bot/logs
