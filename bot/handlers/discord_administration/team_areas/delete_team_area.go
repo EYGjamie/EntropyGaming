@@ -134,6 +134,8 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		utils.LogAndNotifyAdmins(s, "low", "Error", "delete_team_area.go", true, err, fmt.Sprintf("Error editing team db entry %s", catID))
 	}
 
+	utils.LogAndNotifyAdmins(s, "info", "Info", "delete_team_area.go", false, nil, fmt.Sprintf("Team-Bereich %s wurde gelöscht.", catID))
+
 	// Nutzer über erfolgreiches löschen informieren
 	msg := fmt.Sprintf("Team-Bereich %s wurde gelöscht.", catID)
 	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
