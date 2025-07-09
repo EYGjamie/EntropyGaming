@@ -5,7 +5,7 @@ import (
 )
 
 // HandleMusic sendet ein Ephemeral-Embed an den Aufrufer
-func HandleMusic(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func HandleMusic(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	embed := &discordgo.MessageEmbed{
 		Title:       	"Kurzfassung zum Musik-Bot",
 		Description: 	"**!join** - Musik Bot joint eurem Voice Channel\n" +
@@ -22,7 +22,7 @@ func HandleMusic(s *discordgo.Session, i *discordgo.InteractionCreate) {
 						"**!radio [Name des Radio-Senders]** - Internet Radio",
 		Color:       	0x1DB954, // Spotify Green	
 	}
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{embed},

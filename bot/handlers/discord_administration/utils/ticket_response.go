@@ -8,23 +8,23 @@ import (
 )
 
 // HandleTicketResponse liefert eine Standardantwort für Ticket-Bewerbungen
-func HandleTicketResponse(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	permRole := os.Getenv("ROLE_MANAGEMENT")
+func HandleTicketResponse(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
+	permRole := os.Getenv("ROLE_MANAGEMENT") // => DBMIGRATION
 	allowed := false
-	for _, r := range i.Member.Roles {
+	for _, r := range bot_interaction.Member.Roles {
 		if r == permRole {
 			allowed = true
 		}
 	}
 	if !allowed {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{Content: "Du hast keine Berechtigung.", Flags: discordgo.MessageFlagsEphemeral},
 		})
 		return
 	}
 
-	data := i.ApplicationCommandData()
+	data := bot_interaction.ApplicationCommandData()
 	variant := data.Options[0].StringValue()
 
 	var reply string
@@ -55,7 +55,7 @@ func HandleTicketResponse(s *discordgo.Session, i *discordgo.InteractionCreate) 
 			"Das Ganze natürlich völlig kostenfrei. Wie klingt das für dich? 🙂")
 	}
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: reply, 

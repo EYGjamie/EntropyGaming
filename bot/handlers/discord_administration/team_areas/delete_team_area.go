@@ -11,17 +11,17 @@ import (
 
 // HandleDeleteTeamArea deletses a team area, including its role, category, and channels.
 // It checks if the user has the required permissions, responds to the interaction, and performs the deletion.
-func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	guildID := i.GuildID
-	permRole := os.Getenv("PERM_DELETE_TEAM_ROLE_ID")
+func HandleDeleteTeamArea(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
+	guildID := bot_interaction.GuildID
+	permRole := os.Getenv("PERM_DELETE_TEAM_ROLE_ID") // => DBMIGRATION
 	hasPerm := false
-	for _, r := range i.Member.Roles {
+	for _, r := range bot_interaction.Member.Roles {
 		if r == permRole {
 			hasPerm = true
 		}
 	}
 	if !hasPerm {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Du hast keine Berechtigung.", 
@@ -31,7 +31,7 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		return
 	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: "Bereich wird gelöscht … Einen kurzen Moment bitte",
@@ -39,14 +39,14 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		},
 	})
 	if err != nil {
-		utils.LogAndNotifyAdmins(s, "low", "Error", "delete_team_area.go", false, err, "Error senden response for delete team area")
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "delete_team_area.go", false, err, "Error senden response for delete team area")
 		return
 	}
 
-	catID := i.ApplicationCommandData().Options[0].StringValue()
-	chs, err := s.GuildChannels(guildID)
+	catID := bot_interaction.ApplicationCommandData().Options[0].StringValue()
+	chs, err := bot.GuildChannels(guildID)
 	if err != nil {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Es wurden keine Channel für die Kategorie gefunden.", 
@@ -77,9 +77,9 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	DiamondTeamsRole := os.Getenv("ROLE_DIAMOND_TEAMS")
 	var after string
 	for {
-		members, err := s.GuildMembers(guildID, after, 1000)
+		members, err := bot.GuildMembers(guildID, after, 1000)
 		if err != nil {
-			utils.LogAndNotifyAdmins(s, "low", "Error", "delete_team_area.go", false, err, "Error fetching guild members")
+			utils.LogAndNotifyAdmins(bot, "low", "Error", "delete_team_area.go", false, err, "Error fetching guild members")
 			break
 		}
 		if len(members) == 0 {
@@ -97,7 +97,7 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 			if hasTeamRole {
 				for _, r := range m.Roles {
 					if r == DiamondTeamsRole {
-						s.GuildMemberRoleRemove(guildID, m.User.ID, DiamondTeamsRole)
+						bot.GuildMemberRoleRemove(guildID, m.User.ID, DiamondTeamsRole)
 						break
 					}
 				}
@@ -108,22 +108,22 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 
 	// Rolle löschen
 	if TeamRoleID != "" {
-		err = s.GuildRoleDelete(guildID, TeamRoleID)
+		err = bot.GuildRoleDelete(guildID, TeamRoleID)
 		if err != nil {
-			utils.LogAndNotifyAdmins(s, "low", "Error", "delete_team_area.go", true, err, "Error deleting team role")
+			utils.LogAndNotifyAdmins(bot, "low", "Error", "delete_team_area.go", true, err, "Error deleting team role")
 		}
 	}
 
 	for _, ch := range append(textCh, voiceCh...) {
-		_, err = s.ChannelDelete(ch.ID)
+		_, err = bot.ChannelDelete(ch.ID)
 		if err != nil {
-			utils.LogAndNotifyAdmins(s, "low", "Error", "delete_team_area.go", true, err, fmt.Sprintf("Error deleting Channel: %s", ch.ID))
+			utils.LogAndNotifyAdmins(bot, "low", "Error", "delete_team_area.go", true, err, fmt.Sprintf("Error deleting Channel: %s", ch.ID))
 		}
 	}
 
-	_, err = s.ChannelDelete(catID)
+	_, err = bot.ChannelDelete(catID)
 	if err != nil {
-		utils.LogAndNotifyAdmins(s, "low", "Error", "delete_team_area.go", true, err, fmt.Sprintf("Error deleting category %s", catID))
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "delete_team_area.go", true, err, fmt.Sprintf("Error deleting category %s", catID))
 	}
 
 	// DB-Eintrag deaktivieren
@@ -131,17 +131,17 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		"UPDATE team_areas SET is_active = false WHERE category_id = ?", catID,
 	)
 	if err != nil {
-		utils.LogAndNotifyAdmins(s, "low", "Error", "delete_team_area.go", true, err, fmt.Sprintf("Error editing team db entry %s", catID))
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "delete_team_area.go", true, err, fmt.Sprintf("Error editing team db entry %s", catID))
 	}
 
-	utils.LogAndNotifyAdmins(s, "info", "Info", "delete_team_area.go", false, nil, fmt.Sprintf("Team-Bereich %s wurde gelöscht.", catID))
+	utils.LogAndNotifyAdmins(bot, "info", "Info", "delete_team_area.go", false, nil, fmt.Sprintf("Team-Bereich %s wurde gelöscht.", catID))
 
 	// Nutzer über erfolgreiches löschen informieren
 	msg := fmt.Sprintf("Team-Bereich %s wurde gelöscht.", catID)
-	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+	_, err = bot.InteractionResponseEdit(bot_interaction.Interaction, &discordgo.WebhookEdit{
 		Content: &msg,
 	})
 	if err != nil {
-		utils.LogAndNotifyAdmins(s, "low", "Error", "delete_team_area.go", false, err, "Error editing interaction response")
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "delete_team_area.go", false, err, "Error editing interaction response")
 	}
 }

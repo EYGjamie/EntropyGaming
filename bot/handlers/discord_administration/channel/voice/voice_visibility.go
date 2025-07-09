@@ -7,13 +7,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// VoiceVisibilityTracker macht Team-Voice-Channels nur sichtbar, wenn sie belegt sind.
 type VoiceVisibilityTracker struct {
 	db       *sql.DB
 	sessions map[string]string
 }
 
-// NewVoiceVisibilityTracker instanziiert den Tracker.
 func NewVoiceVisibilityTracker(db *sql.DB) *VoiceVisibilityTracker {
 	return &VoiceVisibilityTracker{
 		db:       db,
@@ -21,26 +19,22 @@ func NewVoiceVisibilityTracker(db *sql.DB) *VoiceVisibilityTracker {
 	}
 }
 
-// OnVoiceStateUpdate feuert bei jedem VoiceState-Wechsel.
-func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *discordgo.VoiceStateUpdate) {
-	guildID := vs.GuildID
-
-	// Update vt.sessions: entfernen alter Eintrag, setzen neuer
-	user := vs.UserID
+func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(bot *discordgo.Session, bot_voiceState *discordgo.VoiceStateUpdate) {
+	guildID := bot_voiceState.GuildID
+	user := bot_voiceState.UserID
 	oldChan := ""
 	if ch, ok := vt.sessions[user]; ok {
 		oldChan = ch
 		delete(vt.sessions, user)
 	}
-	newChan := vs.ChannelID
+	newChan := bot_voiceState.ChannelID
 	if newChan != "" {
 		vt.sessions[user] = newChan
 	}
 
-	// Lade alle Team-Voice-Channel-IDs
 	rows, err := vt.db.Query(`SELECT voicechannel_id FROM team_areas WHERE is_active = 1`)
 	if err != nil {
-		utils.LogAndNotifyAdmins(s, "high", "Error", "voice_visibility.go", true, err, "Error getting team active voice channels")
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "voice_visibility.go", true, err, "Error getting team active voice channels")
 		return
 	}
 	defer rows.Close()
@@ -54,11 +48,9 @@ func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *d
 		channelIDs = append(channelIDs, cid)
 	}
 
-	// Wir prüfen nur Kanäle, die sich geändert haben
 	changed := map[string]struct{}{oldChan: {}, newChan: {}}
 
 	for cid := range changed {
-		// Nur Team-Channels
 		found := false
 		for _, tc := range channelIDs {
 			if tc == cid {
@@ -70,7 +62,6 @@ func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *d
 			continue
 		}
 
-		// Zähle aktuelle Sessions in diesem Channel
 		count := 0
 		for _, ch := range vt.sessions {
 			if ch == cid {
@@ -87,9 +78,8 @@ func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *d
 			denyPerms = discordgo.PermissionViewChannel | discordgo.PermissionVoiceConnect
 		}
 
-		// Overwrite für @everyone (ID = guildID)
-		if err := s.ChannelPermissionSet(cid, guildID, discordgo.PermissionOverwriteTypeRole, allowPerms, denyPerms); err != nil {
-			utils.LogAndNotifyAdmins(s, "low", "Error", "voice_visibility.go", false, err, "Fehler beim Setzen der Berechtigungen für Channel " + cid)
+		if err := bot.ChannelPermissionSet(cid, guildID, discordgo.PermissionOverwriteTypeRole, allowPerms, denyPerms); err != nil {
+			utils.LogAndNotifyAdmins(bot, "low", "Error", "voice_visibility.go", false, err, "Fehler beim Setzen der Berechtigungen für Channel " + cid)
 		}
 	}
 }

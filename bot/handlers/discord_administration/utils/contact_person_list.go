@@ -25,12 +25,12 @@ type Contact struct {
 }
 
 // HandleCPList lädt contacts.json, baut die Beschreibung zusammen und sendet das Embed
-func HandleCPList(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func HandleCPList(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
     // JSON-Datei einlesen
     data, err := os.ReadFile("handlers/discord_administration/utils/data/contacts.json")
     if err != nil {
         // Fehlerbehandlung: sende eine Fehlermeldung
-        s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+        bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
             Type: discordgo.InteractionResponseChannelMessageWithSource,
             Data: &discordgo.InteractionResponseData{
                 Content: "Fehler beim Laden der Kontaktliste.",
@@ -43,7 +43,7 @@ func HandleCPList(s *discordgo.Session, i *discordgo.InteractionCreate) {
     // In Go-Struct unmarshallen
     var cf ContactFile
     if err := json.Unmarshal(data, &cf); err != nil {
-        s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+        bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
             Type: discordgo.InteractionResponseChannelMessageWithSource,
             Data: &discordgo.InteractionResponseData{
                 Content: "Fehler beim Parsen der Kontaktliste.",
@@ -76,7 +76,7 @@ func HandleCPList(s *discordgo.Session, i *discordgo.InteractionCreate) {
     }
 
     // Antwort senden
-    s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+    bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
         Type: discordgo.InteractionResponseChannelMessageWithSource,
         Data: &discordgo.InteractionResponseData{
             Embeds: []*discordgo.MessageEmbed{embed},
