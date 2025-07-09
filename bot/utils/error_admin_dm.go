@@ -5,99 +5,103 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-// LogAndNotifyAdmins loggt den Fehler in eine tagesbasierte Logdatei und sendet ein Embed an Admins
-// priority: Pflicht, Auswahl: "Keine", "Niedrig", "Mittel", "Hoch"
-// msgType: Pflicht, Auswahl: "Info", "Warn", "Error"
-// file: Pflicht, Dateiname oder Pfad
-// line: Pflicht, Zeilennummer in der Datei
-// err: Pflicht, das Fehlermeldung-Error-Objekt
-// contextMsg: Optional, zusätzliche Informationen
-
-func LogAndNotifyAdmins(s *discordgo.Session, priority string, msgType string, file string, line int, err error, contextMsg string) {
+// LogAndNotifyAdmins logs an error with a given priority and type, and optionally sends a notification to admins via DM.
+// priority can be "critical", "high", "medium", "low", "warn", or "info".
+// msgType is the type of message, e.g., "Error", "Warning", etc.
+// file is the name of the file where the error occurred.
+// notfication determines whether to send a DM to admins.
+// err is the error to log and notify about.
+// contextMsg is an optional message providing additional context about the error.
+func LogAndNotifyAdmins(s *discordgo.Session, priority string, msgType string, file string, notfication bool, err error, contextMsg string) {
 	if err == nil {
-		err = fmt.Errorf("kein Fehler angegeben/vorhanden")
+		err = fmt.Errorf("no error provided")
 	}
 
-	// Farbe basierend auf Priorität festlegen
-	var embedColor int
-	switch priority {
-	case "Hoch":
-		embedColor = 0xFF0000 // Rot
-	case "Mittel":
-		embedColor = 0xFFA500 // Orange
-	case "Niedrig":
-		embedColor = 0xFFFF00 // Gelb
-	default: // "Keine"
-		embedColor = 0x00ff00 // Grau
-	}
-
-	// tagesbasiertes Logging in logs-Ordner
-	logDir := "logs"
+	// create day based log files
+	logDir := filepath.Join("logs")
 	if mkErr := os.MkdirAll(logDir, 0755); mkErr != nil {
-		log.Printf("Fehler beim Erstellen des Log-Ordners: %v", mkErr)
+		log.Printf("Error creating logs folder %v", mkErr)
 	} else {
 		today := time.Now().Format("2006-01-02")
 		logFilePath := filepath.Join(logDir, fmt.Sprintf("%s.log", today))
 		f, openErr := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 		if openErr != nil {
-			log.Printf("Fehler beim Öffnen der Logdatei %s: %v", logFilePath, openErr)
+			log.Printf("Error open log file %s: %v", logFilePath, openErr)
 		} else {
 			defer f.Close()
 			logger := log.New(f, "", log.LstdFlags)
-			logger.Printf("[ADMIN-ALERT] %s/%s %s:%d %v", priority, msgType, file, line, err)
+			logger.Printf("[ADMIN-ALERT] %s/%s %s %v", priority, msgType, file, err)
 		}
 	}
 
-	// Admin-IDs aus Umgebungsvariable lesen (mit Komma getrennt)
-	adminEnv := os.Getenv("ADMIN_IDS")
-	if adminEnv == "" {
-		log.Println("ADMIN_IDS nicht gesetzt")
-		return
-	}
-	adminIDs := strings.Split(adminEnv, ",")
+	// if notfication is true, we additionally send a DM to admins
+	if notfication {
+		// => DBMIGRATION
+		adminEnv := os.Getenv("ADMIN_IDS")
+		if adminEnv == "" {
+			log.Println("ADMIN_IDS not set, cannot notify admins")
+			return
+		}
+		adminIDs := strings.Split(adminEnv, ",")
 
-	// Embed erstellen
-	embed := &discordgo.MessageEmbed{
-		Title: fmt.Sprintf("Prio: %s — Typ: %s", priority, msgType),
-		Color: embedColor,
-		Fields: []*discordgo.MessageEmbedField{
-			{Name: "Datei", Value: file, Inline: true},
-			{Name: "Zeile", Value: strconv.Itoa(line), Inline: true},
-		},
-	}
-	if contextMsg != "" {
+		var embedColor int
+		switch priority {
+			case "critical":
+				embedColor = 0xff008c // pink
+			case "warn":
+				embedColor = 0xFF00FF // magenta
+			case "high":
+				embedColor = 0xFF0000 // red
+			case "medium":
+				embedColor = 0xFFA500 // orange
+			case "low":
+				embedColor = 0xFFFF00 // yellow
+			case "info":
+				embedColor = 0x0000FF // blue
+			default:
+				embedColor = 0x00ff00 // grey
+			}
+
+		embed := &discordgo.MessageEmbed{
+			Title: fmt.Sprintf("Prio: %s — Typ: %s", priority, msgType),
+			Color: embedColor,
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "File", Value: file, Inline: true},
+				{Name: "Time", Value: time.Now().Format(time.RFC3339), Inline: true},
+			},
+		}
+		if contextMsg != "" {
+			embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+				Name:   "Context",
+				Value:  contextMsg,
+				Inline: false,
+			})
+		}
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-			Name:   "Context",
-			Value:  contextMsg,
+			Name:   "Error",
+			Value:  err.Error(),
 			Inline: false,
 		})
-	}
-	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-		Name:   "Fehlermeldung",
-		Value:  err.Error(),
-		Inline: false,
-	})
 
-	// DM an Admins senden
-	for _, adminID := range adminIDs {
-		adminID = strings.TrimSpace(adminID)
-		if adminID == "" {
-			continue
+		for _, adminID := range adminIDs {
+			adminID = strings.TrimSpace(adminID)
+			if adminID == "" {
+				continue
+			}
+			dmChannel, dmErr := s.UserChannelCreate(adminID)
+			if dmErr != nil {
+				log.Printf("Error creating DM channel with Admin: %s: %v", adminID, dmErr)
+				continue
+			}
+			if _, sendErr := s.ChannelMessageSendEmbed(dmChannel.ID, embed); sendErr != nil {
+				log.Printf("Error senden msg to Admin: %s: %v", adminID, sendErr)
+			}
 		}
-		dmChannel, dmErr := s.UserChannelCreate(adminID)
-		if dmErr != nil {
-			log.Printf("Fehler beim Erstellen des DM-Kanals für Admin %s: %v", adminID, dmErr)
-			continue
-		}
-		if _, sendErr := s.ChannelMessageSendEmbed(dmChannel.ID, embed); sendErr != nil {
-			log.Printf("Fehler beim Senden der Admin-DM an %s: %v", adminID, sendErr)
-		}
-	}
+	}	
 }
