@@ -1,4 +1,4 @@
-package discord_administration
+package utils
 
 import (
 	"fmt"

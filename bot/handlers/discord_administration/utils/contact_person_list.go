@@ -1,9 +1,9 @@
-package discord_administration
+package discord_administration_utils
 
 import (
     "encoding/json"
-    "io/ioutil"
     "strings"
+    "os"
 
     "github.com/bwmarrin/discordgo"
 )
@@ -27,7 +27,7 @@ type Contact struct {
 // HandleCPList lädt contacts.json, baut die Beschreibung zusammen und sendet das Embed
 func HandleCPList(s *discordgo.Session, i *discordgo.InteractionCreate) {
     // JSON-Datei einlesen
-    data, err := ioutil.ReadFile("handlers/discord_administration/contacts.json")
+    data, err := os.ReadFile("handlers/discord_administration/utils/data/contacts.json")
     if err != nil {
         // Fehlerbehandlung: sende eine Fehlermeldung
         s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{

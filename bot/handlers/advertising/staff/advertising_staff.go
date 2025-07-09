@@ -3,16 +3,15 @@ package staff
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/robfig/cron/v3"
-	"bot/handlers/discord_administration"
 )
 
 // JobMessage represents the structure of the job advertisement message
@@ -76,18 +75,10 @@ func NewAdvertisingStaffManager(session *discordgo.Session) (*AdvertisingStaffMa
 // Start begins the weekly job advertisement scheduler
 func (asm *AdvertisingStaffManager) Start() error {
 	// Schedule for every Sunday at 14:00 (2 PM)
-	// Cron format: "0 14 * * 0" (minute hour day month weekday)
+	// Cron format: (minute hour day month weekday)
 	_, err := asm.cron.AddFunc("0 14 * * 0", func() {
 		if err := asm.sendWeeklyJobAdvertisement(); err != nil {
-			discord_administration.LogAndNotifyAdmins(
-				asm.session, 
-				"Hoch", 
-				"Error", 
-				"advertising_staff.go", 
-				0, 
-				err, 
-				"Fehler beim Senden der wöchentlichen Stellenausschreibung",
-			)
+			utils.LogAndNotifyAdmins(asm.session, "Hoch", "Error", "advertising_staff.go", 0, err, "Fehler beim Senden der wöchentlichen Stellenausschreibung")
 		}
 	})
 	
@@ -133,7 +124,7 @@ func (asm *AdvertisingStaffManager) sendWeeklyJobAdvertisement() error {
 		_, err := asm.session.ChannelMessageSendEmbed(channelID, embed)
 		if err != nil {
 			sendErrors = append(sendErrors, fmt.Sprintf("Channel %s: %v", channelID, err))
-			discord_administration.LogAndNotifyAdmins(asm.session,"Mittel","Error","advertising_staff.go",0,err,fmt.Sprintf("Fehler beim Senden der Stellenausschreibung an Channel %s", channelID))
+			utils.LogAndNotifyAdmins(asm.session,"Mittel","Error","advertising_staff.go",0,err,fmt.Sprintf("Fehler beim Senden der Stellenausschreibung an Channel %s", channelID))
 		} else {
 			log.Printf("Successfully sent job advertisement to channel %s", channelID)
 		}
@@ -149,7 +140,7 @@ func (asm *AdvertisingStaffManager) sendWeeklyJobAdvertisement() error {
 
 // loadJobMessage loads the job message from the JSON configuration file
 func (asm *AdvertisingStaffManager) loadJobMessage() (*JobMessage, error) {
-	data, err := ioutil.ReadFile(asm.configPath)
+	data, err := os.ReadFile(asm.configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read job message file %s: %w", asm.configPath, err)
 	}

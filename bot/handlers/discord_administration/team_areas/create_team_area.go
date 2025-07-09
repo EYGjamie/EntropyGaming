@@ -1,10 +1,11 @@
-package discord_administration
+package discord_administration_team_areas
 
 import (
 	"fmt"
 	"os"
 	"strings"
 	"bot/database"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -55,7 +56,7 @@ func HandleCreateTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		},
 	})
 	if err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 50, err, "Fehler beim Erstellen des Team-Bereichs")
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 50, err, "Fehler beim Erstellen des Team-Bereichs")
 	}
 
 	// Optionen auslesen
@@ -135,45 +136,45 @@ func HandleCreateTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 
 	// 3) Text-Channels erstellen
 	if _, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{Name: "💬・𝐓𝐞𝐚𝐦-𝐂𝐡𝐚𝐭", Type: discordgo.ChannelTypeGuildText, ParentID: category.ID}); err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 137, err, "Fehler beim Erstellen des Team-Chat-Kanals")
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Erstellen des Team-Chat-Kanals")
 	}
 	voiceChannel, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{Name: "🔊・𝐓𝐞𝐚𝐦-𝐕𝐨𝐢𝐜𝐞", Type: discordgo.ChannelTypeGuildVoice, ParentID: category.ID})
 	if err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 140, err, "Fehler beim Erstellen des Team-Voice-Kanals")
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Erstellen des Team-Voice-Kanals")
 	}
 
 	// Optionale Channels erstellen
 	if scrimm {
 		if _, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{Name: "📆・𝐒𝐜𝐫𝐢𝐦𝐬", Type: discordgo.ChannelTypeGuildText, ParentID: category.ID}); err != nil {
-			LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 147, err, "Fehler beim Erstellen des Scrimm-Kanals")
+			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Erstellen des Scrimm-Kanals")
 		}
 	}
 	if results {
 		if _, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{Name: "🏆・𝐄𝐫𝐠𝐞𝐛𝐧𝐢𝐬𝐬𝐞", Type: discordgo.ChannelTypeGuildText, ParentID: category.ID}); err != nil {
-			LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 152, err, "Fehler beim Erstellen des Results-Kanals")
+			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Erstellen des Results-Kanals")
 		}
 	}
 	if orga {
 		if _, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{Name: "📌・𝐎𝐫𝐠𝐚𝐧𝐢𝐬𝐚𝐭𝐢𝐨𝐧", Type: discordgo.ChannelTypeGuildText, ParentID: category.ID}); err != nil {
-			LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 157, err, "Fehler beim Erstellen des Orga-Kanals")
+			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Erstellen des Orga-Kanals")
 		}
 	}
 	if notes {
 		if _, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{Name: "📬・𝐍𝐨𝐭𝐢𝐳𝐞𝐧", Type: discordgo.ChannelTypeGuildText, ParentID: category.ID}); err != nil {
-			LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 162, err, "Fehler beim Erstellen des Notes-Kanals")
+			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Erstellen des Notes-Kanals")
 		}
 	}
 
 	// 4) Speichern in DB
 	if _, err := database.DB.Exec("INSERT INTO team_areas (team_name, game, role_id, category_id, voicechannel_id) VALUES (?, ?, ?, ?, ?)", teamName, game, teamRole.ID, category.ID, voiceChannel.ID); err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 168, err, "Fehler beim Speichern des Team-Bereichs in der Datenbank")
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Speichern des Team-Bereichs in der Datenbank")
 	}
 
 	// 6) DM an Admin
 	if adminDM := os.Getenv("ADMIN_DM_ID"); adminDM != "" {
 		if dmC, err := s.UserChannelCreate(adminDM); err == nil {
 			if _, err := s.ChannelMessageSend(dmC.ID, fmt.Sprintf("Neuer Team-Bereich '%s' für Spiel '%s' wurde erstellt.", teamName, game)); err != nil {
-				LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 175, err, "Fehler beim Senden der Admin-DM")
+				utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Senden der Admin-DM")
 			}
 		}
 	}
@@ -184,7 +185,7 @@ func HandleCreateTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		Content: &msg, 
 	})
 	if err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 187, err, "Fehler beim Bearbeiten der Interaktion")
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "create_team_area.go", 0, err, "Fehler beim Bearbeiten der Interaktion")
 		return
 	}
 }

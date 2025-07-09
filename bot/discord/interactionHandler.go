@@ -4,9 +4,11 @@ import (
 	"log"
 	"strings"
 	"bot/database"
+	"bot/utils"
 	"bot/handlers/surveys"
 	"bot/handlers/tickets"
-	"bot/handlers/discord_administration"
+	"bot/handlers/discord_administration/team_areas"
+	"bot/handlers/discord_administration/utils"
 	"bot/handlers/quiz"
 
 	"github.com/bwmarrin/discordgo"
@@ -27,21 +29,21 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			case "ticket_view":
 				tickets.HandleTicketView(s, i)
 			case "ticket_response":
-				discord_administration.HandleTicketResponse(s, i)
+				discord_administration_utils.HandleTicketResponse(s, i)
 			case "create_team_area":
-				discord_administration.HandleCreateTeamArea(s, i)
+				discord_administration_team_areas.HandleCreateTeamArea(s, i)
 			case "delete_team_area":
-				discord_administration.HandleDeleteTeamArea(s, i)
+				discord_administration_team_areas.HandleDeleteTeamArea(s, i)
 			case "music":
-				discord_administration.HandleMusic(s, i)
+				discord_administration_utils.HandleMusic(s, i)
 			case "cplist":
-				discord_administration.HandleCPList(s, i)
+				discord_administration_utils.HandleCPList(s, i)
 			case "quiz_role":
 				quiz.HandleQuizCommand(s, i)
 			case "send_survey":
 				surveys.SendSurvey(s, i, database.DB)
 			default:
-				discord_administration.LogAndNotifyAdmins(s, "Hoch", "Warnung", "interactionHandler.go", 0, nil, "Unbekannter Slash Command: "+i.ApplicationCommandData().Name)
+				utils.LogAndNotifyAdmins(s, "Hoch", "Warnung", "interactionHandler.go", 0, nil, "Unbekannter Slash Command: "+i.ApplicationCommandData().Name)
 				return
 			}
 	
@@ -103,7 +105,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					return
 					}
 
-				discord_administration.LogAndNotifyAdmins(s, "Hoch", "Warnung", "interactionHandler.go", 0, nil, "Unbekannte CustomID in MessageComponent: "+i.MessageComponentData().CustomID)
+				utils.LogAndNotifyAdmins(s, "Hoch", "Warnung", "interactionHandler.go", 0, nil, "Unbekannte CustomID in MessageComponent: "+i.MessageComponentData().CustomID)
 				return
 			}
 

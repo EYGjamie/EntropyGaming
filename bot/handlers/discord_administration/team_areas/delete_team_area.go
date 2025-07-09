@@ -1,9 +1,10 @@
-package discord_administration
+package discord_administration_team_areas
 
 import (
 	"fmt"
 	"os"
 
+	"bot/utils"
 	"github.com/bwmarrin/discordgo"
 	"bot/database"
 )
@@ -37,7 +38,7 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		},
 	})
 	if err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 40, err, "Fehler beim Löschen des Team-Bereichs")
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 0, err, "Fehler beim Löschen des Team-Bereichs")
 		return
 	}
 
@@ -77,7 +78,7 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	for {
 		members, err := s.GuildMembers(guildID, after, 1000)
 		if err != nil {
-			LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 80, err, "Fehler beim Abfragen der Mitglieder")
+			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 0, err, "Fehler beim Abfragen der Mitglieder")
 			break
 		}
 		if len(members) == 0 {
@@ -108,20 +109,20 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	if TeamRoleID != "" {
 		err = s.GuildRoleDelete(guildID, TeamRoleID)
 		if err != nil {
-			LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 111, err, "Fehler beim Löschen der Team Rolle")
+			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 0, err, "Fehler beim Löschen der Team Rolle")
 		}
 	}
 
 	for _, ch := range append(textCh, voiceCh...) {
 		_, err = s.ChannelDelete(ch.ID)
 		if err != nil {
-			LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 118, err, fmt.Sprintf("Fehler beim Löschen des Channels %s", ch.ID))
+			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 0, err, fmt.Sprintf("Fehler beim Löschen des Channels %s", ch.ID))
 		}
 	}
 
 	_, err = s.ChannelDelete(catID)
 	if err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 124, err, fmt.Sprintf("Fehler beim Löschen der Kategorie %s", catID))
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 0, err, fmt.Sprintf("Fehler beim Löschen der Kategorie %s", catID))
 	}
 
 	// DB-Eintrag deaktivieren
@@ -129,7 +130,7 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		"UPDATE team_areas SET is_active = false WHERE category_id = ?", catID,
 	)
 	if err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 132, err, fmt.Sprintf("Fehler beim Deaktivieren des DB-Eintrags für Kategorie %s", catID))
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 0, err, fmt.Sprintf("Fehler beim Deaktivieren des DB-Eintrags für Kategorie %s", catID))
 	}
 
 	// Nutzer über erfolgreiches löschen informieren
@@ -138,6 +139,6 @@ func HandleDeleteTeamArea(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		Content: &msg,
 	})
 	if err != nil {
-		LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 141, err, "Fehler beim Bearbeiten der Interaktion")
+		utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "delete_team_area.go", 0, err, "Fehler beim Bearbeiten der Interaktion")
 	}
 }

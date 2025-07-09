@@ -1,7 +1,8 @@
-package discord_administration
+package discord_administration_channel_voice
 
 import (
 	"database/sql"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -39,7 +40,7 @@ func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *d
 	// Lade alle Team-Voice-Channel-IDs
 	rows, err := vt.db.Query(`SELECT voicechannel_id FROM team_areas WHERE is_active = 1`)
 	if err != nil {
-		LogAndNotifyAdmins(s, "Hoch", "Error", "voice_visibility.go", 30, err, "Fehler beim Abfragen der Team-Voice-Channels")
+		utils.LogAndNotifyAdmins(s, "Hoch", "Error", "voice_visibility.go", 0, err, "Fehler beim Abfragen der Team-Voice-Channels")
 		return
 	}
 	defer rows.Close()
@@ -88,7 +89,7 @@ func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *d
 
 		// Overwrite für @everyone (ID = guildID)
 		if err := s.ChannelPermissionSet(cid, guildID, discordgo.PermissionOverwriteTypeRole, allowPerms, denyPerms); err != nil {
-			LogAndNotifyAdmins(s, "Niedrig", "Error", "voice_visibility.go", 50, err, "Fehler beim Setzen der Berechtigungen für Channel "+cid)
+			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "voice_visibility.go", 0, err, "Fehler beim Setzen der Berechtigungen für Channel "+cid)
 		}
 	}
 }

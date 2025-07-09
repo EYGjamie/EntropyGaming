@@ -1,4 +1,4 @@
-package discord_administration
+package discord_administration_utils
 
 import (
 	"github.com/bwmarrin/discordgo"
