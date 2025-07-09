@@ -106,11 +106,30 @@ func createTables() {
 	usersTable := `
 		PRAGMA foreign_keys = ON;
 		CREATE TABLE IF NOT EXISTS users (
-			id           INTEGER PRIMARY KEY AUTOINCREMENT,
-			discord_id   TEXT    UNIQUE NOT NULL,
-			username     TEXT,
-			first_seen   DATETIME DEFAULT (CURRENT_TIMESTAMP),
-			last_seen    DATETIME
+			id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+			discord_id              TEXT UNIQUE NOT NULL,
+			username                TEXT,
+			display_name            TEXT,
+			nickname                TEXT,
+			avatar_url              TEXT,
+			is_bot                  BOOLEAN DEFAULT FALSE,
+			joined_server_at        DATETIME,
+			first_seen              DATETIME DEFAULT (CURRENT_TIMESTAMP),
+			last_seen               DATETIME DEFAULT (CURRENT_TIMESTAMP),
+			
+			-- Rollen Boolean Spalten
+			role_diamond_club       BOOLEAN DEFAULT FALSE,
+			role_diamond_teams      BOOLEAN DEFAULT FALSE,
+			role_entropy_member     BOOLEAN DEFAULT FALSE,
+			role_management         BOOLEAN DEFAULT FALSE,
+			role_head_management    BOOLEAN DEFAULT FALSE,
+			role_projektleitung     BOOLEAN DEFAULT FALSE
+		);
+		
+		CREATE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id);
+		CREATE INDEX IF NOT EXISTS idx_users_roles ON users(
+			role_diamond_club, role_diamond_teams, role_entropy_member,
+			role_management, role_head_management, role_projektleitung
 		);
 		`
 	_, err = DB.Exec(usersTable)
