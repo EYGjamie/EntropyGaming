@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -45,7 +46,7 @@ func (vt *VoiceTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *discordgo.V
         }
     }
 
-	internalID, err := EnsureUser(vt.db, userID, username)
+	internalID, err := utils.EnsureUser(vt.db, userID, username)
 	if err != nil {
 		log.Printf("Fehler beim EnsureUser für Voice User %s: %v", userID, err)
 		return
