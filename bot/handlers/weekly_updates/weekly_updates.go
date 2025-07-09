@@ -49,15 +49,15 @@ func (wum *WeeklyUpdatesManager) GetConfig() *EnvConfig {
 }
 
 // InitializeWeeklyUpdates is a convenience function to set up the weekly updates system
-func InitializeWeeklyUpdates(db *sql.DB, session *discordgo.Session) (*WeeklyUpdatesManager, error) {
+func InitializeWeeklyUpdates(db *sql.DB, session *discordgo.Session) (*WeeklyUpdatesManager) {
 	manager, err := NewWeeklyUpdatesManager(db, session)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create weekly updates manager: %w", err)
+		return nil
 	}
 	
 	if err := manager.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start weekly updates: %w", err)
+		return nil
 	}
 	
-	return manager, nil
+	return manager
 }

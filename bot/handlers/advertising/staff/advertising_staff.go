@@ -160,17 +160,17 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 	return embed
 }
 
-func InitializeAdvertisingStaff(session *discordgo.Session) (*AdvertisingStaffManager, error) {
+func InitializeAdvertisingStaff(session *discordgo.Session) (*AdvertisingStaffManager) {
 	manager, err := NewAdvertisingStaffManager(session)
 	if err != nil {
 		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, err, "Failed to create advertising staff manager")
-		return nil, nil
+		return nil
 	}
 
 	if err := manager.Start(); err != nil {
 		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, err, "Failed to start advertising staff scheduler")
-		return nil, nil
+		return nil
 	}
 
-	return manager, nil
+	return manager
 }

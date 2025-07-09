@@ -43,7 +43,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			case "send_survey":
 				surveys.SendSurvey(s, i, database.DB)
 			default:
-				utils.LogAndNotifyAdmins(s, "Hoch", "Warnung", "interactionHandler.go", 0, nil, "Unbekannter Slash Command: "+i.ApplicationCommandData().Name)
+				utils.LogAndNotifyAdmins(s, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown Slash Command: "+i.ApplicationCommandData().Name)
 				return
 			}
 	
@@ -105,7 +105,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					return
 					}
 
-				utils.LogAndNotifyAdmins(s, "Hoch", "Warnung", "interactionHandler.go", 0, nil, "Unbekannte CustomID in MessageComponent: "+i.MessageComponentData().CustomID)
+				utils.LogAndNotifyAdmins(s, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown CustomID in MessageComponent: "+i.MessageComponentData().CustomID)
 				return
 			}
 

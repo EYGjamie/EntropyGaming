@@ -59,6 +59,12 @@ func StartBot() error {
 	// Register Quiz Handler
 	quiz.RegisterQuiz(dg)
 
+	// Weekly Updates Handler
+	weekleyManager := weekly_updates.InitializeWeeklyUpdates(database.DB, dg)
+
+	// Advertising-Staff Handler initialisieren
+	advertisingManager:= staff.InitializeAdvertisingStaff(dg)
+
 	// Connection Discord-API
 	err = dg.Open()
 	if err != nil {
@@ -68,37 +74,17 @@ func StartBot() error {
 	// Command register
 	RegisterCommands(dg)
 
-	// Weekly Updates Handler
-	weeklyManager, err := weekly_updates.InitializeWeeklyUpdates(database.DB, dg)
-	if err != nil {
-		utils.LogAndNotifyAdmins(dg, "Fehler", "Wöchentlichen Berichte", "bot.go", 0, err, "Fehler beim Initialisieren der wöchentlichen Berichte")
-	}
-
-	// Test Weekly Updates Scheduler
-	if os.Getenv("WEEKLY_GENERATE_REPORTS_NOW") == "true" {
-		if err := weeklyManager.GenerateReportsNow(); err != nil {
-			utils.LogAndNotifyAdmins(dg, "Fehler", "Wöchentlichen Berichte", "bot.go", 0, err, "Fehler beim TEST von Generieren der wöchentlichen Berichte")
-		}
-	}
-
-	// Advertising-Staff Handler initialisieren
-	advertisingManager, err := staff.InitializeAdvertisingStaff(dg)
-	if err != nil {
-		utils.LogAndNotifyAdmins(dg, "Mittel", "Error", "bot.go", 0, err, "Fehler beim Initialisieren des Advertising-Staff Handlers")
-	}
-
-	// Test Advertising System (falls gewünscht)
-	if os.Getenv("ADVERTISING_TEST_SEND_NOW") == "true" {
-		if err := advertisingManager.SendNow(); err != nil {
-			utils.LogAndNotifyAdmins(dg, "Mittel", "Error", "bot.go", 0, err, "Fehler beim TEST-Senden der Stellenausschreibung")
-		}
-	}
-
 	// Stauts-Update "Bot is online"
 	log.Println("Bot has been started and successfully connected to Discord!")
-	
+
 	// Bot start Info
-	utils.LogAndNotifyAdmins(dg, "Keine", "Info", "bot.go", 0, nil, "Bot gestartet")
+	utils.LogAndNotifyAdmins(dg, "info", "Info", "bot.go", true, nil, "Bot has been started and successfully connected to Discord!")
+
+	// Dev Tests
+	if os.Getenv("DEV_TESTS") == "true" {
+		DevTests(dg, weekleyManager, advertisingManager)
+		utils.LogAndNotifyAdmins(dg, "info", "Info", "bot.go", true, nil, "Dev Tests executed successfully.")
+	}
 
 	select {}
 }
