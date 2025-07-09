@@ -31,59 +31,59 @@ func StartBot() error {
 	voiceVis := discord_administration_channel_voice.NewVoiceVisibilityTracker(database.DB)
 
 	// Creation Discord-Session
-	dg, err := discordgo.New("Bot " + Token)
+	bot, err := discordgo.New("Bot " + Token)
 	if err != nil {
 		return err
 	}
 
 	// Register Bot-Intents
-	dg.Identify.Intents = discordgo.IntentsAll
+	bot.Identify.Intents = discordgo.IntentsAll
 
 	// Register Event-Handler
-	dg.AddHandler(ready)
-	dg.AddHandler(interactionHandler)
+	bot.AddHandler(ready)
+	bot.AddHandler(interactionHandler)
 
 	// Register Tracking-Handler
-	dg.AddHandler(inviteTracker.OnReady)
-	dg.AddHandler(inviteTracker.OnGuildMemberAdd)
-	dg.AddHandler(leaveTracker.OnGuildMemberRemove)
-	dg.AddHandler(voiceTracker.OnVoiceStateUpdate)
-	dg.AddHandler(msgTracker.OnMessageCreate)
+	bot.AddHandler(inviteTracker.OnReady)
+	bot.AddHandler(inviteTracker.OnGuildMemberAdd)
+	bot.AddHandler(leaveTracker.OnGuildMemberRemove)
+	bot.AddHandler(voiceTracker.OnVoiceStateUpdate)
+	bot.AddHandler(msgTracker.OnMessageCreate)
 	
 	// TimedPurger (Regelmäßiges Löschen von alten Nachrichten in bestimmten Kanälen)
-	discord_administration_channel_text.StartChannelPurger(dg)
+	discord_administration_channel_text.StartChannelPurger(bot)
 
 	// Voice Visibility Tracker
-	dg.AddHandler(voiceVis.OnVoiceStateUpdate)
+	bot.AddHandler(voiceVis.OnVoiceStateUpdate)
 
 	// Register Quiz Handler
-	quiz.RegisterQuiz(dg)
+	quiz.RegisterQuiz(bot)
 
 	// Weekly Updates Handler
-	weekleyManager := weekly_updates.InitializeWeeklyUpdates(database.DB, dg)
+	weekleyManager := weekly_updates.InitializeWeeklyUpdates(database.DB, bot)
 
 	// Advertising-Staff Handler initialisieren
-	advertisingManager:= staff.InitializeAdvertisingStaff(dg)
+	advertisingManager:= staff.InitializeAdvertisingStaff(bot)
 
 	// Connection Discord-API
-	err = dg.Open()
+	err = bot.Open()
 	if err != nil {
 		return err
 	}
 
 	// Command register
-	RegisterCommands(dg)
+	RegisterCommands(bot)
 
 	// Stauts-Update "Bot is online"
 	log.Println("Bot has been started and successfully connected to Discord!")
 
 	// Bot start Info
-	utils.LogAndNotifyAdmins(dg, "info", "Info", "bot.go", true, nil, "Bot has been started and successfully connected to Discord!")
+	utils.LogAndNotifyAdmins(bot, "info", "Info", "bot.go", true, nil, "Bot has been started and successfully connected to Discord!")
 
 	// Dev Tests
 	if os.Getenv("DEV_TESTS") == "true" {
-		DevTests(dg, weekleyManager, advertisingManager)
-		utils.LogAndNotifyAdmins(dg, "info", "Info", "bot.go", true, nil, "Dev Tests executed successfully.")
+		DevTests(bot, weekleyManager, advertisingManager)
+		utils.LogAndNotifyAdmins(bot, "info", "Info", "bot.go", true, nil, "Dev Tests executed successfully.")
 	}
 
 	select {}
