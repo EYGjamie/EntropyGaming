@@ -12,9 +12,9 @@ import (
 
 // StartChannelPurger purged täglich eine Liste an Channels
 func StartChannelPurger(s *discordgo.Session) {
-	channelsEnv := os.Getenv("CHANNELS_TO_PURGE_DAILY")
+	channelsEnv := os.Getenv("CHANNELS_TO_PURGE_DAILY") // => DBMIGRATION
 	if channelsEnv == "" {
-		utils.LogAndNotifyAdmins(s, "Mittel", "Warnung", "timedPurger.go", 0, nil, "CHANNELS_TO_PURGE_DAILY ist nicht gesetzt. Keine Channels werden täglich gelöscht.")
+		utils.LogAndNotifyAdmins(s, "info", "Warnung", "timedPurger.go", true, nil, "CHANNELS_TO_PURGE_DAILY not set. No channels will be deleted.")
 		return
 	}
 	channels := strings.Split(channelsEnv, ",")
@@ -24,7 +24,7 @@ func StartChannelPurger(s *discordgo.Session) {
 		purgeChannels(s, channels)
 	})
 	if err != nil {
-		utils.LogAndNotifyAdmins(s, "Hoch", "Error", "timedPurger.go", 0, err, "Fehler beim Planen des täglichen Channel-Purgers")
+		utils.LogAndNotifyAdmins(s, "high", "Error", "timedPurger.go", true, err, "Error adding purge function to cron scheduler")
 	}
 	c.Start()
 }
@@ -36,7 +36,7 @@ func purgeChannels(s *discordgo.Session, channels []string) {
 		// lade die letzten 100 Nachrichten
 		msgs, err := s.ChannelMessages(chID, 100, "", "", "")
 		if err != nil {
-			utils.LogAndNotifyAdmins(s, "Mittel", "Error", "timedPurger.go", 0, err, "Fehler beim Laden der Nachrichten für Channel "+chID)
+			utils.LogAndNotifyAdmins(s, "medium", "Error", "timedPurger.go", false, err, "Error loading msg from Channel " + chID)
 			continue
 		}
 		var ids []string
@@ -49,16 +49,16 @@ func purgeChannels(s *discordgo.Session, channels []string) {
 
 		if len(ids) > 1 {
 			if err := s.ChannelMessagesBulkDelete(chID, ids); err != nil {
-				utils.LogAndNotifyAdmins(s, "Keine", "Error", "timedPurger.go", 0, err, "Bulk-Löschen in "+chID+" fehlgeschlagen. Versuche Einzellöschen.")
+				utils.LogAndNotifyAdmins(s, "info", "Error", "timedPurger.go", false, err, "Error in bulk delete " + chID)
 				for _, mid := range ids {
 					if derr := s.ChannelMessageDelete(chID, mid); derr != nil {
-						utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "timedPurger.go", 0, derr, "Einzellöschen in "+chID+" fehlgeschlagen für Nachricht "+mid)
+						utils.LogAndNotifyAdmins(s, "low", "Error", "timedPurger.go", false, derr, "Erorr deleting msg in channel " + chID)
 					}
 				}
 			}
 		} else {
 			if err := s.ChannelMessageDelete(chID, ids[0]); err != nil {
-				utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "timedPurger.go", 0, err, "Einzellöschen in "+chID+" fehlgeschlagen für Nachricht "+ids[0])
+				utils.LogAndNotifyAdmins(s, "low", "Error", "timedPurger.go", false, err, "Error deleting msg in channel " + chID)
 			}
 		}
 	}

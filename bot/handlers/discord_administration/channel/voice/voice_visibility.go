@@ -40,7 +40,7 @@ func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *d
 	// Lade alle Team-Voice-Channel-IDs
 	rows, err := vt.db.Query(`SELECT voicechannel_id FROM team_areas WHERE is_active = 1`)
 	if err != nil {
-		utils.LogAndNotifyAdmins(s, "Hoch", "Error", "voice_visibility.go", 0, err, "Fehler beim Abfragen der Team-Voice-Channels")
+		utils.LogAndNotifyAdmins(s, "high", "Error", "voice_visibility.go", true, err, "Error getting team active voice channels")
 		return
 	}
 	defer rows.Close()
@@ -89,7 +89,7 @@ func (vt *VoiceVisibilityTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *d
 
 		// Overwrite für @everyone (ID = guildID)
 		if err := s.ChannelPermissionSet(cid, guildID, discordgo.PermissionOverwriteTypeRole, allowPerms, denyPerms); err != nil {
-			utils.LogAndNotifyAdmins(s, "Niedrig", "Error", "voice_visibility.go", 0, err, "Fehler beim Setzen der Berechtigungen für Channel "+cid)
+			utils.LogAndNotifyAdmins(s, "low", "Error", "voice_visibility.go", false, err, "Fehler beim Setzen der Berechtigungen für Channel " + cid)
 		}
 	}
 }
