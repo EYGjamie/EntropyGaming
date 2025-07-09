@@ -74,7 +74,7 @@ func SendSurvey(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB
 
     // 3) DM an jeden Empfänger mit Dropdown
     for _, m := range targets {
-        intUID, err := utils.EnsureUser(db, m.User.ID, m.User.Username)
+        intUID, err := utils.EnsureUser(s, m.User.ID)
         if err != nil {
             continue
         }
