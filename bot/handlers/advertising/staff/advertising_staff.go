@@ -3,7 +3,6 @@ package staff
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,7 +13,6 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-// JobMessage represents the structure of the job advertisement message
 type JobMessage struct {
 	Title       string      `json:"title"`
 	Description string      `json:"description"`
@@ -23,7 +21,6 @@ type JobMessage struct {
 	Color       int         `json:"color"`
 }
 
-// JobListing represents a single job opening
 type JobListing struct {
 	Position    string `json:"position"`
 	Department  string `json:"department"`
@@ -31,7 +28,6 @@ type JobListing struct {
 	Requirements []string `json:"requirements"`
 }
 
-// AdvertisingStaffManager manages the weekly job advertisements
 type AdvertisingStaffManager struct {
 	session    *discordgo.Session
 	cron       *cron.Cron
@@ -39,12 +35,11 @@ type AdvertisingStaffManager struct {
 	configPath string
 }
 
-// NewAdvertisingStaffManager creates a new manager instance
 func NewAdvertisingStaffManager(session *discordgo.Session) (*AdvertisingStaffManager, error) {
-	// Load channels from environment variable
-	channelsEnv := os.Getenv("ADVERTISING_STAFF_CHANNELS")
+	channelsEnv := os.Getenv("ADVERTISING_STAFF_CHANNELS") // => DBMIGRATION
 	if channelsEnv == "" {
-		return nil, fmt.Errorf("ADVERTISING_STAFF_CHANNELS environment variable not set")
+		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, nil, "ADVERTISING_STAFF_CHANNELS environment variable not set")
+		return nil, nil
 	}
 	
 	channels := strings.Split(channelsEnv, ",")
@@ -52,69 +47,51 @@ func NewAdvertisingStaffManager(session *discordgo.Session) (*AdvertisingStaffMa
 		channels[i] = strings.TrimSpace(ch)
 	}
 
-	// Set up cron with timezone
 	location, err := time.LoadLocation("Europe/Berlin")
 	if err != nil {
-		log.Printf("Warning: Could not load Berlin timezone, using UTC: %v", err)
 		location = time.UTC
 	}
 
 	c := cron.New(cron.WithLocation(location))
-	
-	// Get config path
 	configPath := filepath.Join("handlers", "advertising", "staff", "job_message.json")
-
-	return &AdvertisingStaffManager{
-		session:    session,
-		cron:       c,
-		channels:   channels,
-		configPath: configPath,
-	}, nil
+	return &AdvertisingStaffManager{session:session, cron:c, channels: channels, configPath: configPath}, nil
 }
 
-// Start begins the weekly job advertisement scheduler
 func (asm *AdvertisingStaffManager) Start() error {
-	// Schedule for every Sunday at 14:00 (2 PM)
-	// Cron format: (minute hour day month weekday)
-	_, err := asm.cron.AddFunc("0 14 * * 0", func() {
+	_, err := asm.cron.AddFunc("0 14 * * 0", func() { // Cron format: (minute hour day month weekday)
 		if err := asm.sendWeeklyJobAdvertisement(); err != nil {
-			utils.LogAndNotifyAdmins(asm.session, "Hoch", "Error", "advertising_staff.go", 0, err, "Fehler beim Senden der wöchentlichen Stellenausschreibung")
+			utils.LogAndNotifyAdmins(asm.session, "medium", "Error", "advertising_staff.go", true, err, "Error sending weekly job advertisement")
 		}
 	})
 	
 	if err != nil {
-		return fmt.Errorf("failed to schedule weekly job advertisement: %w", err)
+		utils.LogAndNotifyAdmins(asm.session, "high", "Error", "advertising_staff.go", true, err, "Error scheduling weekly job advertisement")
+		return nil
 	}
 
 	asm.cron.Start()
-	log.Println("Weekly job advertisement scheduler started (Sundays at 14:00)")
 	return nil
 }
 
-// Stop stops the scheduler
 func (asm *AdvertisingStaffManager) Stop() {
 	if asm.cron != nil {
 		asm.cron.Stop()
 	}
 }
 
-// SendNow sends the job advertisement immediately (for testing)
 func (asm *AdvertisingStaffManager) SendNow() error {
 	return asm.sendWeeklyJobAdvertisement()
 }
 
-// sendWeeklyJobAdvertisement loads the job message and sends it to all configured channels
 func (asm *AdvertisingStaffManager) sendWeeklyJobAdvertisement() error {
-	// Load job message from JSON file
 	jobMessage, err := asm.loadJobMessage()
 	if err != nil {
-		return fmt.Errorf("failed to load job message: %w", err)
+		utils.LogAndNotifyAdmins(asm.session, "high", "Error", "advertising_staff.go", true, err, "Error loading job message")
+		return nil
 	}
 
-	// Create Discord embed
 	embed := asm.createJobEmbed(jobMessage)
 
-	// Send to all configured channels
 	var sendErrors []string
 	for _, channelID := range asm.channels {
 		if channelID == "" {
@@ -124,36 +101,31 @@ func (asm *AdvertisingStaffManager) sendWeeklyJobAdvertisement() error {
 		_, err := asm.session.ChannelMessageSendEmbed(channelID, embed)
 		if err != nil {
 			sendErrors = append(sendErrors, fmt.Sprintf("Channel %s: %v", channelID, err))
-			utils.LogAndNotifyAdmins(asm.session,"Mittel","Error","advertising_staff.go",0,err,fmt.Sprintf("Fehler beim Senden der Stellenausschreibung an Channel %s", channelID))
-		} else {
-			log.Printf("Successfully sent job advertisement to channel %s", channelID)
+			utils.LogAndNotifyAdmins(asm.session, "medium" , "Error", "advertising_staff.go", true, err , "Error sending staff ads in Channel" + channelID)
 		}
 	}
 
 	if len(sendErrors) > 0 {
-		return fmt.Errorf("failed to send to some channels: %s", strings.Join(sendErrors, "; "))
+		utils.LogAndNotifyAdmins(asm.session, "medium", "Error", "advertising_staff.go", true, fmt.Errorf("failed to send to some channels: %s", strings.Join(sendErrors, "; ")), "Failed to send staff ads in some channels")
+		return nil
 	}
-
-	log.Printf("Weekly job advertisement sent successfully to %d channels", len(asm.channels))
 	return nil
 }
 
-// loadJobMessage loads the job message from the JSON configuration file
 func (asm *AdvertisingStaffManager) loadJobMessage() (*JobMessage, error) {
 	data, err := os.ReadFile(asm.configPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read job message file %s: %w", asm.configPath, err)
+		utils.LogAndNotifyAdmins(asm.session, "high", "Error", "advertising_staff.go", true, err, "Failed to read job message file: " + asm.configPath)
+		return nil, nil
 	}
-
 	var jobMessage JobMessage
 	if err := json.Unmarshal(data, &jobMessage); err != nil {
-		return nil, fmt.Errorf("failed to parse job message JSON: %w", err)
+		utils.LogAndNotifyAdmins(asm.session, "high", "Error", "advertising_staff.go", true, err, "Failed to parse job message JSON: "+asm.configPath)
+		return nil, nil
 	}
-
 	return &jobMessage, nil
 }
 
-// createJobEmbed creates a Discord embed from the job message
 func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *discordgo.MessageEmbed {
 	embed := &discordgo.MessageEmbed{
 		Title:       jobMessage.Title,
@@ -162,7 +134,6 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 		Timestamp:   time.Now().Format(time.RFC3339),
 	}
 
-	// Add job listings as fields
 	for _, job := range jobMessage.Jobs {
 		fieldValue := fmt.Sprintf("**Bereich:** %s\n\n%s", job.Department, job.Description)
 		
@@ -180,7 +151,6 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 		})
 	}
 
-	// Add footer
 	if jobMessage.Footer != "" {
 		embed.Footer = &discordgo.MessageEmbedFooter{
 			Text: jobMessage.Footer,
@@ -190,15 +160,16 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 	return embed
 }
 
-// InitializeAdvertisingStaff is a convenience function to set up the advertising staff system
 func InitializeAdvertisingStaff(session *discordgo.Session) (*AdvertisingStaffManager, error) {
 	manager, err := NewAdvertisingStaffManager(session)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create advertising staff manager: %w", err)
+		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, err, "Failed to create advertising staff manager")
+		return nil, nil
 	}
 
 	if err := manager.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start advertising staff scheduler: %w", err)
+		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, err, "Failed to start advertising staff scheduler")
+		return nil, nil
 	}
 
 	return manager, nil
