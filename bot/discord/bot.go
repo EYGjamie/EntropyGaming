@@ -63,7 +63,7 @@ func StartBot() error {
 	weekleyManager := weekly_updates.InitializeWeeklyUpdates(database.DB, bot)
 
 	// Advertising-Staff Handler initialisieren
-	advertisingManager:= staff.InitializeAdvertisingStaff(bot)
+	advertisingManager:= advertising_staff.InitializeAdvertisingStaff(bot)
 
 	// Connection Discord-API
 	err = bot.Open()

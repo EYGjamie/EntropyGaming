@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func DevTests(dg *discordgo.Session, weeklyManager *weekly_updates.WeeklyUpdatesManager, advertisingManager *staff.AdvertisingStaffManager) {
+func DevTests(dg *discordgo.Session, weeklyManager *weekly_updates.WeeklyUpdatesManager, advertisingManager *advertising_staff.AdvertisingStaffManager) {
 
 	/*==================================================================*/
 	// Var for activating Tests

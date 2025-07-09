@@ -1,4 +1,4 @@
-package staff
+package advertising_staff
 
 import (
 	"encoding/json"
