@@ -15,35 +15,35 @@ import (
 )
 
 // Interaction Handler
-func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 
 	// Switch for Type of Interaction
-	switch i.Type {
+	switch bot_interaction.Type {
 
 	/*==================================================================*/
 	// "Interaction-ApplicationCommand" (Slash Command)
 	/*==================================================================*/
 
 	case discordgo.InteractionApplicationCommand:
-		switch i.ApplicationCommandData().Name {
+		switch bot_interaction.ApplicationCommandData().Name {
 			case "ticket_view":
-				tickets.HandleTicketView(s, i)
+				tickets.HandleTicketView(bot, bot_interaction)
 			case "ticket_response":
-				discord_administration_utils.HandleTicketResponse(s, i)
+				discord_administration_utils.HandleTicketResponse(bot, bot_interaction)
 			case "create_team_area":
-				discord_administration_team_areas.HandleCreateTeamArea(s, i)
+				discord_administration_team_areas.HandleCreateTeamArea(bot, bot_interaction)
 			case "delete_team_area":
-				discord_administration_team_areas.HandleDeleteTeamArea(s, i)
+				discord_administration_team_areas.HandleDeleteTeamArea(bot, bot_interaction)
 			case "music":
-				discord_administration_utils.HandleMusic(s, i)
+				discord_administration_utils.HandleMusic(bot, bot_interaction)
 			case "cplist":
-				discord_administration_utils.HandleCPList(s, i)
+				discord_administration_utils.HandleCPList(bot, bot_interaction)
 			case "quiz_role":
-				quiz.HandleQuizCommand(s, i)
+				quiz.HandleQuizCommand(bot, bot_interaction)
 			case "send_survey":
-				surveys.SendSurvey(s, i, database.DB)
+				surveys.SendSurvey(bot, bot_interaction, database.DB)
 			default:
-				utils.LogAndNotifyAdmins(s, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown Slash Command: "+i.ApplicationCommandData().Name)
+				utils.LogAndNotifyAdmins(bot, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown Slash Command: " + bot_interaction.ApplicationCommandData().Name)
 				return
 			}
 	
@@ -52,60 +52,60 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	/*==================================================================*/
 
 	case discordgo.InteractionMessageComponent:
-		switch i.MessageComponentData().CustomID {
+		switch bot_interaction.MessageComponentData().CustomID {
 
 			// Ticket Creation Process
 			case "ticket_create_ticket":
-				tickets.HandleCreateTicket(s, i) // Button "Create Ticket"
+				tickets.HandleCreateTicket(bot, bot_interaction) // Button "Create Ticket"
 			case "ticket_dropdown":
-				tickets.HandleTicketDropdown(s, i) // Dropdown first selection
+				tickets.HandleTicketDropdown(bot, bot_interaction) // Dropdown first selection
 			case "ticket_game_dropdown":
-				tickets.HandleGameDropdown(s, i) // Dropdown game selection
+				tickets.HandleGameDropdown(bot, bot_interaction) // Dropdown game selection
 
 			// After Ticket Creation Survey Dropdown via DM
 			case "ticket_after_survey_dropdown":
-				surveys.HandleSurveyDropdown(s, i)
+				surveys.HandleSurveyDropdown(bot, bot_interaction)
 
 			// Ticket Moderation Buttons
 			case "ticket_button_claim":
-				tickets.HandleClaimButton(s, i)
+				tickets.HandleClaimButton(bot, bot_interaction)
 			case "ticket_button_close":
-				tickets.HandleCloseButton(s, i)
+				tickets.HandleCloseButton(bot, bot_interaction)
 			case "ticket_button_reopen":
-				tickets.HandleReopenButton(s, i)
+				tickets.HandleReopenButton(bot, bot_interaction)
 			case "ticket_button_delete":
-				tickets.HandleDeleteButton(s, i)
+				tickets.HandleDeleteButton(bot, bot_interaction)
 			case "ticket_button_assign":
-				tickets.HandleAssignButton(s, i)
+				tickets.HandleAssignButton(bot, bot_interaction)
 			case "ticket_confirm_delete_ticket":
-				tickets.HandleConfirmDelete(s, i)
+				tickets.HandleConfirmDelete(bot, bot_interaction)
 			case "ticket_cancel_delete_ticket":
-				tickets.HandleCancelDelete(s, i)
+				tickets.HandleCancelDelete(bot, bot_interaction)
 
 			// Quiz Ping Role Button
 			case "quiz_get_role":
-				quiz.HandleQuizButton(s, i)
+				quiz.HandleQuizButton(bot, bot_interaction)
 				
 			default:
 				// Survey Interaction handler
-				if strings.HasPrefix(i.MessageComponentData().CustomID, "survey_") {
-					surveys.HandleSurveyInteraction(s, i, database.DB)
+				if strings.HasPrefix(bot_interaction.MessageComponentData().CustomID, "survey_") {
+					surveys.HandleSurveyInteraction(bot, bot_interaction, database.DB)
 					return
 					}
 
 				// Assign Ticket Dropdown handling
-				if strings.HasPrefix(i.MessageComponentData().CustomID, "ticket_assign_ticket_dropdown_") {
-					tickets.HandleAssignTicketUpdate(s, i, i.MessageComponentData().CustomID)
+				if strings.HasPrefix(bot_interaction.MessageComponentData().CustomID, "ticket_assign_ticket_dropdown_") {
+					tickets.HandleAssignTicketUpdate(bot, bot_interaction, bot_interaction.MessageComponentData().CustomID)
 					return
 					}
 
 				// Quiz Answer Select handling
-				if strings.HasPrefix(i.MessageComponentData().CustomID, "quiz_answer_") {
-					quiz.HandleAnswerSelect(s, i)
+				if strings.HasPrefix(bot_interaction.MessageComponentData().CustomID, "quiz_answer_") {
+					quiz.HandleAnswerSelect(bot, bot_interaction)
 					return
 					}
 
-				utils.LogAndNotifyAdmins(s, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown CustomID in MessageComponent: "+i.MessageComponentData().CustomID)
+				utils.LogAndNotifyAdmins(bot, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown CustomID in MessageComponent: " + bot_interaction.MessageComponentData().CustomID)
 				return
 			}
 
@@ -114,17 +114,17 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	/*==================================================================*/
 
 	case discordgo.InteractionModalSubmit:
-		switch i.ModalSubmitData().CustomID {
+		switch bot_interaction.ModalSubmitData().CustomID {
 
 			// DM Survey-Modal
 			case "ticket_after_survey_modal":
-				surveys.HandleSurveyModalSubmit(s, i)
+				surveys.HandleSurveyModalSubmit(bot, bot_interaction)
 
 			// default in this case: Ticket-Submit Modal
 			// Überarbeitung nötig, da der default-Case eigentlich eine Fehlermeldung sein sollte, wenn die CustomID nicht existiert
 			default:
-				log.Printf("Test Ticket Creation Custom ID %s", i.ModalSubmitData().CustomID)
-				tickets.HandleTicketSubmit(s, i) // Anderes Modal -> Ticket-Submit
+				log.Printf("Test Ticket Creation Custom ID %s", bot_interaction.ModalSubmitData().CustomID)
+				tickets.HandleTicketSubmit(bot, bot_interaction) // Anderes Modal -> Ticket-Submit
 			}
 	}
 }

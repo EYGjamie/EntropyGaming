@@ -8,8 +8,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func RegisterCommands(s *discordgo.Session) {
-	adminPerm := int64(discordgo.PermissionAdministrator)
+func RegisterCommands(bot *discordgo.Session) {
+	adminPermission := int64(discordgo.PermissionAdministrator)
 	commands := []*discordgo.ApplicationCommand{
 		/*----------------------------------------------------------*/	
 
@@ -17,7 +17,7 @@ func RegisterCommands(s *discordgo.Session) {
 		{
 			Name:                     "ticket_view",
 			Description:              "Sendet das Ticket-View mit 'Create Ticket'-Button.",
-			DefaultMemberPermissions: &adminPerm,
+			DefaultMemberPermissions: &adminPermission,
 		},
 
 		/*----------------------------------------------------------*/	
@@ -96,7 +96,7 @@ func RegisterCommands(s *discordgo.Session) {
 		{
 			Name:        "cplist",
 			Description: "Sendet eine Liste der Contact Persons",
-			DefaultMemberPermissions: &adminPerm,
+			DefaultMemberPermissions: &adminPermission,
 		},
 
 		/*----------------------------------------------------------*/
@@ -105,7 +105,7 @@ func RegisterCommands(s *discordgo.Session) {
 		{
 			Name:        "quiz_role",
 			Description: "Sendet get Quiz-Rolle Button",
-			DefaultMemberPermissions: &adminPerm,
+			DefaultMemberPermissions: &adminPermission,
 		},
 
 		/*----------------------------------------------------------*/
@@ -135,7 +135,7 @@ func RegisterCommands(s *discordgo.Session) {
 					Choices:     surveys.CommandChoices(),
 				},
         	},
-			DefaultMemberPermissions: &adminPerm,
+			DefaultMemberPermissions: &adminPermission,
 		},
 
 		/*----------------------------------------------------------*/	
@@ -143,7 +143,7 @@ func RegisterCommands(s *discordgo.Session) {
 
 	// Register commands on specific guild
 	for _, cmd := range commands {
-		_, err := s.ApplicationCommandCreate(s.State.User.ID, os.Getenv("GUILD_ID"), cmd)
+		_, err := bot.ApplicationCommandCreate(bot.State.User.ID, os.Getenv("GUILD_ID"), cmd)
 		if err != nil {
 			log.Fatalf("Fehler beim Registrieren des Commands '%s': %v", cmd.Name, err)
 		}

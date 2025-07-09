@@ -60,10 +60,10 @@ func StartBot() error {
 	quiz.RegisterQuiz(bot)
 
 	// Weekly Updates Handler
-	weekleyManager := weekly_updates.InitializeWeeklyUpdates(database.DB, bot)
+	weekleyUpdateManager := weekly_updates.InitializeWeeklyUpdates(database.DB, bot)
 
 	// Advertising-Staff Handler initialisieren
-	advertisingManager:= advertising_staff.InitializeAdvertisingStaff(bot)
+	staffAdvertisingManager:= advertising_staff.InitializeAdvertisingStaff(bot)
 
 	// Connection Discord-API
 	err = bot.Open()
@@ -82,7 +82,7 @@ func StartBot() error {
 
 	// Dev Tests
 	if os.Getenv("DEV_TESTS") == "true" {
-		DevTests(bot, weekleyManager, advertisingManager)
+		DevTests(bot, weekleyUpdateManager, staffAdvertisingManager)
 		utils.LogAndNotifyAdmins(bot, "info", "Info", "bot.go", true, nil, "Dev Tests executed successfully.")
 	}
 
