@@ -45,7 +45,7 @@ func GetConstantEntryFromDB(bot *discordgo.Session, constKey string) (*BotConsta
 // Gives the value of the constant based on the environment (prod/test)
 // If the constant is not found or an error occurs, it logs the error and returns an empty string
 // It also notifies the admins about the error
-func GetIDFromDB(bot *discordgo.Session, constKey string) (string, error) {
+func GetIdFromDB(bot *discordgo.Session, constKey string) (string, error) {
 	constant, err := GetConstantEntryFromDB(bot, constKey)
 	if err != nil {
 		LogAndNotifyAdmins(bot, "critical", "Database Error", "Func:GetIDFromDB", true, err, fmt.Sprintf("Failed to get constant with key: %s", constKey))
