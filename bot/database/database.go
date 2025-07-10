@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"go/constant"
 	"log"
 	"os"
 
@@ -295,6 +296,29 @@ func createTables() {
 	_, err = DB.Exec(surveyUserAnswersTable)
 	if err != nil {
 		log.Fatalf("Fehler beim Erstellen der survey_user_answers-Tabelle: %v", err)
+	}
+
+	/*==============================================*/
+	// CONSTANTS TABLE
+	/*==============================================*/
+
+	constantsTable := `
+		CREATE TABLE IF NOT EXISTS bot_const_ids (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		const_key VARCHAR(100) NOT NULL,
+		prod_value TEXT,
+		test_value TEXT,
+		description TEXT,
+		category VARCHAR(50),
+		is_active BOOLEAN DEFAULT true,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(const_key)
+	);
+	`
+	_, err = DB.Exec(constantsTable)
+	if err != nil {
+		log.Fatalf("Fehler beim Erstellen der constants-Tabelle: %v", err)
 	}
 
 	/*==============================================*/
