@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -31,21 +32,7 @@ func NewVoiceTracker(db *sql.DB) *VoiceTracker {
 // OnVoiceStateUpdate reagiert auf jeden VoiceStateChange
 func (vt *VoiceTracker) OnVoiceStateUpdate(s *discordgo.Session, vs *discordgo.VoiceStateUpdate) {
 	userID := vs.UserID
-	member, err := s.GuildMember(vs.GuildID, userID)
-    var username string
-    if err == nil && member.User != nil {
-        username = member.User.Username
-    } else {
-        user, err2 := s.User(userID)
-        if err2 != nil {
-            log.Printf("Fehler beim Laden von User %s: %v", userID, err2)
-            username = userID
-        } else {
-            username = user.Username
-        }
-    }
-
-	internalID, err := EnsureUser(vt.db, userID, username)
+	internalID, err := utils.EnsureUser(s, userID)
 	if err != nil {
 		log.Printf("Fehler beim EnsureUser für Voice User %s: %v", userID, err)
 		return

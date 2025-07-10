@@ -12,7 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/robfig/cron/v3"
 	"bot/database"
-	"bot/handlers/tracking"
+	"bot/utils"
 )
 
 // RegisterQuiz startet Scheduler und Interaction-Handler
@@ -108,7 +108,7 @@ func HandleAnswerSelect(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	sel, _ := strconv.Atoi(selVal)
 
 	// 1) Sicherstellen, dass der User in users existiert
-	uid, err := tracking.EnsureUser(database.DB, i.Member.User.ID, i.Member.User.Username)
+	uid, err := utils.EnsureUser(s, i.Member.User.ID)
 	if err != nil {
 		log.Printf("EnsureUser failed for %s: %v", i.Member.User.ID, err)
 		return

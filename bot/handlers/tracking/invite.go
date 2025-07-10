@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -45,7 +46,7 @@ func (it *InviteTracker) OnReady(s *discordgo.Session, event *discordgo.Ready) {
 // OnGuildMemberAdd erkennt den genutzten Invite und loggt ihn in der Datenbank
 func (it *InviteTracker) OnGuildMemberAdd(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	// Ensure Users exist
-	joinerID, err := EnsureUser(it.db, m.User.ID, m.User.Username)
+	joinerID, err := utils.EnsureUser(s, m.User.ID)
 	if err != nil {
 		log.Printf("Fehler beim EnsureUser für Joiner %s: %v", m.User.ID, err)
 		return
@@ -59,7 +60,6 @@ func (it *InviteTracker) OnGuildMemberAdd(s *discordgo.Session, m *discordgo.Gui
 
 	var usedCode string
 	var inviterDiscordID string
-	var inviterUsername string
 	for _, inv := range invites {
 		prevUses, known := it.inviteUses[inv.Code]
 		if !known {
@@ -69,7 +69,6 @@ func (it *InviteTracker) OnGuildMemberAdd(s *discordgo.Session, m *discordgo.Gui
 		if inv.Uses > prevUses {
 			usedCode = inv.Code
 			inviterDiscordID = inv.Inviter.ID
-			inviterUsername = inv.Inviter.Username
 			it.inviteUses[inv.Code] = inv.Uses
 			break
 		}
@@ -80,7 +79,7 @@ func (it *InviteTracker) OnGuildMemberAdd(s *discordgo.Session, m *discordgo.Gui
 		return
 	}
 
-	inviterID, err := EnsureUser(it.db, inviterDiscordID, inviterUsername)
+	inviterID, err := utils.EnsureUser(s, inviterDiscordID)
 	if err != nil {
 		log.Printf("Fehler beim EnsureUser für Inviter %s: %v", inviterDiscordID, err)
 	}

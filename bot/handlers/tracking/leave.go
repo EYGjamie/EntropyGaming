@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -21,7 +22,7 @@ func NewLeaveTracker(db *sql.DB) *LeaveTracker {
 // OnGuildMemberRemove wird bei GuildMemberRemove-Events aufgerufen
 // und schreibt den Leave in die Datenbank-Tabelle log_leaves
 func (lt *LeaveTracker) OnGuildMemberRemove(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
-	leaverID, err := EnsureUser(lt.db, m.User.ID, m.User.Username)
+	leaverID, err := utils.EnsureUser(s, m.User.ID)
 	if err != nil {
 		log.Printf("Fehler beim EnsureUser für Leaver %s: %v", m.User.ID, err)
 		return

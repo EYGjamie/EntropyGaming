@@ -5,7 +5,7 @@ import (
     "fmt"
 
     "github.com/bwmarrin/discordgo"
-    "bot/handlers/tracking"
+    "bot/utils"
 )
 
 // SendSurvey löst /send_survey aus
@@ -74,7 +74,7 @@ func SendSurvey(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB
 
     // 3) DM an jeden Empfänger mit Dropdown
     for _, m := range targets {
-        intUID, err := tracking.EnsureUser(db, m.User.ID, m.User.Username)
+        intUID, err := utils.EnsureUser(s, m.User.ID)
         if err != nil {
             continue
         }

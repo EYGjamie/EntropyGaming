@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -28,7 +29,7 @@ func (mt *MessageTracker) OnMessageCreate(s *discordgo.Session, m *discordgo.Mes
 	}
 
 	// Stelle sicher, dass der User existiert
-	userID, err := EnsureUser(mt.db, m.Author.ID, m.Author.Username)
+	userID, err := utils.EnsureUser(s, m.Author.ID)
 	if err != nil {
 		log.Printf("Fehler beim EnsureUser für MessageAuthor %s: %v", m.Author.ID, err)
 		return
