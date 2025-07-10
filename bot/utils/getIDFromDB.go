@@ -21,9 +21,19 @@ type BotConstant struct {
 
 // gets const Entry from db table bot_const_ids (ID, const_key, prod_value, test_value, description, category, is_active)
 func GetConstantEntryFromDB(bot *discordgo.Session, constKey string) (*BotConstant, error) {
-	query := `SELECT id, const_key, COALESCE(prod_value, ''), COALESCE(test_value, ''), 
-		COALESCE(description, ''), COALESCE(category, ''), is_active 
-		FROM bot_const_ids WHERE const_key = ? AND is_active = true LIMIT 1`
+	query := `
+			SELECT 
+				id, 
+				const_key, 
+				COALESCE(prod_value, ''), 
+				COALESCE(test_value, ''), 
+				COALESCE(description, ''), 
+				COALESCE(category, ''), 
+				is_active 
+			FROM bot_const_ids 
+			WHERE const_key = ? AND is_active = true 
+			LIMIT 1
+			`
 	row := database.DB.QueryRow(query, constKey)
 	var constant BotConstant
 	err := row.Scan(

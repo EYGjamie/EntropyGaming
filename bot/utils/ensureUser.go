@@ -7,7 +7,7 @@ import (
 )
 
 // Rollen-IDs (diese musst du mit deinen tatsächlichen Rollen-IDs ersetzen)
-const (
+const ( // DBMIGRATION
     guildID = ""
     RoleDiamondClub     = "1234567890123456789"
     RoleDiamondTeams    = "1234567890123456790"

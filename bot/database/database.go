@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"go/constant"
 	"log"
 	"os"
 
@@ -55,7 +54,8 @@ func createTables() {
 			ticket_modal_field_four TEXT,
 			ticket_modal_field_five TEXT,
 			ticket_transcript TEXT
-		);`
+		);
+		`
 
 	_, err := DB.Exec(ticketTable)
 	if err != nil {
@@ -72,7 +72,8 @@ func createTables() {
 			staff_bereich TEXT,
 			staff_discord_user_id BIGINT,
 			staff_discord_user_name TEXT
-		);`
+		);
+		`
 
 	_, err = DB.Exec(staffTable)
 	if err != nil {
@@ -92,7 +93,8 @@ func createTables() {
 			category_id   TEXT    NOT NULL,
 			voicechannel_id TEXT  NOT NULL,
 			is_active     TEXT    DEFAULT true
-		);`
+		);
+		`
 
 	_, err = DB.Exec(team_areasTable)
 	if err != nil {
@@ -123,6 +125,7 @@ func createTables() {
 			role_diamond_teams      BOOLEAN DEFAULT FALSE,
 			role_entropy_member     BOOLEAN DEFAULT FALSE,
 			role_management         BOOLEAN DEFAULT FALSE,
+			role_developer          BOOLEAN DEFAULT FALSE,
 			role_head_management    BOOLEAN DEFAULT FALSE,
 			role_projektleitung     BOOLEAN DEFAULT FALSE
 		);
@@ -130,7 +133,7 @@ func createTables() {
 		CREATE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id);
 		CREATE INDEX IF NOT EXISTS idx_users_roles ON users(
 			role_diamond_club, role_diamond_teams, role_entropy_member,
-			role_management, role_head_management, role_projektleitung
+			role_management, role_developer, role_head_management, role_projektleitung
 		);
 		`
 	_, err = DB.Exec(usersTable)
@@ -275,7 +278,8 @@ func createTables() {
 			role_id TEXT NOT NULL,
 			total_answers INTEGER NOT NULL DEFAULT 0,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-		);`
+		);
+		`
 
 	_, err = DB.Exec(surveyTable)
 	if err != nil {
@@ -291,7 +295,8 @@ func createTables() {
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (survey_id) REFERENCES surveys(id),
 			FOREIGN KEY (user_id) REFERENCES users(id)
-		);`
+		);
+		`
 
 	_, err = DB.Exec(surveyUserAnswersTable)
 	if err != nil {
@@ -304,17 +309,17 @@ func createTables() {
 
 	constantsTable := `
 		CREATE TABLE IF NOT EXISTS bot_const_ids (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		const_key VARCHAR(100) NOT NULL,
-		prod_value TEXT,
-		test_value TEXT,
-		description TEXT,
-		category VARCHAR(50),
-		is_active BOOLEAN DEFAULT true,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		UNIQUE(const_key)
-	);
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			const_key VARCHAR(100) NOT NULL,
+			prod_value TEXT,
+			test_value TEXT,
+			description TEXT,
+			category VARCHAR(50),
+			is_active BOOLEAN DEFAULT true,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(const_key)
+		);
 	`
 	_, err = DB.Exec(constantsTable)
 	if err != nil {
