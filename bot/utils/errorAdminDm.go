@@ -18,7 +18,7 @@ import (
 // notfication determines whether to send a DM to admins.
 // err is the error to log and notify about.
 // contextMsg is an optional message providing additional context about the error.
-func LogAndNotifyAdmins(s *discordgo.Session, priority string, msgType string, file string, notfication bool, err error, contextMsg string) {
+func LogAndNotifyAdmins(bot *discordgo.Session, priority string, msgType string, file string, notfication bool, err error, contextMsg string) {
 	if err == nil {
 		err = fmt.Errorf("no error provided")
 	}
@@ -94,12 +94,12 @@ func LogAndNotifyAdmins(s *discordgo.Session, priority string, msgType string, f
 			if adminID == "" {
 				continue
 			}
-			dmChannel, dmErr := s.UserChannelCreate(adminID)
+			dmChannel, dmErr := bot.UserChannelCreate(adminID)
 			if dmErr != nil {
 				log.Printf("Error creating DM channel with Admin: %s: %v", adminID, dmErr)
 				continue
 			}
-			if _, sendErr := s.ChannelMessageSendEmbed(dmChannel.ID, embed); sendErr != nil {
+			if _, sendErr := bot.ChannelMessageSendEmbed(dmChannel.ID, embed); sendErr != nil {
 				log.Printf("Error senden msg to Admin: %s: %v", adminID, sendErr)
 			}
 		}
