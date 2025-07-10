@@ -147,6 +147,6 @@ func RegisterCommands(bot *discordgo.Session) {
 		if err != nil {
 			log.Fatalf("Fehler beim Registrieren des Commands '%s': %v", cmd.Name, err)
 		}
-		log.Printf("Command '%s' registriert.", cmd.Name)
 	}
+	log.Printf("Alle Commands erfolgreich registriert.")
 } 

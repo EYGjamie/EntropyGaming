@@ -4,6 +4,7 @@ import (
     "bot/database"
     "github.com/bwmarrin/discordgo"
     "log"
+    "bot/shared"
 )
 
 // Rollen-IDs (diese musst du mit deinen tatsächlichen Rollen-IDs ersetzen)
@@ -13,6 +14,7 @@ const ( // DBMIGRATION
     RoleDiamondTeams    = "1234567890123456790"
     RoleEntropyMember   = "1234567890123456791"
     RoleManagement      = "1234567890123456792"
+    RoleDeveloper       = "1234567890123456795"
     RoleHeadManagement  = "1234567890123456793"
     RoleProjektleitung  = "1234567890123456794"
 )
@@ -58,7 +60,7 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
     }
 
     // Rollen überprüfen
-    hasRoles := checkUserRoles(member)
+    hasRoles := CheckUserRoles(member)
 
     // Datenbankupdate
     var id int
@@ -102,19 +104,9 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
     return id, nil
 }
 
-// UserRoles struct für die Rollenstatus
-type UserRoles struct {
-    DiamondClub     bool
-    DiamondTeams    bool
-    EntropyMember   bool
-    Management      bool
-    HeadManagement  bool
-    Projektleitung  bool
-}
-
-// checkUserRoles überprüft, welche der 6 definierten Rollen der User hat
-func checkUserRoles(member *discordgo.Member) UserRoles {
-    roles := UserRoles{}
+// checkUserRoles überprüft, welche der 7 definierten Rollen der User hat
+func CheckUserRoles(member *discordgo.Member) shared.UserRoles {
+    roles := shared.UserRoles{}
     
     if member == nil {
         return roles
@@ -131,6 +123,8 @@ func checkUserRoles(member *discordgo.Member) UserRoles {
             roles.EntropyMember = true
         case RoleManagement:
             roles.Management = true
+        case RoleDeveloper:
+            roles.Developer = true
         case RoleHeadManagement:
             roles.HeadManagement = true
         case RoleProjektleitung:
