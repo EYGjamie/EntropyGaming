@@ -19,6 +19,19 @@ type BotConstant struct {
 	IsActive    bool   `json:"is_active"`
 }
 
+// Gives the value of the constant based on the environment (prod/test)
+// If the constant is not found or an error occurs, it logs the error and returns an empty string
+// It also notifies the admins about the error
+func GetIdFromDB(bot *discordgo.Session, constKey string) (string, error) {
+	constant, err := GetConstantEntryFromDB(bot, constKey)
+	if err != nil {
+		LogAndNotifyAdmins(bot, "critical", "Database Error", "Func:GetIDFromDB", true, err, fmt.Sprintf("Failed to get constant with key: %s", constKey))
+		return "", nil
+	}
+	value := selectValue(constant)
+	return value, nil
+}
+
 // gets const Entry from db table bot_const_ids (ID, const_key, prod_value, test_value, description, category, is_active)
 func GetConstantEntryFromDB(bot *discordgo.Session, constKey string) (*BotConstant, error) {
 	query := `
@@ -52,18 +65,7 @@ func GetConstantEntryFromDB(bot *discordgo.Session, constKey string) (*BotConsta
 	return &constant, nil
 }
 
-// Gives the value of the constant based on the environment (prod/test)
-// If the constant is not found or an error occurs, it logs the error and returns an empty string
-// It also notifies the admins about the error
-func GetIdFromDB(bot *discordgo.Session, constKey string) (string, error) {
-	constant, err := GetConstantEntryFromDB(bot, constKey)
-	if err != nil {
-		LogAndNotifyAdmins(bot, "critical", "Database Error", "Func:GetIDFromDB", true, err, fmt.Sprintf("Failed to get constant with key: %s", constKey))
-		return "", nil
-	}
-	value := selectValue(constant)
-	return value, nil
-}
+
 
 // selects the value based on the environment
 // If IS_PROD is set to true or 1, it returns the ProdValue
