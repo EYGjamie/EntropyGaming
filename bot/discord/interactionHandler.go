@@ -71,20 +71,16 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 
 			// Ticket Moderation Buttons
 			case "ticket_button_claim":
-				// perm
-				tickets.HandleClaimButton(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {tickets.HandleClaimButton(bot, bot_interaction)}
 			case "ticket_button_close":
 				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 				tickets.HandleCloseButton(bot, bot_interaction)
 			case "ticket_button_reopen":
-				// perm
-				tickets.HandleReopenButton(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {tickets.HandleReopenButton(bot, bot_interaction)}
 			case "ticket_button_delete":
-				// perm
-				tickets.HandleDeleteButton(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {tickets.HandleDeleteButton(bot, bot_interaction)}
 			case "ticket_button_assign":
-				// perm
-				tickets.HandleAssignButton(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {tickets.HandleAssignButton(bot, bot_interaction)}
 			case "ticket_confirm_delete_ticket":
 				tickets.HandleConfirmDelete(bot, bot_interaction)
 			case "ticket_cancel_delete_ticket":

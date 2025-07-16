@@ -12,7 +12,6 @@ import (
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 func HandleCloseButton(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// Ticket-ID aus Kanalnamen extrahieren
 	ticketID, err := GetTicketIDFromInteraction(s, i)
 	if err != nil {
 		log.Println("Fehler beim Abrufen der Ticket-ID:", err)

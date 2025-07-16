@@ -248,7 +248,7 @@ func HandleTicketSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// categoryID aus Liste ziehen
 	// categoryID := getCategoryIDForTicket(s, customID)
 	categoryID := utils.GetIdFromDB(s, "CATEGORY_" + strings.ToUpper(customID))
-	roleID := getRoleIDForTicket(customID)
+	roleID := getRoleIDForTicket(s, customID)
 	ticketArea := getTicketAreaForTicket(customID)
 
 	// Datenbankeintrag erstellen

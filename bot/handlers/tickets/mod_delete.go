@@ -19,24 +19,6 @@ import (
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 func HandleDeleteButton(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// Berechtigungsprüfung
-	hasPermission, err := CheckUserPermissions(s, i.GuildID, i.Member.User.ID)
-	if err != nil {
-		log.Println("Fehler beim Überprüfen der Benutzerberechtigungen:", err)
-		return
-	}
-	if !hasPermission {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Du hast keine Berechtigung, diese Aktion auszuführen.",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
-		})
-		return
-	}
-
-	// Bestätigung anzeigen
 	components := []discordgo.MessageComponent{
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{

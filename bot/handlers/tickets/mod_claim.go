@@ -12,24 +12,6 @@ import (
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 func HandleClaimButton(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// Berechtigungsprüfung
-	hasPermission, err := CheckUserPermissions(s, i.GuildID, i.Member.User.ID)
-	if err != nil {
-		log.Println("Fehler beim Überprüfen der Benutzerberechtigungen:", err)
-		return
-	}
-	if !hasPermission {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Du hast keine Berechtigung, diese Aktion auszuführen.",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
-		})
-		return
-	}
-
-	// Ticket-ID aus Kanalnamen extrahieren
 	ticketID, err := GetTicketIDFromInteraction(s, i)
 	if err != nil {
 		log.Println("Fehler beim Abrufen der Ticket-ID:", err)
