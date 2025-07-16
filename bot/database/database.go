@@ -64,24 +64,6 @@ func createTables() {
 	}
 
 	/*==============================================*/
-	// STAFF MEMBER TABLE
-	/*==============================================*/
-
-	staffTable := `
-		CREATE TABLE IF NOT EXISTS entropy_staff_member (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			staff_bereich TEXT,
-			staff_discord_user_id BIGINT,
-			staff_discord_user_name TEXT
-		);
-		`
-
-	_, err = DB.Exec(staffTable)
-	if err != nil {
-		log.Fatalf("Fehler beim Erstellen der entropy_staff_member-Tabelle: %v", err)
-	}
-
-	/*==============================================*/
 	// TEAM AREAS TABLE
 	/*==============================================*/
 
