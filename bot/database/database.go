@@ -12,7 +12,10 @@ var DB *sql.DB
 
 func InitDB() {
 	var err error
-	dbPath := os.Getenv("DATABASE_PATH")
+	dbPath := os.Getenv("DATABASE_PATH_PROD")
+	if os.Getenv("IS_PROD") != "true" {
+		dbPath = os.Getenv("DATABASE_PATH_DEV")
+	}
 	if dbPath == "" {
 		log.Fatalf("Datenbankpfad nicht gefunden!")
 		os.Exit(1)

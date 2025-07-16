@@ -58,12 +58,12 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 			// Ticket Creation Process
 			case "ticket_create_ticket":
 				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
-				tickets.HandleCreateTicket(bot, bot_interaction) // Button "Create Ticket"
+				tickets.HandleCreateTicket(bot, bot_interaction)
 			case "ticket_dropdown":
 				// Blacklist Check
-				tickets.HandleTicketDropdown(bot, bot_interaction) // Dropdown first selection
+				tickets.HandleTicketDropdown(bot, bot_interaction)
 			case "ticket_game_dropdown":
-				tickets.HandleGameDropdown(bot, bot_interaction) // Dropdown game selection
+				tickets.HandleGameDropdown(bot, bot_interaction)
 
 			// After Ticket Creation Survey Dropdown via DM
 			case "ticket_after_survey_dropdown":
