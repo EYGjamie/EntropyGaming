@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 	"fmt"
-	"os"
     "bot/database"
+    "bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -15,26 +15,26 @@ import (
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // Helper function to get the Role ID for a ticket based on its custom ID as the const_key in DB isnt matching the custom ID
-func getRoleIDForTicket(bereich string) string {
+func getRoleIDForTicket(bot *discordgo.Session, bereich string) string {
     roles := map[string]string{
-        "ticket_diamond_club":        os.Getenv("ROLE_TICKET_DIAMOND_CLUB"),
-        "ticket_pro_teams":           os.Getenv("ROLE_TICKET_PROTEAMS"),
-        "ticket_bewerbung_staff":     os.Getenv("ROLE_TICKET_STAFFAPPLICATION"),
-        "ticket_support_kontakt":     os.Getenv("ROLE_TICKET_SUPPORT_CONTACT"),
-        "ticket_sonstiges":           os.Getenv("ROLE_TICKET_SONSTIGE"),
-        "ticket_content_creator":     os.Getenv("ROLE_TICKET_CONTENT_CREATOR"),
-        "ticket_game_lol":            os.Getenv("ROLE_TICKET_GAME_LOL"),
-        "ticket_game_r6":             os.Getenv("ROLE_TICKET_GAME_R6"),
-        "ticket_game_cs2":            os.Getenv("ROLE_TICKET_GAME_CS2"),
-        "ticket_game_valorant":       os.Getenv("ROLE_TICKET_GAME_VALORANT"),
-        "ticket_game_rocket_league":  os.Getenv("ROLE_TICKET_GAME_ROCKETLEAGUE"),
-        "ticket_game_sonstige":       os.Getenv("ROLE_TICKET_GAME_SONSTIGE"),
+        "ticket_diamond_club":        utils.GetIdFromDB(bot, "ROLE_TICKET_DIAMOND_CLUB"),
+        "ticket_pro_teams":           utils.GetIdFromDB(bot, "ROLE_TICKET_PROTEAMS"),
+        "ticket_bewerbung_staff":     utils.GetIdFromDB(bot, "ROLE_TICKET_STAFFAPPLICATION"),
+        "ticket_support_kontakt":     utils.GetIdFromDB(bot, "ROLE_TICKET_SUPPORT_CONTACT"),
+        "ticket_sonstiges":           utils.GetIdFromDB(bot, "ROLE_TICKET_SONSTIGE"),
+        "ticket_content_creator":     utils.GetIdFromDB(bot, "ROLE_TICKET_CONTENT_CREATOR"),
+        "ticket_game_lol":            utils.GetIdFromDB(bot, "ROLE_TICKET_GAME_LOL"),
+        "ticket_game_r6":             utils.GetIdFromDB(bot, "ROLE_TICKET_GAME_R6"),
+        "ticket_game_cs2":            utils.GetIdFromDB(bot, "ROLE_TICKET_GAME_CS2"),
+        "ticket_game_valorant":       utils.GetIdFromDB(bot, "ROLE_TICKET_GAME_VALORANT"),
+        "ticket_game_rocket_league":  utils.GetIdFromDB(bot, "ROLE_TICKET_GAME_ROCKETLEAGUE"),
+        "ticket_game_sonstige":       utils.GetIdFromDB(bot, "ROLE_TICKET_GAME_SONSTIGE"),
         // "game_splatoon":    os.Getenv("ROLE_TICKET_GAME_SPLATOON"),
     }
     if roleID, ok := roles[bereich]; ok {
         return roleID
     }
-    return os.Getenv("ROLE_TICKET_STANDARD")
+    return utils.GetIdFromDB(bot, "ROLE_TICKET_STANDARD")
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
