@@ -2,28 +2,12 @@ package discord_administration_utils
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 // HandleTicketResponse liefert eine Standardantwort für Ticket-Bewerbungen
 func HandleTicketResponse(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
-	permRole := os.Getenv("ROLE_MANAGEMENT") // => DBMIGRATION
-	allowed := false
-	for _, r := range bot_interaction.Member.Roles {
-		if r == permRole {
-			allowed = true
-		}
-	}
-	if !allowed {
-		bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{Content: "Du hast keine Berechtigung.", Flags: discordgo.MessageFlagsEphemeral},
-		})
-		return
-	}
-
 	data := bot_interaction.ApplicationCommandData()
 	variant := data.Options[0].StringValue()
 

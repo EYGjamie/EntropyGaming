@@ -13,24 +13,6 @@ import (
 // It checks if the user has the required permissions, responds to the interaction, and performs the deletion.
 func HandleDeleteTeamArea(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	guildID := bot_interaction.GuildID
-	permRole := os.Getenv("PERM_DELETE_TEAM_ROLE_ID") // => DBMIGRATION
-	hasPerm := false
-	for _, r := range bot_interaction.Member.Roles {
-		if r == permRole {
-			hasPerm = true
-		}
-	}
-	if !hasPerm {
-		bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Du hast keine Berechtigung.", 
-				Flags: discordgo.MessageFlagsEphemeral,
-			},
-		})
-		return
-	}
-
 	err := bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

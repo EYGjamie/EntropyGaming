@@ -1,7 +1,6 @@
 package discord_administration_channel_text
 
 import (
-	"os"
 	"strings"
 	"time"
 	"bot/utils"
@@ -12,14 +11,11 @@ import (
 
 // StartChannelPurger purged täglich eine Liste an Channels
 func StartChannelPurger(bot *discordgo.Session) {
-	channelsEnv := os.Getenv("CHANNELS_TO_PURGE_DAILY") // => DBMIGRATION
-	if channelsEnv == "" {
-		utils.LogAndNotifyAdmins(bot, "info", "Warnung", "timedPurger.go", true, nil, "CHANNELS_TO_PURGE_DAILY not set. No channels will be deleted.")
-		return
-	}
+	channelsEnv := utils.GetIdFromDB(bot, "CHANNELS_TO_PURGE_DAILY")
+	chron_config := utils.GetIdFromDB(bot, "CHANNEL_PURGER_CRON_SPEC")
 	channels := strings.Split(channelsEnv, ",")
 	c := cron.New(cron.WithLocation(time.Local))
-	_, err := c.AddFunc("0 4 * * *", func() {
+	_, err := c.AddFunc(chron_config, func() {
 		purgeChannels(bot, channels)
 	})
 	if err != nil {

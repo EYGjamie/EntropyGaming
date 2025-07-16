@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"bot/database"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -195,7 +196,7 @@ func HandleConfirmDelete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	summaryEmbed.Fields = append(summaryEmbed.Fields, participantField)
 
 	// Channel-ID für Transkript abrufen
-	transcriptChannelID := getTranscriptChannelID()
+	transcriptChannelID := utils.GetIdFromDB(s, "CHANNEL_TICKET_TRANSCRIPS")
 
 	// Statt das Transkript als Datei zu senden, wird ein Button am Embed hinzugefügt
 	_, err = s.ChannelMessageSendComplex(transcriptChannelID, &discordgo.MessageSend{

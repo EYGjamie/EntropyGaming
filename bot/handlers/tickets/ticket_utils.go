@@ -12,39 +12,9 @@ import (
 )
 
 
-
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
-func getTranscriptChannelID() string {
-    return os.Getenv("CHANNEL_TICKET_TRANSCRIPS")
-}
-
-/*--------------------------------------------------------------------------------------------------------------------------*/
-
-func getCategoryIDForTicket(bereich string) string {
-    categories := map[string]string{
-        "ticket_diamond_club":         os.Getenv("KATEGORY_TICKET_DIAMOND_CLUB"),
-        "ticket_pro_teams":            os.Getenv("KATEGORY_TICKET_PROTEAMS"),
-        "ticket_bewerbung_staff":      os.Getenv("KATEGORY_TICKET_STAFFAPPLICATION"),
-        "ticket_support_kontakt":      os.Getenv("KATEGORY_TICKET_SUPPORT_CONTACT"),
-        "ticket_sonstiges":            os.Getenv("KATEGORY_TICKET_SONSTIGE"),
-        "ticket_content_creator":      os.Getenv("KATEGORY_TICKET_CONTENT_CREATOR"),
-		"ticket_game_lol":             os.Getenv("KATEGORY_TICKET_GAME_LOL"),
-		"ticket_game_r6":              os.Getenv("KATEGORY_TICKET_GAME_R6"),
-		"ticket_game_cs2":             os.Getenv("KATEGORY_TICKET_GAME_CS2"),
-		"ticket_game_valorant":        os.Getenv("KATEGORY_TICKET_GAME_VALORANT"),
-		"ticket_game_rocket_league":   os.Getenv("KATEGORY_TICKET_GAME_ROCKETLEAGUE"),
-        "ticket_game_sonstige":        os.Getenv("KATEGORY_TICKET_GAME_SONSTIGE"),
-        // "game_splatoon": os.Getenv("KATEGORY_TICKET_GAME_SPLATOON"),
-    }
-    if categoryID, ok := categories[bereich]; ok {
-        return categoryID
-    }
-    return os.Getenv("KATEGORY_TICKET_STANDARD")
-}
-
-/*--------------------------------------------------------------------------------------------------------------------------*/
-
+// Helper function to get the Role ID for a ticket based on its custom ID as the const_key in DB isnt matching the custom ID
 func getRoleIDForTicket(bereich string) string {
     roles := map[string]string{
         "ticket_diamond_club":        os.Getenv("ROLE_TICKET_DIAMOND_CLUB"),
@@ -138,8 +108,8 @@ func ExtractTicketIDFromChannel(channelName string) (int, error) {
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // gets TicketID from interaction
-func GetTicketIDFromInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) (int, error) {
-	channel, err := s.Channel(i.ChannelID)
+func GetTicketIDFromInteraction(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) (int, error) {
+	channel, err := bot.Channel(bot_interaction.ChannelID)
 	if err != nil {
 		log.Println("Fehler beim Abrufen des Kanals:", err)
 		return 0, err
@@ -151,8 +121,8 @@ func GetTicketIDFromInteraction(s *discordgo.Session, i *discordgo.InteractionCr
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // gets username by its discord ID
-func GetUsernameByID(s *discordgo.Session, userID string) string {
-	user, err := s.User(userID)
+func GetUsernameByID(bot *discordgo.Session, userID string) string {
+	user, err := bot.User(userID)
 	if err != nil {
 		log.Println("Fehler beim Abrufen des Benutzernamens:", err)
 		return "Unbekannt"

@@ -1,11 +1,12 @@
 package tickets
 
 import (
+	"bot/database"
+	"bot/utils"
 	"fmt"
 	"log"
 	"os"
 	"strings"
-	"bot/database"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -245,7 +246,8 @@ func HandleTicketSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	// categoryID aus Liste ziehen
-	categoryID := getCategoryIDForTicket(customID)
+	// categoryID := getCategoryIDForTicket(s, customID)
+	categoryID := utils.GetIdFromDB(s, "CATEGORY_" + strings.ToUpper(customID))
 	roleID := getRoleIDForTicket(customID)
 	ticketArea := getTicketAreaForTicket(customID)
 

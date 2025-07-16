@@ -36,13 +36,7 @@ type AdvertisingStaffManager struct {
 }
 
 func NewAdvertisingStaffManager(session *discordgo.Session) (*AdvertisingStaffManager, error) {
-	channelsEnv := os.Getenv("ADVERTISING_STAFF_CHANNELS") // => DBMIGRATION 
-	if channelsEnv == "" {
-		err := fmt.Errorf("ADVERTISING_STAFF_CHANNELS environment variable not set")
-		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, err, "ADVERTISING_STAFF_CHANNELS environment variable not set")
-		return nil, err
-	}
-	
+	channelsEnv := utils.GetIdFromDB(session, "ADVERTISING_STAFF_CHANNELS")
 	channels := strings.Split(channelsEnv, ",")
 	for i, ch := range channels {
 		channels[i] = strings.TrimSpace(ch)
@@ -58,8 +52,9 @@ func NewAdvertisingStaffManager(session *discordgo.Session) (*AdvertisingStaffMa
 	return &AdvertisingStaffManager{session:session, cron:c, channels: channels, configPath: configPath}, nil
 }
 
-func (asm *AdvertisingStaffManager) Start() error {
-	_, err := asm.cron.AddFunc("0 14 * * 0", func() { // Cron format: (minute hour day month weekday)
+func (asm *AdvertisingStaffManager) Start(bot *discordgo.Session) error {
+	cron_config := utils.GetIdFromDB(bot, "ADVERTISING_STAFF_CRON_SPEC")
+	_, err := asm.cron.AddFunc(cron_config, func() {
 		if err := asm.sendWeeklyJobAdvertisement(); err != nil {
 			utils.LogAndNotifyAdmins(asm.session, "medium", "Error", "advertising_staff.go", true, err, "Error sending weekly job advertisement")
 		}
@@ -161,15 +156,15 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 	return embed
 }
 
-func InitializeAdvertisingStaff(session *discordgo.Session) (*AdvertisingStaffManager) {
-	manager, err := NewAdvertisingStaffManager(session)
+func InitializeAdvertisingStaff(bot *discordgo.Session) (*AdvertisingStaffManager) {
+	manager, err := NewAdvertisingStaffManager(bot)
 	if err != nil {
-		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, err, "Failed to create advertising staff manager")
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "advertising_staff.go", true, err, "Failed to create advertising staff manager")
 		return nil
 	}
 
-	if err := manager.Start(); err != nil {
-		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, err, "Failed to start advertising staff scheduler")
+	if err := manager.Start(bot); err != nil {
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "advertising_staff.go", true, err, "Failed to start advertising staff scheduler")
 		return nil
 	}
 

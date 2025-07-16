@@ -27,21 +27,22 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 	case discordgo.InteractionApplicationCommand:
 		switch bot_interaction.ApplicationCommandData().Name {
 			case "ticket_view":
-				tickets.HandleTicketView(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleDeveloper) {tickets.HandleTicketView(bot, bot_interaction)}
 			case "ticket_response":
-				discord_administration_utils.HandleTicketResponse(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {discord_administration_utils.HandleTicketResponse(bot, bot_interaction)}
 			case "create_team_area":
-				discord_administration_team_areas.HandleCreateTeamArea(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {discord_administration_team_areas.HandleCreateTeamArea(bot, bot_interaction)}
 			case "delete_team_area":
-				discord_administration_team_areas.HandleDeleteTeamArea(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {discord_administration_team_areas.HandleDeleteTeamArea(bot, bot_interaction)}
 			case "music":
+				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 				discord_administration_utils.HandleMusic(bot, bot_interaction)
 			case "cplist":
-				discord_administration_utils.HandleCPList(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleDeveloper) {discord_administration_utils.HandleCPList(bot, bot_interaction)}
 			case "quiz_role":
-				quiz.HandleQuizCommand(bot, bot_interaction)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleDeveloper) {quiz.HandleQuizCommand(bot, bot_interaction)}
 			case "send_survey":
-				surveys.SendSurvey(bot, bot_interaction, database.DB)
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {surveys.SendSurvey(bot, bot_interaction, database.DB)}
 			default:
 				utils.LogAndNotifyAdmins(bot, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown Slash Command: " + bot_interaction.ApplicationCommandData().Name)
 				return
@@ -56,8 +57,10 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 
 			// Ticket Creation Process
 			case "ticket_create_ticket":
+				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 				tickets.HandleCreateTicket(bot, bot_interaction) // Button "Create Ticket"
 			case "ticket_dropdown":
+				// Blacklist Check
 				tickets.HandleTicketDropdown(bot, bot_interaction) // Dropdown first selection
 			case "ticket_game_dropdown":
 				tickets.HandleGameDropdown(bot, bot_interaction) // Dropdown game selection
@@ -68,14 +71,19 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 
 			// Ticket Moderation Buttons
 			case "ticket_button_claim":
+				// perm
 				tickets.HandleClaimButton(bot, bot_interaction)
 			case "ticket_button_close":
+				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 				tickets.HandleCloseButton(bot, bot_interaction)
 			case "ticket_button_reopen":
+				// perm
 				tickets.HandleReopenButton(bot, bot_interaction)
 			case "ticket_button_delete":
+				// perm
 				tickets.HandleDeleteButton(bot, bot_interaction)
 			case "ticket_button_assign":
+				// perm
 				tickets.HandleAssignButton(bot, bot_interaction)
 			case "ticket_confirm_delete_ticket":
 				tickets.HandleConfirmDelete(bot, bot_interaction)
@@ -84,6 +92,7 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 
 			// Quiz Ping Role Button
 			case "quiz_get_role":
+				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 				quiz.HandleQuizButton(bot, bot_interaction)
 				
 			default:
@@ -98,6 +107,12 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 					tickets.HandleAssignTicketUpdate(bot, bot_interaction, bot_interaction.MessageComponentData().CustomID)
 					return
 					}
+
+				// Assign Suggestions Dropdown handling
+				if strings.HasPrefix(bot_interaction.MessageComponentData().CustomID, "ticket_assign_suggestions_") {
+					tickets.HandleAssignSuggestions(bot, bot_interaction, bot_interaction.MessageComponentData().CustomID)
+					return
+				}
 
 				// Quiz Answer Select handling
 				if strings.HasPrefix(bot_interaction.MessageComponentData().CustomID, "quiz_answer_") {
@@ -123,7 +138,14 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 			// default in this case: Ticket-Submit Modal
 			// Überarbeitung nötig, da der default-Case eigentlich eine Fehlermeldung sein sollte, wenn die CustomID nicht existiert
 			default:
+				// Assign Ticket Modal handling
+				if strings.HasPrefix(bot_interaction.ModalSubmitData().CustomID, "ticket_assign_modal_") {
+					tickets.HandleAssignModal(bot, bot_interaction)
+					return
+				}
+
 				log.Printf("Test Ticket Creation Custom ID %s", bot_interaction.ModalSubmitData().CustomID)
+				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 				tickets.HandleTicketSubmit(bot, bot_interaction) // Anderes Modal -> Ticket-Submit
 			}
 	}
