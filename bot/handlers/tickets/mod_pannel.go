@@ -3,7 +3,6 @@ package tickets
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -64,24 +63,6 @@ func getDefaultComponents() []discordgo.MessageComponent {
 			},
 		},
 	}
-}
-
-/*--------------------------------------------------------------------------------------------------------------------------*/
-
-// checks if the user has the required permissions to use the buttons
-func CheckUserPermissions(s *discordgo.Session, guildID, userID string) (bool, error) {
-	member, err := s.GuildMember(guildID, userID)
-	if err != nil {
-		return false, err
-	}
-
-	// Rollen des Benutzers überprüfen
-	for _, roleID := range member.Roles {
-		if roleID == os.Getenv("ROLE_MANAGEMENT") {
-			return true, nil
-		}
-	}
-	return false, nil
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
