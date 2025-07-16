@@ -15,7 +15,7 @@ type WeeklyUpdatesManager struct {
 
 // NewWeeklyUpdatesManager creates a new manager instance
 func NewWeeklyUpdatesManager(db *sql.DB, session *discordgo.Session) (*WeeklyUpdatesManager, error) {
-	config, err := LoadEnvConfig()
+	config, err := LoadEnvConfig(session)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load environment config: %w", err)
 	}

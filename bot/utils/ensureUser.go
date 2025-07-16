@@ -7,18 +7,6 @@ import (
     "bot/shared"
 )
 
-// Rollen-IDs (diese musst du mit deinen tatsächlichen Rollen-IDs ersetzen)
-const ( // DBMIGRATION
-    guildID = ""
-    RoleDiamondClub     = "1234567890123456789"
-    RoleDiamondTeams    = "1234567890123456790"
-    RoleEntropyMember   = "1234567890123456791"
-    RoleManagement      = "1234567890123456792"
-    RoleDeveloper       = "1234567890123456795"
-    RoleHeadManagement  = "1234567890123456793"
-    RoleProjektleitung  = "1234567890123456794"
-)
-
 // EnsureUser prüft, ob ein Benutzer mit der gegebenen Discord-ID existiert.
 // Falls nicht, wird ein neuer Datensatz mit allen verfügbaren Discord-Informationen angelegt.
 // Bei Konflikt werden alle Felder aktualisiert.
@@ -31,7 +19,7 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
     }
 
     // Guild Member-Informationen abrufen (für Rollen und Server-spezifische Daten)
-    member, err := bot.GuildMember(guildID, discordID)
+    member, err := bot.GuildMember(GetIdFromDB(bot, "GUILD_ID"), discordID)
     if err != nil {
         log.Printf("Konnte Guild Member nicht abrufen für User %s: %v", discordID, err)
         // Fortsetzung auch ohne Member-Daten möglich
@@ -60,7 +48,7 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
     }
 
     // Rollen überprüfen
-    hasRoles := CheckUserRoles(member)
+    hasRoles := CheckUserRoles(bot, member)
 
     // Datenbankupdate
     var id int
@@ -105,29 +93,27 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
 }
 
 // checkUserRoles überprüft, welche der 7 definierten Rollen der User hat
-func CheckUserRoles(member *discordgo.Member) shared.UserRoles {
+func CheckUserRoles(bot *discordgo.Session, member *discordgo.Member) shared.UserRoles {
     roles := shared.UserRoles{}
-    
     if member == nil {
         return roles
     }
-
     // Alle Rollen des Users durchgehen
     for _, roleID := range member.Roles {
         switch roleID {
-        case RoleDiamondClub:
+        case GetIdFromDB(bot, "ROLE_DIAMOND_CLUB"):
             roles.DiamondClub = true
-        case RoleDiamondTeams:
+        case GetIdFromDB(bot, "ROLE_DIAMOND_TEAMS"):
             roles.DiamondTeams = true
-        case RoleEntropyMember:
+        case GetIdFromDB(bot, "ROLE_ENTROPY_MEMBER"):
             roles.EntropyMember = true
-        case RoleManagement:
+        case GetIdFromDB(bot, "ROLE_MANAGEMENT"):
             roles.Management = true
-        case RoleDeveloper:
+        case GetIdFromDB(bot, "ROLE_HEAD_OF_DISCORD"):
             roles.Developer = true
-        case RoleHeadManagement:
+        case GetIdFromDB(bot, "ROLE_HEAD_MANAGEMENT"):
             roles.HeadManagement = true
-        case RoleProjektleitung:
+        case GetIdFromDB(bot, "ROLE_PROJEKTLEITUNG"):
             roles.Projektleitung = true
         }
     }

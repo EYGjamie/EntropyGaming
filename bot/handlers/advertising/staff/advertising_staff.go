@@ -38,8 +38,9 @@ type AdvertisingStaffManager struct {
 func NewAdvertisingStaffManager(session *discordgo.Session) (*AdvertisingStaffManager, error) {
 	channelsEnv := os.Getenv("ADVERTISING_STAFF_CHANNELS") // => DBMIGRATION 
 	if channelsEnv == "" {
-		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, nil, "ADVERTISING_STAFF_CHANNELS environment variable not set")
-		return nil, nil
+		err := fmt.Errorf("ADVERTISING_STAFF_CHANNELS environment variable not set")
+		utils.LogAndNotifyAdmins(session, "high", "Error", "advertising_staff.go", true, err, "ADVERTISING_STAFF_CHANNELS environment variable not set")
+		return nil, err
 	}
 	
 	channels := strings.Split(channelsEnv, ",")

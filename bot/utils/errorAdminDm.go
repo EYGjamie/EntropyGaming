@@ -42,13 +42,11 @@ func LogAndNotifyAdmins(bot *discordgo.Session, priority string, msgType string,
 
 	// if notfication is true, we additionally send a DM to admins
 	if notfication {
-		// => DBMIGRATION
-		adminEnv := os.Getenv("ADMIN_IDS")
-		if adminEnv == "" {
-			log.Println("ADMIN_IDS not set, cannot notify admins")
+		adminIDs, getAdminIDerr := getAdminIDs(bot)
+		if getAdminIDerr != nil {
+			log.Printf("Error getting admin IDs: %v", getAdminIDerr)
 			return
 		}
-		adminIDs := strings.Split(adminEnv, ",")
 
 		var embedColor int
 		switch priority {
@@ -69,7 +67,7 @@ func LogAndNotifyAdmins(bot *discordgo.Session, priority string, msgType string,
 			}
 
 		embed := &discordgo.MessageEmbed{
-			Title: fmt.Sprintf("Prio: %s — Typ: %s", priority, msgType),
+			Title: fmt.Sprintf("%s — %s", msgType, priority),
 			Color: embedColor,
 			Fields: []*discordgo.MessageEmbedField{
 				{Name: "File", Value: file, Inline: true},
@@ -104,4 +102,20 @@ func LogAndNotifyAdmins(bot *discordgo.Session, priority string, msgType string,
 			}
 		}
 	}	
+}
+
+func getAdminIDs(bot *discordgo.Session) ([]string, error) {
+	isProd := os.Getenv("IS_PROD") == "true"
+	var adminIDs []string
+	if isProd {
+		adminIDs = append(adminIDs, GetIdFromDB(bot, "ADMIN_JAMIE_ID"))
+		adminIDs = append(adminIDs, GetIdFromDB(bot, "ADMIN_LUCA_ID"))
+		adminIDs = append(adminIDs, GetIdFromDB(bot, "ADMIN_NICLAS_ID"))
+
+	} else {
+		adminIDs = append(adminIDs, GetIdFromDB(bot, "ADMIN_JAMIE_ID"))
+		// adminIDs = append(adminIDs, GetIdFromDB(bot, "ADMIN_LUCA_ID"))
+		// adminIDs = append(adminIDs, GetIdFromDB(bot, "ADMIN_NICLAS_ID"))
+	}
+	return adminIDs, nil
 }

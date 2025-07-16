@@ -24,8 +24,8 @@ const (
 // und sendet bei fehlenden Berechtigungen automatisch eine Embed-Response
 func CheckUserPermissions(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate, requiredRole RequiredRole) bool {	
 	EnsureUser(bot, bot_interaction.User.ID)
-	member, err := bot.GuildMember(guildID, bot_interaction.User.ID)
-	userRoles := CheckUserRoles(member)
+	member, err := bot.GuildMember(GetIdFromDB(bot, "GUILD_ID"), bot_interaction.User.ID)
+	userRoles := CheckUserRoles(bot, member)
 	if err != nil {
 		log.Printf("Fehler beim Abrufen der User-Rollen für User %s: %v", bot_interaction.User.ID, err)
 		sendPermissionDeniedEmbed(bot, bot_interaction, "Fehler beim Überprüfen der Berechtigungen")

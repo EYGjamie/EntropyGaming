@@ -1,24 +1,11 @@
 package weekly_updates
 
 import (
-	"os"
+	"bot/utils"
 	"strings"
 	"time"
-)
 
-// Environment variable names
-const (
-	EnvUserIDs    = "WEEKLY_UPDATES_USER_IDS"    // Comma-separated user IDs
-	EnvTableName  = "WEEKLY_UPDATES_TABLE_NAME"  // Database table name
-	EnvReportsDir = "WEEKLY_UPDATES_REPORTS_DIR" // Directory for generated reports
-	EnvCronSpec   = "WEEKLY_UPDATES_CRON_SPEC"   // Cron specification (optional)
-)
-
-// Default values
-const (
-	DefaultTableName  = "survey_answers"
-	DefaultReportsDir = "reports"
-	DefaultCronSpec   = "0 20 * * 0" // Every Sunday at 20:00
+	"github.com/bwmarrin/discordgo"
 )
 
 // EnvConfig holds configuration loaded from environment variables
@@ -30,29 +17,15 @@ type EnvConfig struct {
 }
 
 // LoadEnvConfig loads configuration from environment variables
-func LoadEnvConfig() (*EnvConfig, error) {
-	userIDsStr := os.Getenv(EnvUserIDs)
-	
+func LoadEnvConfig(bot *discordgo.Session) (*EnvConfig, error) {
+	userIDsStr := utils.GetIdFromDB(bot, "WEEKLY_UPDATES_USER_IDS")
 	userIDs := strings.Split(userIDsStr, ",")
 	for i, id := range userIDs {
 		userIDs[i] = strings.TrimSpace(id)
 	}
-	
-	tableName := os.Getenv(EnvTableName)
-	if tableName == "" {
-		tableName = DefaultTableName
-	}
-	
-	reportsDir := os.Getenv(EnvReportsDir)
-	if reportsDir == "" {
-		reportsDir = DefaultReportsDir
-	}
-	
-	cronSpec := os.Getenv(EnvCronSpec)
-	if cronSpec == "" {
-		cronSpec = DefaultCronSpec
-	}
-	
+	tableName := "survey_answers"	
+	reportsDir := "reports"	
+	cronSpec := utils.GetIdFromDB(bot, "WEEKLY_UPDATES_CRON_SPEC")
 	return &EnvConfig{
 		UserIDs:    userIDs,
 		TableName:  tableName,
