@@ -15,6 +15,7 @@ func InitDB() {
 	dbPath := os.Getenv("DATABASE_PATH")
 	if dbPath == "" {
 		log.Fatalf("Datenbankpfad nicht gefunden!")
+		os.Exit(1)
 	}
 	DB, err = sql.Open("sqlite3", dbPath)
 

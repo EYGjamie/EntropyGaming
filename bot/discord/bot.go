@@ -1,16 +1,16 @@
 package discord
 
 import (
+	"bot/database"
+	"bot/handlers/advertising/staff"
+	"bot/handlers/discord_administration/channel/text"
+	"bot/handlers/discord_administration/channel/voice"
+	"bot/handlers/quiz"
+	"bot/handlers/tracking"
+	"bot/handlers/weekly_updates"
+	"bot/utils"
 	"log"
 	"os"
-	"bot/database"
-	"bot/utils"
-	"bot/handlers/tracking"
-	"bot/handlers/quiz"
-	"bot/handlers/weekly_updates"
-	"bot/handlers/advertising/staff"
-	"bot/handlers/discord_administration/channel/voice"
-	"bot/handlers/discord_administration/channel/text"	
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -18,9 +18,16 @@ import (
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 func StartBot() error {
-	Token := os.Getenv("DISCORD_BOT_TOKEN")
+	isProd := os.Getenv("IS_PROD")
+	var Token string
+	if isProd == "true" {
+		Token = os.Getenv("DISCORD_BOT_TOKEN_PROD")
+	} else {
+		Token = os.Getenv("DISCORD_BOT_TOKEN_DEV")
+	}
 	if Token == "" {
 		log.Fatalf("Bot-Token nicht gefunden!")
+		os.Exit(0)
 	}
 
 	// Tracking-Handler instanzieren

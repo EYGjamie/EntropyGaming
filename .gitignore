@@ -28,6 +28,4 @@ go.work.sum
 # web files
 
 # db files
-/db/data
-db/data/entropy.db
 /bot/logs
