@@ -64,11 +64,9 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 				tickets.HandleTicketDropdown(bot, bot_interaction)
 			case "ticket_game_dropdown":
 				tickets.HandleGameDropdown(bot, bot_interaction)
-
 			// After Ticket Creation Survey Dropdown via DM
 			case "ticket_after_survey_dropdown":
 				surveys.HandleSurveyDropdown(bot, bot_interaction)
-
 			// Ticket Moderation Buttons
 			case "ticket_button_claim":
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {tickets.HandleClaimButton(bot, bot_interaction)}

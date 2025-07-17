@@ -78,7 +78,9 @@ func StartBot() error {
 		return err
 	}
 
-	// Command register
+	// Deleting all existing old commands
+	DeleteAllCommands(bot)
+	// register all new Commands
 	RegisterCommands(bot)
 
 	// Stauts-Update "Bot is online"

@@ -1,12 +1,27 @@
 package discord
 
 import (
-	"log"
-	"os"
 	"bot/handlers/surveys"
+	"bot/utils"
+	"log"
 
 	"github.com/bwmarrin/discordgo"
 )
+
+func DeleteAllCommands(bot *discordgo.Session) {
+	guildID := utils.GetIdFromDB(bot, "GUILD_ID")
+	commands, err := bot.ApplicationCommands(bot.State.User.ID, guildID)
+	if err != nil {
+		utils.LogAndNotifyAdmins(bot, "info", "Error", "commands.go", true, err, "Fehler beim Abrufen der Commands")
+		return
+	}
+	for _, cmd := range commands {
+		err := bot.ApplicationCommandDelete(bot.State.User.ID, guildID, cmd.ID)
+		if err != nil {
+			utils.LogAndNotifyAdmins(bot, "info", "Error", "commands.go", true, err, "Fehler beim Löschen des Commands: " + cmd.Name)
+		} 
+	}
+}
 
 func RegisterCommands(bot *discordgo.Session) {
 	adminPermission := int64(discordgo.PermissionAdministrator)
@@ -143,9 +158,9 @@ func RegisterCommands(bot *discordgo.Session) {
 
 	// Register commands on specific guild
 	for _, cmd := range commands {
-		_, err := bot.ApplicationCommandCreate(bot.State.User.ID, os.Getenv("GUILD_ID"), cmd)
+		_, err := bot.ApplicationCommandCreate(bot.State.User.ID, utils.GetIdFromDB(bot, "GUILD_ID"), cmd)
 		if err != nil {
-			log.Fatalf("Fehler beim Registrieren des Commands '%s': %v", cmd.Name, err)
+			utils.LogAndNotifyAdmins(bot, "warn", "Error", "commands.go", true, err, "Fehler beim Registrieren des Commands: " + cmd.Name)
 		}
 	}
 	log.Printf("Alle Commands erfolgreich registriert.")
