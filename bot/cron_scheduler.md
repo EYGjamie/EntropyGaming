@@ -7,6 +7,10 @@ Path: bot/handlers/tickets/userleft_handler.go
 Path: bot/handlers/discord_administration/channel/text/timedPurger.go
 -> Config in DB
 
+## Quiz Fragen - JEDEN TAG UM 18 UHR
+Path: bot/handlers/quiz/questions.go
+-> Config in DB
+
 ## Weekly Updates - JEDEN SONNTAG 20 UHR
 Path: bot/handlers/weekly_updates/types.go 
 -> Config in DB
