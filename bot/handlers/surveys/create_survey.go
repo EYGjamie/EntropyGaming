@@ -9,15 +9,15 @@ import (
 )
 
 // SendSurvey löst /send_survey aus
-func SendSurvey(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB) {
-    data := i.ApplicationCommandData()
-    roleID := data.Options[0].RoleValue(s, i.GuildID).ID
+func SendSurvey(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate, db *sql.DB) {
+    data := bot_interaction.ApplicationCommandData()
+    roleID := data.Options[0].RoleValue(bot, bot_interaction.GuildID).ID
     surveyID := data.Options[1].StringValue()
     surveyType := data.Options[2].StringValue()
 
     def, ok := Definitions[surveyType]
     if !ok {
-        s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+        bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
             Type: discordgo.InteractionResponseChannelMessageWithSource,
             Data: &discordgo.InteractionResponseData{
                 Content: "Ungültiger Umfrage-Typ.",
@@ -27,7 +27,7 @@ func SendSurvey(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB
         return
     }
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
         Type: discordgo.InteractionResponseChannelMessageWithSource,
         Data: &discordgo.InteractionResponseData{
             Content: fmt.Sprintf("Die Umfrage `%s` (%s) wird an alle Mitglieder mit der Rolle <@&%s> verschickt…", surveyID, def.Title, roleID),
@@ -40,7 +40,7 @@ func SendSurvey(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB
         `INSERT INTO surveys(id, survey_type, role_id) VALUES(?, ?, ?)`,
         surveyID, surveyType, roleID,
     ); err != nil {
-        s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+        bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
             Type: discordgo.InteractionResponseChannelMessageWithSource,
             Data: &discordgo.InteractionResponseData{
                 Content: "Fehler beim Anlegen der Umfrage.",
@@ -54,7 +54,7 @@ func SendSurvey(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB
     var after string
     var targets []*discordgo.Member
     for {
-        members, err := s.GuildMembers(i.GuildID, after, 1000)
+        members, err := bot.GuildMembers(bot_interaction.GuildID, after, 1000)
         if err != nil {
             break
         }
@@ -74,12 +74,12 @@ func SendSurvey(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB
 
     // 3) DM an jeden Empfänger mit Dropdown
     for _, m := range targets {
-        intUID, err := utils.EnsureUser(s, m.User.ID)
+        intUID, err := utils.EnsureUser(bot, m.User.ID)
         if err != nil {
             continue
         }
 
-        ch, err := s.UserChannelCreate(m.User.ID)
+        ch, err := bot.UserChannelCreate(m.User.ID)
         if err != nil {
             continue
         }
@@ -115,11 +115,11 @@ func SendSurvey(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB
             },
         }
 
-        s.ChannelMessageSendComplex(ch.ID, msg)
+        bot.ChannelMessageSendComplex(ch.ID, msg)
     }
 
     // Ack an den Command-Invoker
-    s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+    bot.FollowupMessageCreate(bot_interaction.Interaction, true, &discordgo.WebhookParams{
         Content: fmt.Sprintf("Umfrage `%s` (%s) an %d Personen verschickt.", surveyID, def.Title, len(targets)),
         Flags:   discordgo.MessageFlagsEphemeral,
     })

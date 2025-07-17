@@ -10,20 +10,20 @@ import (
 )
 
 // HandleComponent reagiert auf Dropdown-Auswahl
-func HandleSurveyInteraction(s *discordgo.Session, i *discordgo.InteractionCreate, db *sql.DB) {
+func HandleSurveyInteraction(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate, db *sql.DB) {
     // Inhalt der CustomID parsen
-	idString := strings.TrimPrefix(i.MessageComponentData().CustomID, "survey_")
+	idString := strings.TrimPrefix(bot_interaction.MessageComponentData().CustomID, "survey_")
 	ids := strings.Split(idString, "_")
 
 	if len(ids) != 2 {
-		log.Printf("Invalid survey CustomID format: %s", i.MessageComponentData().CustomID)
+		log.Printf("Invalid survey CustomID format: %s", bot_interaction.MessageComponentData().CustomID)
 		return
 	}
 
 	surveyID := ids[0]
 	userInternalID := ids[1]
 
-    choice := i.MessageComponentData().Values[0] // ausgewähltes Label
+    choice := bot_interaction.MessageComponentData().Values[0] // ausgewähltes Label
 
     // 1) in survey_user_answers speichern
     if _, err := db.Exec(
@@ -42,7 +42,7 @@ func HandleSurveyInteraction(s *discordgo.Session, i *discordgo.InteractionCreat
         Description: fmt.Sprintf("Deine Wahl: **%s** wurde gespeichert.", choice),
         Color:       0x1DB954,
     }
-    s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+    bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
         Type: discordgo.InteractionResponseUpdateMessage,
         Data: &discordgo.InteractionResponseData{
             Embeds:     []*discordgo.MessageEmbed{thankEmbed},

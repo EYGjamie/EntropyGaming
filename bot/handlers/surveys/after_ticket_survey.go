@@ -11,10 +11,10 @@ import (
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
-func HandleSurveyDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	selected := i.MessageComponentData().Values[0]
+func HandleSurveyDropdown(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
+	selected := bot_interaction.MessageComponentData().Values[0]
 	if selected == "other" {
-		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err := bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseModal,
 			Data: &discordgo.InteractionResponseData{
 				CustomID: "ticket_after_survey_modal",
@@ -38,12 +38,12 @@ func HandleSurveyDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		}
 	} else {
 		var userID, username string
-		if i.Member != nil {
-			userID = i.Member.User.ID
-			username = i.Member.User.Username
-		} else if i.User != nil {
-			userID = i.User.ID
-			username = i.User.Username
+		if bot_interaction.Member != nil {
+			userID = bot_interaction.Member.User.ID
+			username = bot_interaction.Member.User.Username
+		} else if bot_interaction.User != nil {
+			userID = bot_interaction.User.ID
+			username = bot_interaction.User.Username
 		} else {
 			log.Println("Fehler: Benutzerinformationen nicht verfügbar")
 			return
@@ -53,7 +53,7 @@ func HandleSurveyDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		if err != nil {
 			log.Println("Fehler beim Speichern der Umfrageantwort:", err)
 		}
-		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err = bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
 				Content:    "Danke für deine Antwort!",
@@ -69,8 +69,8 @@ func HandleSurveyDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleSurveyModalSubmit verarbeitet die Eingabe im Modal
-func HandleSurveyModalSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
-    modalData := i.ModalSubmitData()
+func HandleSurveyModalSubmit(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
+    modalData := bot_interaction.ModalSubmitData()
 	if modalData.CustomID == "" {
 		log.Println("ModalSubmitData is empty")
 		return
@@ -97,17 +97,16 @@ func HandleSurveyModalSubmit(s *discordgo.Session, i *discordgo.InteractionCreat
     }
 
     if customAnswer == "" {
-        // log.Println("Keine Antwort im Survey Modal gefunden")
         customAnswer = "other"
     }
 
     var userID, username string
-    if i.Member != nil {
-        userID = i.Member.User.ID
-        username = i.Member.User.Username
-    } else if i.User != nil {
-        userID = i.User.ID
-        username = i.User.Username
+    if bot_interaction.Member != nil {
+        userID = bot_interaction.Member.User.ID
+        username = bot_interaction.Member.User.Username
+    } else if bot_interaction.User != nil {
+        userID = bot_interaction.User.ID
+        username = bot_interaction.User.Username
     } else {
         log.Println("Benutzerinformationen nicht verfügbar")
         return
@@ -119,7 +118,7 @@ func HandleSurveyModalSubmit(s *discordgo.Session, i *discordgo.InteractionCreat
         log.Println("Fehler beim Speichern der Umfrageantwort:", err)
     }
 
-    err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+    err = bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: &discordgo.InteractionResponseData{
 			Content:    "Danke für deine Antwort!",
