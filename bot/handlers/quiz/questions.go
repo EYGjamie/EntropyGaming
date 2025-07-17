@@ -3,8 +3,6 @@ package quiz
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
 	"strings"
 	"strconv"
 	"time"
@@ -16,26 +14,21 @@ import (
 )
 
 // RegisterQuiz startet Scheduler und Interaction-Handler
-func RegisterQuiz(s *discordgo.Session) {
-	startQuizScheduler(s)
+func RegisterQuiz(bot *discordgo.Session) {
+	startQuizScheduler(bot)
 }
 
-func startQuizScheduler(s *discordgo.Session) {
+func startQuizScheduler(bot *discordgo.Session) {
 	c := cron.New(cron.WithLocation(time.Local))
-	_, err := c.AddFunc("00 18 * * *", func() { postDailyQuiz(s) })
+	_, err := c.AddFunc(utils.GetIdFromDB(bot, "QUIZ_CRON_SPEC"), func() { postDailyQuiz(bot) })
 	if err != nil {
-		log.Fatalf("Quiz scheduler error: %v", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "questions.go", true, err, "Error adding quiz post function to cron scheduler")
 	}
 	c.Start()
 }
 
-func postDailyQuiz(s *discordgo.Session) {
-	chID := os.Getenv("CHANNEL_QUIZ_ID")
-	if chID == "" {
-		log.Println("CHANNEL_QUIZ_ID not set")
-		return
-	}
-	// today's date
+func postDailyQuiz(bot *discordgo.Session) {
+	chID := utils.GetIdFromDB(bot, "CHANNEL_QUIZ_ID")
 	today := time.Now().Format("2006-01-02")
 	q := struct {
 		ID       int
@@ -48,23 +41,21 @@ func postDailyQuiz(s *discordgo.Session) {
 	).Scan(&q.ID, &q.Question, &q.A1, &q.A2, &q.A3)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("No quiz for today")
+			utils.LogAndNotifyAdmins(bot, "info", "Info", "questions.go", false, nil, "No quiz question scheduled for today")
 		}
 		return
 	}
-
-	// clear previous quiz message and role ping
-	msgs, _ := s.ChannelMessages(chID, 10, "", "", "")
-	roleID := os.Getenv("ROLE_QUIZ")
+	msgs, _ := bot.ChannelMessages(chID, 10, "", "", "")
+	roleID := utils.GetIdFromDB(bot, "ROLE_QUIZ")
 	for _, m := range msgs {
 		if roleID != "" && strings.Contains(m.Content, fmt.Sprintf("<@&%s>", roleID)) ||
 		   (len(m.Embeds) > 0 && m.Embeds[0].Title == "Quiz des Tages") {
-			s.ChannelMessageDelete(chID, m.ID)
+			bot.ChannelMessageDelete(chID, m.ID)
 		}
 	}
 
 	if roleID != "" {
-		s.ChannelMessageSend(chID, fmt.Sprintf("<@&%s>", roleID))
+		bot.ChannelMessageSend(chID, fmt.Sprintf("<@&%s>", roleID))
 	}
 
 	// build embed and select
@@ -82,20 +73,20 @@ func postDailyQuiz(s *discordgo.Session) {
 			{Label: q.A3, Value: "3"},
 		},
 	}
-	_, err = s.ChannelMessageSendComplex(chID, &discordgo.MessageSend{
+	_, err = bot.ChannelMessageSendComplex(chID, &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{emb},
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{Components: []discordgo.MessageComponent{sel}},
 		},
 	})
 	if err != nil {
-		log.Printf("Send quiz error: %v", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "questions.go", true, err, "Error sending daily quiz message")
 	}
 }
 
-func HandleAnswerSelect(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func HandleAnswerSelect(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 
-	data := i.MessageComponentData()
+	data := bot_interaction.MessageComponentData()
 
 	if !strings.HasPrefix(data.CustomID, "quiz_answer_") {
 		return
@@ -108,9 +99,9 @@ func HandleAnswerSelect(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	sel, _ := strconv.Atoi(selVal)
 
 	// 1) Sicherstellen, dass der User in users existiert
-	uid, err := utils.EnsureUser(s, i.Member.User.ID)
+	uid, err := utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 	if err != nil {
-		log.Printf("EnsureUser failed for %s: %v", i.Member.User.ID, err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "questions.go", true, err, "Error ensuring user for quiz answer")
 		return
 	}
 
@@ -121,7 +112,7 @@ func HandleAnswerSelect(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		uid, qid,
 	).Scan(&exists)
 	if err != sql.ErrNoRows {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Du hast bereits geantwortet!",
@@ -148,7 +139,7 @@ func HandleAnswerSelect(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		uid, qid, sel, isCorrect,
 	)
 	if err != nil {
-		log.Printf("Error inserting quiz_response: %v", err)
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "questions.go", true, err, "Error saving quiz response")
 	}
 
 	// 5) Ephemeral Feedback
@@ -156,7 +147,7 @@ func HandleAnswerSelect(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if isCorrect == 1 {
 		msg = "# Richtig!"
 	}
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 		Content: msg,
