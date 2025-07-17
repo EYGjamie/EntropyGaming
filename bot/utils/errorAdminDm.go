@@ -36,7 +36,7 @@ func LogAndNotifyAdmins(bot *discordgo.Session, priority string, msgType string,
 		} else {
 			defer f.Close()
 			logger := log.New(f, "", log.LstdFlags)
-			logger.Printf("[ADMIN-ALERT] %s/%s %s %v", priority, msgType, file, err)
+			logger.Printf("[ADMIN-ALERT] %s | %s - File: %s - %s - %v", priority, msgType, file, contextMsg, err)
 		}
 	}
 

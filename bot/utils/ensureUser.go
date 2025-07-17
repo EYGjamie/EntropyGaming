@@ -3,7 +3,6 @@ package utils
 import (
     "bot/database"
     "github.com/bwmarrin/discordgo"
-    "log"
     "bot/shared"
 )
 
@@ -21,7 +20,7 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
     // Guild Member-Informationen abrufen (für Rollen und Server-spezifische Daten)
     member, err := bot.GuildMember(GetIdFromDB(bot, "GUILD_ID"), discordID)
     if err != nil {
-        log.Printf("Konnte Guild Member nicht abrufen für User %s: %v", discordID, err)
+        LogAndNotifyAdmins(bot, "low", "Error", "ensureUser.go", true, err, "Fehler beim Abrufen des Guild Members: " + discordID)
         // Fortsetzung auch ohne Member-Daten möglich
     }
 
@@ -131,7 +130,7 @@ func UpdateAllUsers(bot *discordgo.Session, guildID string) error {
     for _, member := range members {
         _, err := EnsureUser(bot, guildID)
         if err != nil {
-            log.Printf("Fehler beim Aktualisieren von User %s: %v", member.User.ID, err)
+            LogAndNotifyAdmins(bot, "low", "Error", "ensureUser.go", true, err, "Fehler beim Aktualisieren des Benutzers: " + member.User.ID)
         }
     }
 

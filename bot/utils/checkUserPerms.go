@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"log"
 	"bot/shared"
 
 	"github.com/bwmarrin/discordgo"
@@ -83,7 +82,7 @@ func sendPermissionDeniedEmbed(bot *discordgo.Session, interaction *discordgo.In
 
 	err := bot.InteractionRespond(interaction.Interaction, response)
 	if err != nil {
-		log.Printf("Fehler beim Senden der Permission-Denied Embed: %v", err)
+		LogAndNotifyAdmins(bot, "info", "Error", "checkUserPerms.go", true, err, "Fehler beim Senden der Berechtigungs-Embed-Response")
 	}
 }
 
