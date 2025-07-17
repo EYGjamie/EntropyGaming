@@ -1,14 +1,14 @@
 package tickets
 
 import (
-	"bot/database"
-	"bot/utils"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
 
+	"bot/database"
+	"bot/utils"
+	
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -16,12 +16,12 @@ import (
 
 // shows the modal for choosen ticket type
 // The customID is used to determine which modal to show
-func HandleTicketModal(s *discordgo.Session, i *discordgo.InteractionCreate, customID string) {
+func HandleTicketModal(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate, customID string) {
 	modalTitle := ""
 	var fields []discordgo.TextInput
 
 	if customID == "" {
-		log.Println("Fehler: CustomID ist leer.")
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_modal.go", true, fmt.Errorf("customID is empty"), "Fehler beim Abrufen des customID für das Ticket Modal")
 		return
 	}
 
@@ -79,7 +79,7 @@ func HandleTicketModal(s *discordgo.Session, i *discordgo.InteractionCreate, cus
 		}
 
 	case "ticket_community_teams":
-		HandleGameDropdown(s, i)
+		HandleGameDropdown(bot, bot_interaction)
 		return
 
 	case "ticket_game_lol":
@@ -149,7 +149,7 @@ func HandleTicketModal(s *discordgo.Session, i *discordgo.InteractionCreate, cus
 	}
 
 	if len(fields) == 0 {
-		log.Println("Fehler: Keine Felder für das Modal definiert.")
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_modal.go", true, fmt.Errorf("no fields defined for customID %s", customID), "Fehler: Keine Felder für das Ticket definiert")
 		return
 	}
 
@@ -159,7 +159,7 @@ func HandleTicketModal(s *discordgo.Session, i *discordgo.InteractionCreate, cus
 	}
 
 	// Modal anzeigen
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseModal,
 		Data: &discordgo.InteractionResponseData{
 			CustomID:   customID,
@@ -169,57 +169,47 @@ func HandleTicketModal(s *discordgo.Session, i *discordgo.InteractionCreate, cus
 	})
 
 	if err != nil {
-		log.Println("Fehler beim Anzeigen des Modals:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Anzeigen des Modals für das Ticket")
 	}
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
-func HandleTicketSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func HandleTicketSubmit(s *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	var err error
-
-	// Direkte Response an die Interaktion senden mit einem "Thinking" Status
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err = s.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: discordgo.MessageFlagsEphemeral,
 		},
 	})
 	if err != nil {
-		log.Println("Fehler beim Senden der Thinking Response:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Senden der Interaktionsantwort für das Ticket Modal")
 		return
 	}
 
-	// Modal-Daten sammeln 
-	data := i.ModalSubmitData()
-	customID := i.ModalSubmitData().CustomID
-	// log.Println("CustomID:", customID)
+	data := bot_interaction.ModalSubmitData()
+	customID := bot_interaction.ModalSubmitData().CustomID
 
 	var fields []string
 
-	// Iteriere durch die Komponenten des Modals
 	for _, component := range data.Components {
 		if row, ok := component.(*discordgo.ActionsRow); ok {
 			for _, item := range row.Components {
 				if input, ok := item.(*discordgo.TextInput); ok {
-					fields = append(fields, input.Value) // Wert speichern
-					// log.Printf("Label: %s, Value: %s\n", input.Label, input.Value) // Optional: Logge Label und Wert
+					fields = append(fields, input.Value)
 				}
 			}
 		}
 	}
 
-	// Zugriff auf die Variablen
-
 	var labels = getLabelsForTicket(customID)
-
 	if len(labels) == 0 {
-		log.Println("Fehler: Keine Labels für das Ticket definiert.")
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, fmt.Errorf("no labels defined for customID %s", customID), "Fehler: Keine Labels für das Ticket definiert")
 		return
 	}
-
 	if len(fields) == 0 {
-		log.Println("Fehler: Keine Felder für das Ticket definiert.")
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, fmt.Errorf("no fields provided for customID %s", customID), "Fehler: Keine Felder für das Ticket definiert")
 		return
 	}
 
@@ -245,54 +235,45 @@ func HandleTicketSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		labelFive, fieldFive = labels[4], fields[4]
 	}
 
-	// categoryID aus Liste ziehen
-	// categoryID := getCategoryIDForTicket(s, customID)
 	categoryID := utils.GetIdFromDB(s, "CATEGORY_" + strings.ToUpper(customID))
 	roleID := getRoleIDForTicket(s, customID)
 	ticketArea := getTicketAreaForTicket(customID)
 
-	// Datenbankeintrag erstellen
-
 	_, err = database.DB.Exec(`
 		INSERT INTO tickets (ticket_status, ticket_bereich, ticket_ersteller_id, ticket_ersteller_name, ticket_erstellungszeit, ticket_modal_field_one, ticket_modal_field_two, ticket_modal_field_three, ticket_modal_field_four, ticket_modal_field_five)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		"Open", customID, i.Member.User.ID, i.Member.User.Username, time.Now().Unix(), fieldOne, fieldTwo, fieldThree, fieldFour, fieldFive)
+		"Open", customID, bot_interaction.Member.User.ID, bot_interaction.Member.User.Username, time.Now().Unix(), fieldOne, fieldTwo, fieldThree, fieldFour, fieldFive)
 	if err != nil {
-		log.Println("Fehler beim Erstellen des Ticket-Eintrags:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Einfügen des Tickets in die Datenbank")
 		return
 	}
 
-	// Ticket-ID abrufen
 	var ticketID int64
 	err = database.DB.QueryRow(`SELECT last_insert_rowid()`).Scan(&ticketID)
 	if err != nil {
-		log.Println("Fehler beim Abrufen der Ticket-ID:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Abrufen der Ticket-ID aus der Datenbank")
 		return
 	}
 
-	// Neuen Channel erstellen
-	channel, err := s.GuildChannelCreateComplex(i.GuildID, discordgo.GuildChannelCreateData{
-		Name:     fmt.Sprintf("%d-open-%s", ticketID, i.Member.User.Username),
+	channel, err := s.GuildChannelCreateComplex(bot_interaction.GuildID, discordgo.GuildChannelCreateData{
+		Name:     fmt.Sprintf("%d-open-%s", ticketID, bot_interaction.Member.User.Username),
 		Type:     discordgo.ChannelTypeGuildText,
-		Topic:    fmt.Sprintf("Ticket #%d - Status: Open - Ticket von <@%s>", ticketID, i.Member.User.ID),
+		Topic:    fmt.Sprintf("Ticket #%d - Status: Open - Ticket von <@%s>", ticketID, bot_interaction.Member.User.ID),
 		ParentID: categoryID,
 	})
 	if err != nil {
-		log.Println("Fehler beim Erstellen des Channels:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Erstellen des Ticket-Kanals")
 		return
 	}
 
-	// Berechtigungen dass User Channel sehen kann setzten
-	addUserChannelPermission(s, channel.ID, i.Member.User.ID)
+	addUserChannelPermission(s, channel.ID, bot_interaction.Member.User.ID)
 
-	// Ticket-Channel-ID in Datenbank aktualisieren
 	_, err = database.DB.Exec(`UPDATE tickets SET ticket_channel_id = ? WHERE ticket_id = ?`, channel.ID, ticketID)
 	if err != nil {
-		log.Println("Fehler beim Aktualisieren der Ticket-Channel-ID:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Aktualisieren der Ticket-Channel-ID in der Datenbank")
 		return
 	}
 
-	// embed_ticket_channel erstellen
 	embed_ticket_channel := &discordgo.MessageEmbed{
 		Title:       ticketArea,
 		Description: "Details des Tickets:",
@@ -319,55 +300,46 @@ func HandleTicketSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		Embeds:  []*discordgo.MessageEmbed{embed_ticket_channel},
 	})
 	if err != nil {
-		log.Println("Fehler beim Senden der Nachricht:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Senden der Ticket-Channel-Nachricht")
 		return
 	}
 
-	// Nachricht anpinnen
 	err = s.ChannelMessagePin(channel.ID, message.ID)
 	if err != nil {
-		log.Println("Fehler beim Anpinnen der Nachricht:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Anpinnen der Ticket-Channel-Nachricht")
 		return
 	}
 
-	// Moderationsansicht senden
-	SendModerationView(s, channel.ID, int(ticketID), i.Member.User.Username)
+	SendModerationView(s, channel.ID, int(ticketID), bot_interaction.Member.User.Username)
 
-	// Kanal mit Bestätigungsnachricht versehen
 	embed := &discordgo.MessageEmbed{
 		Title:       "Ticket erstellt",
 		Description: fmt.Sprintf("Ein Moderator wird sich in Kürze um dein Anliegen kümmern.\n\n<#%s>", channel.ID),
 		Color:       0x3498DB,
 	}
 
-	// InteractionResponse
 	embeds := []*discordgo.MessageEmbed{embed}
-	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+	_, err = s.InteractionResponseEdit(bot_interaction.Interaction, &discordgo.WebhookEdit{
 		Embeds: &embeds,
 	})
 	if err != nil {
-		log.Println("Fehler beim Bearbeiten der Interaction Response:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Aktualisieren der Interaktionsantwort für das Ticket Modal")
 		return
 	}
 
-	// Code für die Umfrage-DM
-	// Prüfe, ob der User die Umfrage bereits beantwortet hat
 	var surveyCount int
-	err = database.DB.QueryRow("SELECT COUNT(*) FROM survey_answers WHERE user_id = ?", i.Member.User.ID).Scan(&surveyCount)
+	err = database.DB.QueryRow("SELECT COUNT(*) FROM survey_answers WHERE user_id = ?", bot_interaction.Member.User.ID).Scan(&surveyCount)
 	if err != nil {
-		log.Println("Fehler beim Prüfen der Umfrageantwort:", err)
+		utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Überprüfen der Umfrage-Antworten in der Datenbank")
 	} else if surveyCount == 0 {
-		// Erstelle einen DM-Kanal zum User
-		dmChannel, err := s.UserChannelCreate(i.Member.User.ID)
+		dmChannel, err := s.UserChannelCreate(bot_interaction.Member.User.ID)
 		if err != nil {
-			// Falls der Benutzer DMs deaktiviert hat, nur eine kurze Info loggen
 			if strings.Contains(strings.ToLower(err.Error()), "cannot send messages to this user") {
-				log.Println("DMs sind für diesen Benutzer deaktiviert.")
+				utils.LogAndNotifyAdmins(s, "low", "Info", "ticket_modal.go", false, err, "DMs sind für diesen Benutzer deaktiviert. Umfrage kann nicht gesendet werden.")
 			} else {
-				log.Println("Fehler beim Erstellen eines DM-Kanals:", err)
+				utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Erstellen des DM-Kanals für die Umfrage")
 			}
 		} else {
-			// Erstelle die Dropdown-Komponente für die Umfrage
 			dmComponents := []discordgo.MessageComponent{
 				discordgo.ActionsRow{
 					Components: []discordgo.MessageComponent{
@@ -392,16 +364,15 @@ func HandleTicketSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Color:       0x3498DB,
 			}
 
-			// Sende die Umfrage als DM
 			_, err = s.ChannelMessageSendComplex(dmChannel.ID, &discordgo.MessageSend{
 				Embeds:     []*discordgo.MessageEmbed{embed},
 				Components: dmComponents,
 			})
 			if err != nil {
 				if strings.Contains(strings.ToLower(err.Error()), "cannot send messages to this user") {
-					log.Println("DMs sind für diesen Benutzer deaktiviert.")
+					utils.LogAndNotifyAdmins(s, "low", "Info", "ticket_modal.go", false, err, "DMs sind für diesen Benutzer deaktiviert. Umfrage kann nicht gesendet werden.")
 				} else {
-					log.Println("Fehler beim Senden der Umfrage DM:", err)
+					utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Senden der Umfrage-DM")
 				}
 			}
 		}

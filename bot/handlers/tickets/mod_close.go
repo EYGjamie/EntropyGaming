@@ -2,62 +2,55 @@ package tickets
 
 import (
 	"fmt"
-	"log"
 	"time"
+
 	"bot/database"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
-func HandleCloseButton(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	ticketID, err := GetTicketIDFromInteraction(s, i)
+func HandleCloseButton(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
+	ticketID, err := GetTicketIDFromInteraction(bot, bot_interaction)
 	if err != nil {
-		log.Println("Fehler beim Abrufen der Ticket-ID:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "mod_close.go", true, err, "Fehler beim Abrufen der Ticket-ID aus der Interaktion")
 		return
 	}
+	ticket_db_info := getTicketDbInfo(bot, ticketID)
 
-	// Ticket-Informationen aus der Datenbank abrufen
-	ticket_db_info := getTicketDbInfo(ticketID)
-
-	// Status in der Datenbank aktualisieren
 	_, err = database.DB.Exec(`
 		UPDATE tickets 
 		SET ticket_status = "Closed", ticket_schliesser_id = ?, ticket_schliesser_name = ?, ticket_schliesszeit = ?
 		WHERE ticket_id = ?`,
-		i.Member.User.ID, i.Member.User.Username, time.Now().Unix(), ticketID)
+		bot_interaction.Member.User.ID, bot_interaction.Member.User.Username, time.Now().Unix(), ticketID)
 	if err != nil {
-		log.Println("Fehler beim Aktualisieren des Ticketstatus:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "mod_close.go", true, err, "Fehler beim Aktualisieren des Tickets in der Datenbank")
 		return
 	}
 
-	// Kanal aktualisieren
-	s.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
+	bot.ChannelEdit(bot_interaction.ChannelID, &discordgo.ChannelEdit{
 		Name: fmt.Sprintf("%d-closed-%s-%s", ticketID, ticket_db_info[5], ticket_db_info[8]),
-		Topic: fmt.Sprintf("Ticket #%d - Status: Closed - Ticket von <@%s> - Ticket Bearbeiter <@%s> - Ticket geschlossen von <@%s>", ticketID, ticket_db_info[4], ticket_db_info[7], i.Member.User.ID),
+		Topic: fmt.Sprintf("Ticket #%d - Status: Closed - Ticket von <@%s> - Ticket Bearbeiter <@%s> - Ticket geschlossen von <@%s>", ticketID, ticket_db_info[4], ticket_db_info[7], bot_interaction.Member.User.ID),
 	})
 
-	// Berechtigungen entfernen
-	removeUserChannelPermission(s, i.ChannelID, ticket_db_info[4])
+	removeUserChannelPermission(bot, bot_interaction.ChannelID, ticket_db_info[4])
 
-	// Nachricht senden, um den Benutzer über den neuen Status zu informieren
-	_, err = s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Das Ticket #%d wurde von <@%s> geschlossen.", ticketID, i.Member.User.ID))
+	_, err = bot.ChannelMessageSend(bot_interaction.ChannelID, fmt.Sprintf("Das Ticket #%d wurde von <@%s> geschlossen.", ticketID, bot_interaction.Member.User.ID))
 	if err != nil {
-		log.Println("Fehler beim Senden der Benachrichtigung über den geschlossenen Status:", err)
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "mod_close.go", true, err, "Fehler beim Senden der Benachrichtigung über den User der das Ticket geschlossen hat in Ticket #" + fmt.Sprint(ticketID))
 	}
 
-	// Embed aktualisieren
 	embed := &discordgo.MessageEmbed{
 		Title: fmt.Sprintf("Ticket #%d Moderation", ticketID),
 		Fields: []*discordgo.MessageEmbedField{
 			{Name: "Erstellt von", Value: ticket_db_info[5], Inline: true},
 			{Name: "Status", Value: "Closed", Inline: true},
 		},
-		Color: 0xFFD700, // Goldfarbe
+		Color: 0xFFD700, // Gold
 	}
 
-	// Buttons aktualisieren (Claim und Assign deaktivieren, reopen statt close)
 	updatedComponents := []discordgo.MessageComponent{
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
@@ -69,8 +62,7 @@ func HandleCloseButton(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	// Nachricht aktualisieren
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{embed},

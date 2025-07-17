@@ -2,7 +2,8 @@ package tickets
 
 import (
 	"fmt"
-	"log"
+
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -29,7 +30,7 @@ type AttachmentData struct {
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // sends a pinned moderation view to the channel
-func SendModerationView(s *discordgo.Session, channelID string, ticketID int, creatorName string) {
+func SendModerationView(bot *discordgo.Session, channelID string, ticketID int, creatorName string) {
 	embed := &discordgo.MessageEmbed{
 		Title:       fmt.Sprintf("Ticket #%d Moderation", ticketID),
 		Fields: []*discordgo.MessageEmbedField{
@@ -41,12 +42,12 @@ func SendModerationView(s *discordgo.Session, channelID string, ticketID int, cr
 
 	components := getDefaultComponents()
 
-	_, err := s.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
+	_, err := bot.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
 		Embeds:     []*discordgo.MessageEmbed{embed},
 		Components: components,
 	})
 	if err != nil {
-		log.Println("Fehler beim Senden des Moderations-Views:", err)
+		utils.LogAndNotifyAdmins(bot, "critical", "Error", "mod_pannel.go", true, err, "Fehler beim Senden der Moderation View in Ticket #" + fmt.Sprint(ticketID))
 	}
 }
 

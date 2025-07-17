@@ -1,8 +1,8 @@
 package tickets
 
 import (
-	"log"
 	"time"
+
 	"bot/database"
 	"bot/utils"
 
@@ -22,7 +22,7 @@ func CheckAndNotifyInactiveUsers(bot *discordgo.Session) {
 				WHERE ticket_status != "Deleted" AND ticket_status != "UserLeft"
 			`)
 			if err != nil {
-				log.Println("Fehler beim Abrufen der Tickets:", err)
+				utils.LogAndNotifyAdmins(bot, "high", "Error", "userleft_handler.go", true, err, "Fehler beim Abrufen der Ticket-Daten")
 				continue
 			}
 			var updates []string
@@ -30,7 +30,7 @@ func CheckAndNotifyInactiveUsers(bot *discordgo.Session) {
 				var channelID, creatorID, creatorName string
 				err := rows.Scan(&channelID, &creatorID, &creatorName)
 				if err != nil {
-					log.Println("Fehler beim Scannen der Ticket-Daten:", err)
+					utils.LogAndNotifyAdmins(bot, "high", "Error", "userleft_handler.go", true, err, "Fehler beim Scannen der Ticket-Daten")
 					continue
 				}
 				_, err = bot.GuildMember(utils.GetIdFromDB(bot, "GUILD_ID"), creatorID)
@@ -43,11 +43,11 @@ func CheckAndNotifyInactiveUsers(bot *discordgo.Session) {
 						}
 						_, sendErr := bot.ChannelMessageSendEmbed(channelID, message)
 						if sendErr != nil {
-							log.Println("Fehler beim Senden der Nachricht:", sendErr)
+							utils.LogAndNotifyAdmins(bot, "low", "Error", "userleft_handler.go", true, sendErr, "Fehler beim Senden der Nachricht an den Ticket-Kanal")
 						}
 						updates = append(updates, channelID)
 					} else {
-						log.Println("Fehler beim Überprüfen des Benutzers:", err)
+						utils.LogAndNotifyAdmins(bot, "high", "Error", "userleft_handler.go", true, err, "Fehler beim Überprüfen des Benutzers im Ticket-Kanal")
 					}
 				}
 			}
@@ -55,17 +55,17 @@ func CheckAndNotifyInactiveUsers(bot *discordgo.Session) {
 			if len(updates) > 0 {
 				tx, txErr := database.DB.Begin()
 				if txErr != nil {
-					log.Println("Fehler beim Erstellen der Transaktion:", txErr)
+					utils.LogAndNotifyAdmins(bot, "high", "Error", "userleft_handler.go", true, txErr, "Fehler beim Starten der Transaktion")
 					continue
 				}
 				for _, channelID := range updates {
 					_, updateErr := tx.Exec(`UPDATE tickets SET ticket_status = ? WHERE ticket_channel_id = ?`, "UserLeft", channelID)
 					if updateErr != nil {
-						log.Println("Fehler beim Aktualisieren des Ticket-Status:", updateErr)
+						utils.LogAndNotifyAdmins(bot, "high", "Error", "userleft_handler.go", true, updateErr, "Fehler beim Aktualisieren des Ticket-Status in der Datenbank")
 					}
 				}
 				if commitErr := tx.Commit(); commitErr != nil {
-					log.Println("Fehler beim Commit der Transaktion:", commitErr)
+					utils.LogAndNotifyAdmins(bot, "high", "Error", "userleft_handler.go", true, commitErr, "Fehler beim Commit der Transaktion")
 				}
 			}
 		}

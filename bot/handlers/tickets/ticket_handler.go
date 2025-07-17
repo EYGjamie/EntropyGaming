@@ -1,7 +1,7 @@
 package tickets
 
 import (
-	"log"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -9,7 +9,7 @@ import (
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleTicketView sendet ein Embed mit dem "Create Ticket"-Button
-func HandleTicketView(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func HandleTicketView(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	embed := &discordgo.MessageEmbed{
 		Title:       "Ticket-System – Bewerbung & Support",
 		Description: "Willkommen beim Ticket-System von **Entropy Gaming**!",
@@ -47,7 +47,7 @@ func HandleTicketView(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	// Embed mit Buttons senden
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds:     []*discordgo.MessageEmbed{embed},
@@ -55,14 +55,14 @@ func HandleTicketView(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if err != nil {
-		log.Println("Fehler beim Senden des Ticket Views:", err)
+		utils.LogAndNotifyAdmins(bot, "critical", "Error", "ticket_handler.go", true, err, "Fehler beim Senden des Ticket-Views")
 	}
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleCreateTicket zeigt das Dropdown-Menü für die Ticket-Bereiche an
-func HandleCreateTicket(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func HandleCreateTicket(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	options := []discordgo.SelectMenuOption{
 		// {Label: "Beitritt Diamond Club", Value: "ticket_diamond_club"},
 		{Label: "Bewerbung Community Teams", Value: "ticket_community_teams"},
@@ -85,7 +85,7 @@ func HandleCreateTicket(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content:    "Wähle einen Ticket-Bereich aus:",
@@ -95,38 +95,38 @@ func HandleCreateTicket(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 
 	if err != nil {
-		log.Println("Fehler beim Senden des Dropdown-Menüs:", err)
+		utils.LogAndNotifyAdmins(bot, "critical", "Error", "ticket_handler.go", true, err, "Fehler beim Anzeigen des Ticket-Dropdowns")
 	}
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleTicketDropdown zeigt Modals oder zusätzliche Dropdowns basierend auf der Auswahl
-func HandleTicketDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	data := i.MessageComponentData()
+func HandleTicketDropdown(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
+	data := bot_interaction.MessageComponentData()
 
 	switch data.Values[0] {
 	case "ticket_diamond_club":
-		HandleTicketModal(s, i, "ticket_diamond_club")
+		HandleTicketModal(bot, bot_interaction, "ticket_diamond_club")
 	case "ticket_pro_teams":
-		HandleTicketModal(s, i, "ticket_pro_teams")
+		HandleTicketModal(bot, bot_interaction, "ticket_pro_teams")
 	case "ticket_community_teams":
-		ShowGameDropdown(s, i)
+		ShowGameDropdown(bot, bot_interaction)
 	case "ticket_bewerbung_staff":
-		HandleTicketModal(s, i, "ticket_bewerbung_staff")
+		HandleTicketModal(bot, bot_interaction, "ticket_bewerbung_staff")
 	case "ticket_content_creator":
-		HandleTicketModal(s, i, "ticket_content_creator")
+		HandleTicketModal(bot, bot_interaction, "ticket_content_creator")
 	case "ticket_support_kontakt":
-		HandleTicketModal(s, i, "ticket_support_kontakt")
+		HandleTicketModal(bot, bot_interaction, "ticket_support_kontakt")
 	case "ticket_sonstiges":
-		HandleTicketModal(s, i, "ticket_sonstiges")
+		HandleTicketModal(bot, bot_interaction, "ticket_sonstiges")
 	}
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleGameDropdown zeigt ein Dropdown-Menü zur Auswahl eines Spiels an
-func ShowGameDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func ShowGameDropdown(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	options := []discordgo.SelectMenuOption{
 		{Label: "League of Legends", Value: "ticket_game_lol"},
 		{Label: "RainbowSix", Value: "ticket_game_r6"},
@@ -149,7 +149,7 @@ func ShowGameDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content:    "Wähle das Spiel aus, für das du dich bewerben möchtest:",
@@ -159,30 +159,30 @@ func ShowGameDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 
 	if err != nil {
-		log.Println("Fehler beim Anzeigen des Game-Dropdowns:", err)
+		utils.LogAndNotifyAdmins(bot, "critical", "Error", "ticket_handler.go", true, err, "Fehler beim Anzeigen des Spiel-Dropdowns")
 	}
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleGameDropdown zeigt Modalsbasierend auf der Auswahl
-func HandleGameDropdown(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	data := i.MessageComponentData()
+func HandleGameDropdown(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
+	data := bot_interaction.MessageComponentData()
 
 	switch data.Values[0] {
 	case "ticket_game_lol":
-		HandleTicketModal(s, i, "ticket_game_lol")
+		HandleTicketModal(bot, bot_interaction, "ticket_game_lol")
 	case "ticket_game_r6":
-		HandleTicketModal(s, i, "ticket_game_r6")
+		HandleTicketModal(bot, bot_interaction, "ticket_game_r6")
 	case "ticket_game_cs2":
-		HandleTicketModal(s, i, "ticket_game_cs2")
+		HandleTicketModal(bot, bot_interaction, "ticket_game_cs2")
 	case "ticket_game_valorant":
-		HandleTicketModal(s, i, "ticket_game_valorant")
+		HandleTicketModal(bot, bot_interaction, "ticket_game_valorant")
 	case "ticket_game_rocket_league":
-		HandleTicketModal(s, i, "ticket_game_rocket_league")
+		HandleTicketModal(bot, bot_interaction, "ticket_game_rocket_league")
 	case "ticket_game_sonstige":
-		HandleTicketModal(s, i, "ticket_game_sonstige")
+		HandleTicketModal(bot, bot_interaction, "ticket_game_sonstige")
 	// case "game_splatoon":
-	// 	HandleTicketModal(s, i, "game_splatoon")
+	// 	HandleTicketModal(bot, bot_interaction, "game_splatoon")
 	}
 }

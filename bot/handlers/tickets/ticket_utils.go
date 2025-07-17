@@ -1,10 +1,10 @@
 package tickets
 
 import (
-	"log"
 	"strconv"
 	"strings"
 	"fmt"
+
     "bot/database"
     "bot/utils"
 
@@ -88,7 +88,7 @@ func getLabelsForTicket(bereich string) []string {
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // gets TicketID from channelName
-func ExtractTicketIDFromChannel(channelName string) (int, error) {
+func ExtractTicketIDFromChannel(bot *discordgo.Session, channelName string) (int, error) {
 	// Channel-Name should have structure like "ticketID-status-creator"
 	parts := strings.Split(channelName, "-")
 	if len(parts) < 1 {
@@ -98,7 +98,7 @@ func ExtractTicketIDFromChannel(channelName string) (int, error) {
 	// konvert the first part to an integer (ticketID)
 	ticketID, err := strconv.Atoi(parts[0])
 	if err != nil {
-		log.Println("Fehler beim Konvertieren der Ticket-ID:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_utils.go", true, err, "Fehler beim Konvertieren der Ticket-ID aus dem Kanalnamen")
 		return 0, err
 	}
 
@@ -111,11 +111,11 @@ func ExtractTicketIDFromChannel(channelName string) (int, error) {
 func GetTicketIDFromInteraction(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) (int, error) {
 	channel, err := bot.Channel(bot_interaction.ChannelID)
 	if err != nil {
-		log.Println("Fehler beim Abrufen des Kanals:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_utils.go", true, err, "Fehler beim Abrufen des Kanals aus der Interaktion")
 		return 0, err
 	}
 
-	return ExtractTicketIDFromChannel(channel.Name)
+	return ExtractTicketIDFromChannel(bot, channel.Name)
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
@@ -124,7 +124,7 @@ func GetTicketIDFromInteraction(bot *discordgo.Session, bot_interaction *discord
 func GetUsernameByID(bot *discordgo.Session, userID string) string {
 	user, err := bot.User(userID)
 	if err != nil {
-		log.Println("Fehler beim Abrufen des Benutzernamens:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_utils.go", true, err, "Fehler beim Abrufen des Benutzers mit ID "+userID)
 		return "Unbekannt"
 	}
 	return user.Username
@@ -132,7 +132,7 @@ func GetUsernameByID(bot *discordgo.Session, userID string) string {
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
-func getTicketDbInfo(ticket_id int) []string {
+func getTicketDbInfo(bot *discordgo.Session, ticket_id int) []string {
     // SQL query to fetch ticket information
     query := `SELECT * FROM tickets WHERE ticket_id = ?`
     row := database.DB.QueryRow(query, ticket_id)
@@ -140,7 +140,7 @@ func getTicketDbInfo(ticket_id int) []string {
     // Retrieve column names in order to know the number of columns
     cols, err := database.DB.Query(`PRAGMA table_info(tickets)`)
     if err != nil {
-        log.Println("Fehler beim Abrufen der Spalteninformationen:", err)
+        utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_utils.go", true, err, "Fehler beim Abrufen der Spalteninformationen der Tickets-Tabelle")
         return []string{}
     }
     defer cols.Close()
@@ -160,7 +160,7 @@ func getTicketDbInfo(ticket_id int) []string {
     // rows scan into the values slice
     err = row.Scan(valuePtrs...)
     if err != nil {
-        log.Println("Fehler beim Scannen der Zeile:", err)
+        utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_utils.go", true, err, "Fehler beim Abrufen der Ticket-Informationen aus der Datenbank")
         return []string{}
     }
 
@@ -179,7 +179,7 @@ func getTicketDbInfo(ticket_id int) []string {
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
-func addUserChannelPermission(s *discordgo.Session, channelID string, userID string) error {
+func addUserChannelPermission(bot *discordgo.Session, channelID string, userID string) error {
 	// Berechtigungen setzen: Lese- und Schreibrechte erlauben
 	permissions := &discordgo.PermissionOverwrite{
 		ID:   userID,
@@ -188,9 +188,9 @@ func addUserChannelPermission(s *discordgo.Session, channelID string, userID str
 	}
 
 	// Berechtigung im Channel aktualisieren
-	err := s.ChannelPermissionSet(channelID, permissions.ID, permissions.Type, permissions.Allow, 0)
+	err := bot.ChannelPermissionSet(channelID, permissions.ID, permissions.Type, permissions.Allow, 0)
 	if err != nil {
-		log.Println("Fehler beim Hinzufügen der Berechtigung:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_utils.go", true, err, "Fehler beim Hinzufügen der Berechtigung")
 		return err
 	}
 	return nil
@@ -198,7 +198,7 @@ func addUserChannelPermission(s *discordgo.Session, channelID string, userID str
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
-func removeUserChannelPermission(s *discordgo.Session, channelID string, userID string) error {
+func removeUserChannelPermission(bot *discordgo.Session, channelID string, userID string) error {
 	// Berechtigungen setzen: Keine Lese- oder Schreibrechte
 	permissions := &discordgo.PermissionOverwrite{
 		ID:   userID,
@@ -207,9 +207,9 @@ func removeUserChannelPermission(s *discordgo.Session, channelID string, userID 
 	}
 
 	// Berechtigung im Channel aktualisieren
-	err := s.ChannelPermissionSet(channelID, permissions.ID, permissions.Type, 0, permissions.Deny)
+	err := bot.ChannelPermissionSet(channelID, permissions.ID, permissions.Type, 0, permissions.Deny)
 	if err != nil {
-		log.Println("Fehler beim Entfernen der Berechtigung:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "ticket_utils.go", true, err, "Fehler beim Entfernen der Berechtigung")
 		return err
 	}
 	return nil

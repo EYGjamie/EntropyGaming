@@ -1,13 +1,13 @@
 package tickets
 
 import (
-	"log"
 	"fmt"
 	"time"
 	"strconv"
 	"strings"
 
 	"bot/database"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -15,10 +15,10 @@ import (
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleAssignButton zeigt ein Modal zur Eingabe des Benutzernamens an
-func HandleAssignButton(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	ticketID, err := GetTicketIDFromInteraction(s, i)
+func HandleAssignButton(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
+	ticketID, err := GetTicketIDFromInteraction(bot, bot_interaction)
 	if err != nil {
-		log.Println("Fehler beim Abrufen der Ticket-ID:", err)
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "mod_assign.go", true, err, "Fehler beim Abrufen der Ticket-ID aus der Interaktion")
 		return
 	}
 
@@ -45,24 +45,24 @@ func HandleAssignButton(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	s.InteractionRespond(i.Interaction, modal)
+	bot.InteractionRespond(bot_interaction.Interaction, modal)
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleAssignModal verarbeitet die Modal-Eingabe und sucht nach passenden Usern
-func HandleAssignModal(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func HandleAssignModal(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	// Ticket-ID aus CustomID extrahieren
-	customID := i.ModalSubmitData().CustomID
+	customID := bot_interaction.ModalSubmitData().CustomID
 	ticketIDStr := strings.TrimPrefix(customID, "ticket_assign_modal_")
 	ticketID, err := strconv.Atoi(ticketIDStr)
 	if err != nil {
-		log.Println("Fehler beim Parsen der Ticket-ID:", err)
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "mod_assign.go", true, err, "Fehler beim Parsen der Ticket-ID aus der Modal CustomID")
 		return
 	}
 
 	// Eingabe aus Modal abrufen
-	username := i.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+	username := bot_interaction.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
 
 	// User in Datenbank suchen (sowohl username als auch display_name)
 	var discordID, displayName string
@@ -85,7 +85,7 @@ func HandleAssignModal(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"%"+username+"%", "%"+username+"%")
 		
 		if err != nil {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: "Fehler beim Suchen des Users.",
@@ -107,7 +107,7 @@ func HandleAssignModal(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 
 		if len(suggestions) == 0 {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Kein Management-User mit '%s' gefunden.", username),
@@ -130,7 +130,7 @@ func HandleAssignModal(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		}
 
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content:    fmt.Sprintf("Mehrere User mit '%s' gefunden:", username),
@@ -142,39 +142,39 @@ func HandleAssignModal(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	// Exakte Übereinstimmung - direkt zuweisen
-	assignTicketToUser(s, i, ticketID, discordID, displayName)
+	assignTicketToUser(bot, bot_interaction, ticketID, discordID, displayName)
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleAssignSuggestions verarbeitet die Auswahl aus dem Suggestions-Dropdown
-func HandleAssignSuggestions(s *discordgo.Session, i *discordgo.InteractionCreate, customID string) {
+func HandleAssignSuggestions(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate, customID string) {
 	// Ticket-ID extrahieren
 	ticketIDStr := strings.TrimPrefix(customID, "ticket_assign_suggestions_")
 	ticketID, err := strconv.Atoi(ticketIDStr)
 	if err != nil {
-		log.Println("Fehler beim Parsen der Ticket-ID:", err)
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "mod_assign.go", true, err, "Fehler beim Parsen der Ticket-ID aus dem Suggestions CustomID")
 		return
 	}
 
 	// Ausgewählten User abrufen
-	selectedDiscordID := i.MessageComponentData().Values[0]
+	selectedDiscordID := bot_interaction.MessageComponentData().Values[0]
 	
 	// Display Name aus DB abrufen
 	var displayName string
 	err = database.DB.QueryRow("SELECT display_name FROM users WHERE discord_id = ?", selectedDiscordID).Scan(&displayName)
 	if err != nil {
-		log.Println("Fehler beim Abrufen des Display Names:", err)
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "mod_assign.go", true, err, "Fehler beim Abrufen des Display Names für Discord ID: " + selectedDiscordID)
 		return
 	}
 
-	assignTicketToUser(s, i, ticketID, selectedDiscordID, displayName)
+	assignTicketToUser(bot, bot_interaction, ticketID, selectedDiscordID, displayName)
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // assignTicketToUser führt die tatsächliche Zuweisung des Tickets durch
-func assignTicketToUser(s *discordgo.Session, i *discordgo.InteractionCreate, ticketID int, discordID, displayName string) {
+func assignTicketToUser(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate, ticketID int, discordID, displayName string) {
 	// Ticket in der Datenbank aktualisieren
 	_, err := database.DB.Exec(`
 		UPDATE tickets 
@@ -182,21 +182,21 @@ func assignTicketToUser(s *discordgo.Session, i *discordgo.InteractionCreate, ti
 		WHERE ticket_id = ?`,
 		discordID, displayName, time.Now().Unix(), ticketID)
 	if err != nil {
-		log.Println("Fehler beim Aktualisieren des Tickets:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "mod_assign.go", true, err, "Fehler beim Aktualisieren des Tickets in der Datenbank")
 		return
 	}
 
 	// Ticket-Informationen abrufen
-	ticket_db_info := getTicketDbInfo(ticketID)
+	ticket_db_info := getTicketDbInfo(bot, ticketID)
 
 	// Kanal aktualisieren
-	s.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
+	bot.ChannelEdit(bot_interaction.ChannelID, &discordgo.ChannelEdit{
 		Name:  fmt.Sprintf("%d-claimed-%s-%s", ticketID, ticket_db_info[5], ticket_db_info[8]),
 		Topic: fmt.Sprintf("Ticket #%d - Status: Claimed - Ticket von <@%s> - Ticket Bearbeiter <@%s>", ticketID, ticket_db_info[4], discordID),
 	})
 
 	// Bestätigungsnachricht
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: fmt.Sprintf("Ticket #%d erfolgreich an %s zugewiesen.", ticketID, displayName),
@@ -205,9 +205,9 @@ func assignTicketToUser(s *discordgo.Session, i *discordgo.InteractionCreate, ti
 	})
 
 	// Nachricht im Kanal senden
-	_, err = s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Das Ticket #%d wurde von <@%s> geclaimt.", ticketID, discordID))
+	_, err = bot.ChannelMessageSend(bot_interaction.ChannelID, fmt.Sprintf("Das Ticket #%d wurde von <@%s> geclaimt.", ticketID, discordID))
 	if err != nil {
-		log.Println("Fehler beim Senden der Benachrichtigung über den User dem das Ticket zugewiesen wurde:", err)
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "mod_assign.go", true, err, "Fehler beim Senden der Benachrichtigung über den User dem das Ticket zugewiesen wurde in Ticket #" + strconv.Itoa(ticketID))
 	}
 
 	// Embed für Moderation Panel aktualisieren
@@ -234,9 +234,9 @@ func assignTicketToUser(s *discordgo.Session, i *discordgo.InteractionCreate, ti
 	}
 
 	// Moderation Panel aktualisieren (suche nach der Message mit den Buttons)
-	messages, err := s.ChannelMessages(i.ChannelID, 50, "", "", "")
+	messages, err := bot.ChannelMessages(bot_interaction.ChannelID, 50, "", "", "")
 	if err != nil {
-		log.Println("Fehler beim Abrufen der Kanal-Nachrichten:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "mod_assign.go", true, err, "Fehler beim Abrufen der letzten Nachrichten im Kanal für Ticket #" + strconv.Itoa(ticketID) + " zur Aktualisierung des Moderation Panels")
 		return
 	}
 
@@ -244,9 +244,9 @@ func assignTicketToUser(s *discordgo.Session, i *discordgo.InteractionCreate, ti
 		if len(message.Components) > 0 && len(message.Embeds) > 0 {
 			// Prüfe ob es das Moderation Panel ist
 			if strings.Contains(message.Embeds[0].Title, "Moderation") {
-				s.ChannelMessageEditComplex(&discordgo.MessageEdit{
+				bot.ChannelMessageEditComplex(&discordgo.MessageEdit{
 					ID:         message.ID,
-					Channel:    i.ChannelID,
+					Channel:    bot_interaction.ChannelID,
 					Embeds:     &[]*discordgo.MessageEmbed{embed},
 					Components: &updatedComponents,
 				})
@@ -259,58 +259,47 @@ func assignTicketToUser(s *discordgo.Session, i *discordgo.InteractionCreate, ti
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 // HandleAssignTicketUpdate führt die Zuweisung durch (Rückwärtskompatibilität für bestehende Dropdown-Funktionalität)
-func HandleAssignTicketUpdate(s *discordgo.Session, i *discordgo.InteractionCreate, CustomID string) {
+func HandleAssignTicketUpdate(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate, CustomID string) {
 	var err error
-
-	// Prüfe ob es sich um ein Suggestions-Dropdown handelt
 	if strings.HasPrefix(CustomID, "ticket_assign_suggestions_") {
-		HandleAssignSuggestions(s, i, CustomID)
+		HandleAssignSuggestions(bot, bot_interaction, CustomID)
 		return
 	}
-
-	// Original-Dropdown Logik für Rückwärtskompatibilität
-	// Inhalt der CustomID parsen
 	idString := strings.TrimPrefix(CustomID, "ticket_assign_ticket_dropdown_")
 	ids := strings.Split(idString, "_")
 	if len(ids) != 2 {
-		log.Printf("Fehler beim Parsen der IDs: %v", idString)
+		utils.LogAndNotifyAdmins(bot, "medium", "Error", "mod_assign.go", true, fmt.Errorf("invalid CustomID format: %s", CustomID), "Fehler beim Parsen der CustomID für die Ticket-Zuweisung")
 		return
 	}
 	ticketID, err := strconv.Atoi(ids[0])
 	if err != nil {
-		log.Printf("Fehler beim Parsen der Ticket-ID: %v", err)
+		utils.LogAndNotifyAdmins(bot, "medium", "Error", "mod_assign.go", true, err, "Fehler beim Parsen der Ticket-ID aus der CustomID")
 		return
 	}
 	messageID := ids[1]
-
-	// Moderator-ID nach ID
-	moderatorID := i.MessageComponentData().Values[0]
-	moderatorUsername := GetUsernameByID(s, moderatorID)
-
-	// Ticket-Informationen aus der Datenbank abrufen
-	ticket_db_info := getTicketDbInfo(ticketID)
-
-	// Ticket in der Datenbank aktualisieren
+	moderatorID := bot_interaction.MessageComponentData().Values[0]
+	moderatorUsername := GetUsernameByID(bot, moderatorID)
+	ticket_db_info := getTicketDbInfo(bot, ticketID)
 	_, err = database.DB.Exec(`
 		UPDATE tickets 
 		SET ticket_bearbeiter_id = ?, ticket_bearbeiter_name = ?, ticket_bearbeitungszeit = ?, ticket_status = "Claimed"
 		WHERE ticket_id = ?`,
 		moderatorID, moderatorUsername, time.Now().Unix(), ticketID)
 	if err != nil {
-		log.Println("Fehler beim Aktualisieren des Tickets:", err)
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "mod_assign.go", true, err, "Fehler beim Aktualisieren des Tickets in der Datenbank")
 		return
 	}
 
 	// Kanal aktualisieren
-	s.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
+	bot.ChannelEdit(bot_interaction.ChannelID, &discordgo.ChannelEdit{
 		Name:  fmt.Sprintf("%d-claimed-%s-%s", ticketID, ticket_db_info[5], ticket_db_info[8]),
 		Topic: fmt.Sprintf("Ticket #%d - Status: Claimed - Ticket von <@%s> - Ticket Bearbeiter <@%s>", ticketID, ticket_db_info[4], moderatorID),
 	})
 
 	// Nachricht senden, um den Benutzer über den neuen Status zu informieren
-	_, err = s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Das Ticket #%d wurde von <@%s> geclaimt.", ticketID, moderatorID))
+	_, err = bot.ChannelMessageSend(bot_interaction.ChannelID, fmt.Sprintf("Das Ticket #%d wurde von <@%s> geclaimt.", ticketID, moderatorID))
 	if err != nil {
-		log.Println("Fehler beim Senden der Benachrichtigung über den User dem das Ticket zugewiesen wurde:", err)
+		utils.LogAndNotifyAdmins(bot, "low", "Error", "mod_assign.go", true, err, "Fehler beim Senden der Benachrichtigung über den User dem das Ticket zugewiesen wurde in Ticket #" + strconv.Itoa(ticketID))
 	}
 
 	// Embed aktualisieren
@@ -336,15 +325,15 @@ func HandleAssignTicketUpdate(s *discordgo.Session, i *discordgo.InteractionCrea
 	}
 
 	// View aktualisieren
-	s.ChannelMessageEditComplex(&discordgo.MessageEdit{
+	bot.ChannelMessageEditComplex(&discordgo.MessageEdit{
 		ID:         messageID,
-		Channel:    i.ChannelID,
+		Channel:    bot_interaction.ChannelID,
 		Embeds:     &[]*discordgo.MessageEmbed{embed},
 		Components: &updatedComponents,
 	})
 
 	// Nachricht zur Bestätigung senden
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: &discordgo.InteractionResponseData{
 			Content: fmt.Sprintf("Das Ticket wurde <@%s> zugewiesen.", moderatorID),
