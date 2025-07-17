@@ -1,8 +1,7 @@
 package quiz
 
 import (
-	"log"
-	"os"
+	"bot/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -33,13 +32,7 @@ func HandleQuizCommand(bot *discordgo.Session, bot_interaction *discordgo.Intera
 
 // handleQuizButton kümmert sich um Klicks auf unseren Button
 func HandleQuizButton(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
-	roleID := os.Getenv("ROLE_QUIZ") // DBMIGRATION
-	if roleID == "" {
-		log.Println("ROLE_QUIZ nicht gesetzt")
-		return
-	}
-
-	// Rolle hinzufügen
+	roleID := utils.GetIdFromDB(bot, "ROLE_QUIZ")
 	err := bot.GuildMemberRoleAdd(bot_interaction.GuildID, bot_interaction.Member.User.ID, roleID)
 	if err != nil {
 		bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
