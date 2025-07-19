@@ -154,6 +154,27 @@ func RegisterCommands(bot *discordgo.Session) {
 		},
 
 		/*----------------------------------------------------------*/	
+
+		{
+			Name:        "stats",
+			Description: "Zeigt Server-Statistiken an",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "from",
+					Description: "Start-Datum (YYYY-MM-DD, optional)",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "to", 
+					Description: "End-Datum (YYYY-MM-DD, optional)",
+					Required:    false,
+				},
+			},
+		},
+
+		/*----------------------------------------------------------*/
 	}
 
 	// Register commands on specific guild

@@ -83,6 +83,9 @@ func StartBot() error {
 	// register all new Commands
 	RegisterCommands(bot)
 
+	// Start API Connection if enabled
+	StartAPI(bot)
+
 	// Stauts-Update "Bot is online"
 	log.Println("Bot has been started and successfully connected to Discord!")
 

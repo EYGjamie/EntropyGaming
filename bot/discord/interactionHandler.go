@@ -3,6 +3,7 @@ package discord
 import (
 	"log"
 	"strings"
+
 	"bot/database"
 	"bot/utils"
 	"bot/handlers/surveys"
@@ -10,6 +11,7 @@ import (
 	"bot/handlers/discord_administration/team_areas"
 	"bot/handlers/discord_administration/utils"
 	"bot/handlers/quiz"
+	"bot/handlers/stats"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -43,6 +45,8 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleDeveloper) {quiz.HandleQuizCommand(bot, bot_interaction)}
 			case "send_survey":
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {surveys.SendSurvey(bot, bot_interaction, database.DB)}
+			case "stats":
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {stats.HandleStatsCommand(bot, bot_interaction)}
 			default:
 				utils.LogAndNotifyAdmins(bot, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown Slash Command: " + bot_interaction.ApplicationCommandData().Name)
 				return

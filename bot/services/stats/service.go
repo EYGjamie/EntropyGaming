@@ -1,0 +1,139 @@
+package stats
+
+import (
+	"database/sql"
+	"fmt"
+	"time"
+	"bot/database"
+
+	"github.com/bwmarrin/discordgo"
+)
+
+// StatsService - Zentrale Service-Schicht für alle Stats-Operationen
+type StatsService struct {
+	bot *discordgo.Session
+	db  *sql.DB
+}
+
+// ServerStats - Datenstruktur für Server-Statistiken
+type ServerStats struct {
+	DiscordMembers     int    `json:"discord_members"`
+	DiamondClubMembers int    `json:"diamond_club_members"`
+	Messages           int    `json:"messages"`
+	VoiceTimeSeconds   int    `json:"voice_time_seconds"`
+	FromDate          string `json:"from_date"`
+	ToDate            string `json:"to_date"`
+}
+
+// NewStatsService - Erstellt eine neue StatsService Instanz
+func NewStatsService(bot *discordgo.Session) *StatsService {
+	return &StatsService{
+		bot: bot,
+		db:  database.DB,
+	}
+}
+
+// GetServerStats - Zentrale Methode für alle Stats-Abfragen
+func (s *StatsService) GetServerStats(guildID string, fromDate, toDate time.Time) (*ServerStats, error) {
+	stats := &ServerStats{
+		FromDate: fromDate.Format("2006-01-02"),
+		ToDate:   toDate.Format("2006-01-02"),
+	}
+
+	// 1. Discord Member Count
+	if err := s.getDiscordMemberCount(guildID, stats); err != nil {
+		return nil, fmt.Errorf("discord member count: %w", err)
+	}
+
+	// 2. Diamond Club Member Count
+	if err := s.getDiamondClubMemberCount(stats); err != nil {
+		return nil, fmt.Errorf("diamond club count: %w", err)
+	}
+
+	// 3. Message Count im Zeitraum
+	if err := s.getMessageCount(fromDate, toDate, stats); err != nil {
+		return nil, fmt.Errorf("message count: %w", err)
+	}
+
+	// 4. Voice Time im Zeitraum
+	if err := s.getVoiceTime(fromDate, toDate, stats); err != nil {
+		return nil, fmt.Errorf("voice time: %w", err)
+	}
+
+	return stats, nil
+}
+
+// GetDefaultTimeRange - Standard Zeitraum (letzte 30 Tage)
+func (s *StatsService) GetDefaultTimeRange() (time.Time, time.Time) {
+	return time.Now().AddDate(0, 0, -30), time.Now()
+}
+
+// ParseTimeRange - Parst Zeitraum aus Strings
+func (s *StatsService) ParseTimeRange(fromStr, toStr string) (time.Time, time.Time) {
+	fromDate, toDate := s.GetDefaultTimeRange()
+	
+	if fromStr != "" {
+		if parsed, err := time.Parse("2006-01-02", fromStr); err == nil {
+			fromDate = parsed
+		}
+	}
+	
+	if toStr != "" {
+		if parsed, err := time.Parse("2006-01-02", toStr); err == nil {
+			toDate = parsed
+		}
+	}
+	
+	return fromDate, toDate
+}
+
+// Private helper methods
+func (s *StatsService) getDiscordMemberCount(guildID string, stats *ServerStats) error {
+	guild, err := s.bot.Guild(guildID)
+	if err != nil {
+		return err
+	}
+	stats.DiscordMembers = guild.MemberCount
+	return nil
+}
+
+func (s *StatsService) getDiamondClubMemberCount(stats *ServerStats) error {
+	return s.db.QueryRow(`
+		SELECT COUNT(*) FROM users 
+		WHERE role_diamond_club = TRUE
+	`).Scan(&stats.DiamondClubMembers)
+}
+
+func (s *StatsService) getMessageCount(fromDate, toDate time.Time, stats *ServerStats) error {
+	return s.db.QueryRow(`
+		SELECT COUNT(*) FROM log_messages 
+		WHERE created_at BETWEEN ? AND ?
+	`, fromDate, toDate).Scan(&stats.Messages)
+}
+
+func (s *StatsService) getVoiceTime(fromDate, toDate time.Time, stats *ServerStats) error {
+	return s.db.QueryRow(`
+		SELECT COALESCE(SUM(duration), 0) FROM log_voice 
+		WHERE joined_at BETWEEN ? AND ?
+	`, fromDate, toDate).Scan(&stats.VoiceTimeSeconds)
+}
+
+// FormatDuration - Wandelt Sekunden in lesbare Zeit um
+func FormatDuration(seconds int) string {
+	if seconds < 60 {
+		return fmt.Sprintf("%ds", seconds)
+	}
+	
+	minutes := seconds / 60
+	if minutes < 60 {
+		return fmt.Sprintf("%dm %ds", minutes, seconds%60)
+	}
+	
+	hours := minutes / 60
+	if hours < 24 {
+		return fmt.Sprintf("%dh %dm", hours, minutes%60)
+	}
+	
+	days := hours / 24
+	return fmt.Sprintf("%dd %dh %dm", days, hours%24, minutes%60)
+}
