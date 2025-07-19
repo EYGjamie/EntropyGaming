@@ -29,3 +29,8 @@ go.work.sum
 
 # db files
 /bot/logs
+
+# Databse files
+db/data/entropy.db
+db/data/entropy.db-shm
+db/data/entropy.db-wal
