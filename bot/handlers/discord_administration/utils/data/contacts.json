@@ -20,10 +20,10 @@
     {
       "title": "<:Entropy2:1225559069167980634> Allgemeines Management:",
       "items": [
-        { "mention": "423480294948208661", "name": "Jamie (Entwicklungsleitung Discord)" },
-        { "mention": "343791588075372556", "name": "Luca (Assistenz Discord)" },
+        { "mention": "423480294948208661", "name": "Jamie (Head of Discord)" },
+        { "mention": "343791588075372556", "name": "Luca (Head of Discord)" },
         { "mention": "348740066274967562", "name": "Christian (Marketing Assistant)" },
-        { "mention": "423480294948208661", "name": "Jamie (Leitung Team Aquise)" },
+        { "mention": "423480294948208661", "name": "Jamie (Head of Team Aquise)" },
         { "mention": "394861885066969098", "name": "Phyn (Team Aquise)" },
         { "mention": "584803424504381450", "name": "Mario (Team Aquise)" },
         { "mention": "473480564377255946", "name": "Sechseck (Team Aquise)" }
@@ -43,12 +43,12 @@
         { "mention": "355308272028483595", "name": "Mella (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "465879656973729802", "name": "Minii (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "317728272970547200", "name": "Eric (Leitung <:DiamondClub:1229333849578799175>)" },
-        { "mention": "950755226380566609", "name": "Dominik (Bereichsleitung <:R6:1224812874942382140>)" },
-        { "mention": "771054312650440716", "name": "Marcel (Bereichsleitung <:R6:1224812874942382140>)" },
-        { "mention": "423480294948208661", "name": "Jamie (Bereichsleitung <:RL:1224812865928691772>)" },
-        { "mention": "343791588075372556", "name": "Luca (Bereichsleitung <:RL:1224812865928691772>)" },
-        { "mention": "527534107308195840", "name": "Peter (Bereichsleitung <:Valorant:1224812878087983104>)" },
-        { "mention": "317728272970547200", "name": "Eric (Bereichsleitung <:CS2:1224812873436631202>)" }
+        { "mention": "950755226380566609", "name": "Dominik (Head of <:R6:1224812874942382140>)" },
+        { "mention": "771054312650440716", "name": "Marcel (Head of <:R6:1224812874942382140>)" },
+        { "mention": "343791588075372556", "name": "Luca (Head of <:RL:1224812865928691772>)" },
+        { "mention": "584803424504381450", "name": "Mario (Head of <:RL:1224812865928691772>)" },
+        { "mention": "527534107308195840", "name": "Peter (Head of <:Valorant:1224812878087983104>)" },
+        { "mention": "317728272970547200", "name": "Eric (Head of <:CS2:1224812873436631202>)" }
       ]
     }
   ]
