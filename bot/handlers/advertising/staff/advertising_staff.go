@@ -157,6 +157,11 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 }
 
 func InitializeAdvertisingStaff(bot *discordgo.Session) (*AdvertisingStaffManager) {
+	if utils.GetIdFromDB(bot, "ADVERTISING_STAFF") != "true" {
+		utils.LogAndNotifyAdmins(bot, "info", "Info", "advertising_staff.go", false, nil, "Advertising Staff is disabled in the database configuration.")
+		return nil
+	}
+
 	manager, err := NewAdvertisingStaffManager(bot)
 	if err != nil {
 		utils.LogAndNotifyAdmins(bot, "high", "Error", "advertising_staff.go", true, err, "Failed to create advertising staff manager")
