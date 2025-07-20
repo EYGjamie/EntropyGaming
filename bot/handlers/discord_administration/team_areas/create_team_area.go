@@ -2,7 +2,6 @@ package discord_administration_team_areas
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"bot/database"
 	"bot/utils"
@@ -92,7 +91,7 @@ func HandleCreateTeamArea(bot *discordgo.Session, bot_interaction *discordgo.Int
 
 	// => DBMIGRATION
 	envKey := fmt.Sprintf("PREDEFINED_KATPERM_ROLES_%s", game)
-	if predef := os.Getenv(envKey); predef != "" { // => DBMIGRATION
+	if predef := utils.GetIdFromDB(bot, envKey); predef != "" { // => DBMIGRATION
 		for _, rID := range strings.Split(predef, ",") {
 			perms = append(perms, &discordgo.PermissionOverwrite{
 				ID: rID, 

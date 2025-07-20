@@ -11,20 +11,16 @@ import (
 // Bei Konflikt werden alle Felder aktualisiert.
 // Die interne user.id wird zurückgegeben.
 func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
-    // Discord User-Informationen abrufen
     user, err := bot.User(discordID)
     if err != nil {
         return 0, err
     }
 
-    // Guild Member-Informationen abrufen (für Rollen und Server-spezifische Daten)
     member, err := bot.GuildMember(GetIdFromDB(bot, "GUILD_ID"), discordID)
     if err != nil {
         LogAndNotifyAdmins(bot, "low", "Error", "ensureUser.go", false, err, "Fehler beim Abrufen des Guild Members: " + discordID)
-        // Fortsetzung auch ohne Member-Daten möglich
     }
 
-    // User-Daten extrahieren
     username := user.Username
     displayName := user.GlobalName
     if displayName == "" {
@@ -33,7 +29,6 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
     avatarURL := user.AvatarURL("256")
     isBot := user.Bot
 
-    // Nickname aus Guild Member
     nickname := ""
     var joinedAt *string
     if member != nil {
@@ -46,10 +41,8 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
         }
     }
 
-    // Rollen überprüfen
     hasRoles := CheckUserRoles(bot, member)
 
-    // Datenbankupdate
     var id int
     query := `
         INSERT INTO users (
@@ -97,7 +90,7 @@ func CheckUserRoles(bot *discordgo.Session, member *discordgo.Member) shared.Use
     if member == nil {
         return roles
     }
-    // Alle Rollen des Users durchgehen
+
     for _, roleID := range member.Roles {
         switch roleID {
         case GetIdFromDB(bot, "ROLE_DIAMOND_CLUB"):
@@ -121,17 +114,22 @@ func CheckUserRoles(bot *discordgo.Session, member *discordgo.Member) shared.Use
 }
 
 func UpdateAllUsers(bot *discordgo.Session, guildID string) error {
-    members, err := bot.GuildMembers(guildID, "", 1000)
-    if err != nil {
-        return err
-    }
-
-    for _, member := range members {
-        _, err := EnsureUser(bot, guildID)
+    after := ""
+    for {
+        members, err := bot.GuildMembers(guildID, after, 1000)
         if err != nil {
-            LogAndNotifyAdmins(bot, "low", "Error", "ensureUser.go", true, err, "Fehler beim Aktualisieren des Benutzers: " + member.User.ID)
+            return err
         }
+        if len(members) == 0 {
+            break
+        }
+        for _, member := range members {
+           EnsureUser(bot, member.User.ID)
+        }
+        if len(members) < 1000 {
+            break
+        }
+        after = members[len(members)-1].User.ID
     }
-
     return nil
 }
