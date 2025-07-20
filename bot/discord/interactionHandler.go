@@ -1,7 +1,6 @@
 package discord
 
 import (
-	"log"
 	"strings"
 
 	"bot/database"
@@ -144,7 +143,6 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 					return
 				}
 
-				log.Printf("Test Ticket Creation Custom ID %s", bot_interaction.ModalSubmitData().CustomID)
 				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 				tickets.HandleTicketSubmit(bot, bot_interaction) // Anderes Modal -> Ticket-Submit
 			}
