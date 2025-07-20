@@ -1,0 +1,112 @@
+/* Grundlegendes Reset/Box-Sizing */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    line-height: 1.5;
+  }
+  
+  /* Container, um die Seite zentriert darzustellen */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Header-Bereich */
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  header h1 {
+    font-size: 1.8rem;
+    color: #444;
+  }
+  
+  /* Monat-Auswahl */
+  .month-select {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .month-select label {
+    font-weight: 500;
+  }
+  
+  /* Tabelle */
+  .table-container {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 16px;
+    overflow-x: auto; /* falls bei vielen Spalten gescrollt werden muss */
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  
+  table thead tr {
+    background: #e9ecef;
+  }
+  
+  table th, table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  /* Abwechselnde Zeilenfarben */
+  table tbody tr:nth-child(odd) {
+    background-color: #f8f9fa;
+  }
+  
+  /* Hover-Effekt auf Tabellenzeilen */
+  table tbody tr:hover {
+    background-color: #e2e6ea;
+  }
+  
+  /* Inputs innerhalb der Tabelle */
+  table input[type="text"],
+  table input[type="date"],
+  table select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  table input[type="date"][readonly] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+  }
+  
+  table input[type="checkbox"] {
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+  
+  /* Responsive Design: Bei sehr schmalen Bildschirmen Spalten schmaler machen */
+  @media (max-width: 600px) {
+    table th, table td {
+      padding: 8px;
+    }
+    
+    header h1 {
+      font-size: 1.4rem;
+    }
+  }
+  

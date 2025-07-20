@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>QuizBot Fragenverwaltung</title>
+  <!-- Binde dein überarbeitetes CSS ein -->
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ticket_bot.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Entropy QuizBot Fragenverwaltung</h1>
+      <div class="month-select">
+        <label for="monthPicker">Monat auswählen:</label>
+        <!-- monthPicker bekommt standardmäßig den aktuellen/gewählten Monat -->
+        <input type="month" id="monthPicker" value="{{ month }}">
+      </div>
+    </header>
+
+    <section class="table-container">
+      <table id="questionsTable">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Frage</th>
+            <th>Antwort 1</th>
+            <th>Antwort 2</th>
+            <th>Antwort 3</th>
+            <th>Richtige Antwort</th>
+            <th>Kategorie</th>
+            <th>Bereits gefragt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for q in questions %}
+          <tr data-id="{{ q.id }}">
+            <td>
+              <!-- Datum wird nur angezeigt (readonly), da genau ein Eintrag pro Tag -->
+              <input type="date" class="scheduled_date" value="{{ q.scheduled_date }}" readonly>
+            </td>
+            <td><input type="text" class="question" value="{{ q.question }}"></td>
+            <td><input type="text" class="answer1" value="{{ q.answer1 }}"></td>
+            <td><input type="text" class="answer2" value="{{ q.answer2 }}"></td>
+            <td><input type="text" class="answer3" value="{{ q.answer3 }}"></td>
+            <td>
+              <select class="correct">
+                <option value="1" {% if q.correct == 1 %}selected{% endif %}>1</option>
+                <option value="2" {% if q.correct == 2 %}selected{% endif %}>2</option>
+                <option value="3" {% if q.correct == 3 %}selected{% endif %}>3</option>
+              </select>
+            </td>
+            <td><input type="text" class="category" value="{{ q.category }}"></td>
+            <td><input type="checkbox" class="asked" {% if q.asked %}checked{% endif %}></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- Binde dein JavaScript ein -->
+  <script src="{{ url_for('static', filename='ticket_bot.js') }}"></script>
+
+  <!-- Kleines Inline-Script für den Monat-Wechsel -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const monthPicker = document.getElementById('monthPicker');
+      monthPicker.addEventListener('change', function() {
+        // Bei Änderung: Seite mit neuem month-Parameter neu laden
+        window.location.href = '/quizBot?month=' + this.value;
+      });
+    });
+  </script>
+</body>
+</html>

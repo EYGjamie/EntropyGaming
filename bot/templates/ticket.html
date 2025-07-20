@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket #{{ ticket_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Ticket #{{ ticket_id }}</h1>
+    </header>
+    <main>
+        <div class="transcript">
+            {% for entry in transcript %}
+            <div class="message">
+                <div class="message-avatar"></div>
+                <div class="message-content">
+                    <!-- Nachricht-Kopfzeile: User + Timestamp -->
+                    <p class="message-header">
+                        <strong style="color: {{ entry.color }}">{{ entry.username }}</strong>
+                        <span class="timestamp">[{{ entry.timestamp }}]</span>
+                    </p>
+                    
+                    <!-- Nachrichtentext -->
+                    <p>{{ entry.message or '<Keine Nachricht>' }}</p>
+
+                    <!-- Attachments (falls vorhanden) -->
+                    {% if 'attachments' in entry and entry.attachments %}
+                        <div class="attachments">
+                            {% for attach in entry.attachments %}
+                                {% set extension = attach.filename.split('.')[-1]|lower %}
+
+                                {% if extension in ["png", "jpg", "jpeg", "gif"] %}
+                                    <!-- Bild-Datei -->
+                                    <div class="attachment">
+                                        <!-- Hier wird localPath statt localpath genutzt -->
+                                        <img src="{{ attach.localPath }}"
+                                             alt="{{ attach.filename }}"
+                                             style="max-width: 300px; height: auto;">
+                                    </div>
+                                {% else %}
+                                    <!-- Sonstige Datei -->
+                                    <div class="attachment">
+                                        <p>
+                                            <a href="{{ attach.url }}" target="_blank">
+                                                {{ attach.filename }}
+                                            </a>
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>
