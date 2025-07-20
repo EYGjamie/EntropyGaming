@@ -1,21 +1,20 @@
 package stats
 
 import (
+	"bot/database"
+	"bot/utils"
 	"database/sql"
 	"fmt"
 	"time"
-	"bot/database"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-// StatsService - Zentrale Service-Schicht für alle Stats-Operationen
 type StatsService struct {
 	bot *discordgo.Session
 	db  *sql.DB
 }
 
-// ServerStats - Datenstruktur für Server-Statistiken
 type ServerStats struct {
 	DiscordMembers     int    `json:"discord_members"`
 	DiamondClubMembers int    `json:"diamond_club_members"`
@@ -25,7 +24,6 @@ type ServerStats struct {
 	ToDate            string `json:"to_date"`
 }
 
-// NewStatsService - Erstellt eine neue StatsService Instanz
 func NewStatsService(bot *discordgo.Session) *StatsService {
 	return &StatsService{
 		bot: bot,
@@ -33,42 +31,39 @@ func NewStatsService(bot *discordgo.Session) *StatsService {
 	}
 }
 
-// GetServerStats - Zentrale Methode für alle Stats-Abfragen
 func (s *StatsService) GetServerStats(guildID string, fromDate, toDate time.Time) (*ServerStats, error) {
 	stats := &ServerStats{
 		FromDate: fromDate.Format("2006-01-02"),
 		ToDate:   toDate.Format("2006-01-02"),
 	}
 
-	// 1. Discord Member Count
-	if err := s.getDiscordMemberCount(guildID, stats); err != nil {
-		return nil, fmt.Errorf("discord member count: %w", err)
+	if err := s.getDiscordMemberCount(utils.GetIdFromDB(s.bot, "GUILD_ID"), stats); err != nil {
+		utils.LogAndNotifyAdmins(s.bot, "high", "Error", "stats_service.go", true, err, "Fehler beim Abrufen der Discord Mitgliederanzahl")
+		return nil, nil
 	}
 
-	// 2. Diamond Club Member Count
 	if err := s.getDiamondClubMemberCount(stats); err != nil {
-		return nil, fmt.Errorf("diamond club count: %w", err)
+		utils.LogAndNotifyAdmins(s.bot, "high", "Error", "stats_service.go", true, err, "Fehler beim Abrufen der Diamond Club Mitglieder")
+		return nil, nil
 	}
 
-	// 3. Message Count im Zeitraum
 	if err := s.getMessageCount(fromDate, toDate, stats); err != nil {
-		return nil, fmt.Errorf("message count: %w", err)
+		utils.LogAndNotifyAdmins(s.bot, "high", "Error", "stats_service.go", true, err, "Fehler beim Abrufen der Nachrichtenanzahl")
+		return nil, nil
 	}
 
-	// 4. Voice Time im Zeitraum
 	if err := s.getVoiceTime(fromDate, toDate, stats); err != nil {
-		return nil, fmt.Errorf("voice time: %w", err)
+		utils.LogAndNotifyAdmins(s.bot, "high", "Error", "stats_service.go", true, err, "Fehler beim Abrufen der Voice Zeit")
+		return nil, nil
 	}
 
 	return stats, nil
 }
 
-// GetDefaultTimeRange - Standard Zeitraum (letzte 30 Tage)
 func (s *StatsService) GetDefaultTimeRange() (time.Time, time.Time) {
-	return time.Now().AddDate(0, 0, -30), time.Now()
+	return time.Now().AddDate(-10, 0, 0), time.Now()
 }
 
-// ParseTimeRange - Parst Zeitraum aus Strings
 func (s *StatsService) ParseTimeRange(fromStr, toStr string) (time.Time, time.Time) {
 	fromDate, toDate := s.GetDefaultTimeRange()
 	
@@ -87,11 +82,13 @@ func (s *StatsService) ParseTimeRange(fromStr, toStr string) (time.Time, time.Ti
 	return fromDate, toDate
 }
 
-// Private helper methods
 func (s *StatsService) getDiscordMemberCount(guildID string, stats *ServerStats) error {
-	guild, err := s.bot.Guild(guildID)
-	if err != nil {
-		return err
+	guild, err := s.bot.State.Guild(guildID)
+	if err != nil || guild == nil {
+		guild, err = s.bot.Guild(guildID)
+		if err != nil {
+			return err
+		}
 	}
 	stats.DiscordMembers = guild.MemberCount
 	return nil
@@ -118,7 +115,6 @@ func (s *StatsService) getVoiceTime(fromDate, toDate time.Time, stats *ServerSta
 	`, fromDate, toDate).Scan(&stats.VoiceTimeSeconds)
 }
 
-// FormatDuration - Wandelt Sekunden in lesbare Zeit um
 func FormatDuration(seconds int) string {
 	if seconds < 60 {
 		return fmt.Sprintf("%ds", seconds)

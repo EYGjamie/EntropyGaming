@@ -11,8 +11,6 @@ import (
 
 func HandleStatsCommand(bot *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	service := statsService.NewStatsService(bot)
-	
-	// Command Options parsen
 	options := interaction.ApplicationCommandData().Options
 	
 	var fromStr, toStr string
@@ -22,12 +20,8 @@ func HandleStatsCommand(bot *discordgo.Session, interaction *discordgo.Interacti
 	if len(options) > 1 && options[1].Name == "to" {
 		toStr = options[1].StringValue()
 	}
-	
-	// Zeitraum parsen
 	fromDate, toDate := service.ParseTimeRange(fromStr, toStr)
-	
-	// Stats abrufen (zentrale Service-Logik)
-	stats, err := service.GetServerStats(interaction.GuildID, fromDate, toDate)
+	stats, err := service.GetServerStats(utils.GetIdFromDB(bot, "GUILD_ID"), fromDate, toDate)
 	if err != nil {
 		utils.LogAndNotifyAdmins(bot, "high", "Error", "discord_handler.go", true, err, "Fehler beim Abrufen der Server-Statistiken")
 		respondWithError(bot, interaction, "❌ Fehler beim Abrufen der Statistiken!")
