@@ -155,6 +155,7 @@ func RegisterCommands(bot *discordgo.Session) {
 
 		/*----------------------------------------------------------*/	
 
+		// Stats
 		{
 			Name:        "stats",
 			Description: "Zeigt Server-Statistiken an",
@@ -172,6 +173,15 @@ func RegisterCommands(bot *discordgo.Session) {
 					Required:    false,
 				},
 			},
+		},
+
+		/*----------------------------------------------------------*/
+
+		// Update Users
+		{
+			Name:        "update_users",
+			Description: "Updated alle User in der DB",
+			DefaultMemberPermissions: &adminPermission,
 		},
 
 		/*----------------------------------------------------------*/

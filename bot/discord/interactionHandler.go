@@ -47,6 +47,8 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {surveys.SendSurvey(bot, bot_interaction, database.DB)}
 			case "stats":
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {stats.HandleStatsCommand(bot, bot_interaction)}
+			case "update_users":
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {utils.UpdateAllUsers(bot, utils.GetIdFromDB(bot, "GUILD_ID"))}
 			default:
 				utils.LogAndNotifyAdmins(bot, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown Slash Command: " + bot_interaction.ApplicationCommandData().Name)
 				return

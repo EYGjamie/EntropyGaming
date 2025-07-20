@@ -120,7 +120,6 @@ func CheckUserRoles(bot *discordgo.Session, member *discordgo.Member) shared.Use
     return roles
 }
 
-// Beispiel für eine Hilfsfunktion zur Batch-Aktualisierung aller Server-Mitglieder
 func UpdateAllUsers(bot *discordgo.Session, guildID string) error {
     members, err := bot.GuildMembers(guildID, "", 1000)
     if err != nil {
