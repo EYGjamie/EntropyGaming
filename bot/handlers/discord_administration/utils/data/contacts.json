@@ -7,7 +7,7 @@
         { "mention": "249673733420089344", "name": "Michael (Gründer & Leitung von Entropy)" },
         { "mention": "231076165773688842", "name": "Dennis (Leitung Tagesgeschäft, sportliche Direktion)" },
         { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
-        { "mention": "423480294948208661", "name": "Jamie (Leitung Team Akquise, Leitung Discord)" },
+        { "mention": "423480294948208661", "name": "Jamie (Leitung Akquise, Leitung Discord)" },
         { "mention": "803194058184327218", "name": "Philipp (Aufsicht Fortschritt)" },
         { "mention": "295618441635823616", "name": "Orcin (Leitung Social Media)" }
       ]
@@ -25,8 +25,8 @@
       "title": "<:Entropy2:1225559069167980634> Allgemeines Management:",
       "items": [
         { "mention": "343791588075372556", "name": "Luca (Head of Discord)" },
-        { "mention": "394861885066969098", "name": "Phyn (Team Akquise)" },
-        { "mention": "473480564377255946", "name": "Sechseck (Team Akquise)" },
+        { "mention": "394861885066969098", "name": "Phyn (Head of Akquise)" },
+        { "mention": "473480564377255946", "name": "Sechseck (Head of Akquise)" },
         { "mention": "675797783671865453", "name": "Niclas (Head of Events)" }
       ]
     },
