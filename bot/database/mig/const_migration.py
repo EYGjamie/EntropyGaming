@@ -1,12 +1,16 @@
 import sqlite3
 
 # Verbindungen öffnen
-src = sqlite3.connect('quelle.db')
-dst = sqlite3.connect('ziel.db')
+src = sqlite3.connect('db/data/test.db')
+dst = sqlite3.connect('db/data/entropy.db')
 
 # Cursor erstellen
 cur_src = src.cursor()
 cur_dst = dst.cursor()
+
+cur_src.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='bot_const_ids';")
+create_sql = cur_src.fetchone()[0]
+cur_dst.execute(create_sql)
 
 # Daten kopieren
 cur_src.execute("SELECT * FROM bot_const_ids;")

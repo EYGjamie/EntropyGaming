@@ -34,3 +34,6 @@ go.work.sum
 db/data/entropy.db
 db/data/entropy.db-shm
 db/data/entropy.db-wal
+db/data/entropy.db
+db/data/entropy.db-shm
+db/data/entropy.db-wal
