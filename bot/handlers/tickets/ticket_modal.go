@@ -240,7 +240,7 @@ func HandleTicketSubmit(s *discordgo.Session, bot_interaction *discordgo.Interac
 		age := 0
 		fmt.Sscanf(fieldTwo, "%d", &age)
 		if age < 16 {
-			_, err = s.FollowupMessageCreate(i.Interaction, false, &discordgo.WebhookParams{
+			_, err = s.FollowupMessageCreate(bot_interaction.Interaction, false, &discordgo.WebhookParams{
 				Content: "Du bist leider zu jung für ein Pro Team. Bitte öffne stattdessen ein 'Competitive Teams' Ticket.",
 				Flags:   discordgo.MessageFlagsEphemeral,
 			})
