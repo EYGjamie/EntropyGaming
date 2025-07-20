@@ -20,7 +20,7 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
     // Guild Member-Informationen abrufen (für Rollen und Server-spezifische Daten)
     member, err := bot.GuildMember(GetIdFromDB(bot, "GUILD_ID"), discordID)
     if err != nil {
-        LogAndNotifyAdmins(bot, "low", "Error", "ensureUser.go", true, err, "Fehler beim Abrufen des Guild Members: " + discordID)
+        LogAndNotifyAdmins(bot, "low", "Error", "ensureUser.go", false, err, "Fehler beim Abrufen des Guild Members: " + discordID)
         // Fortsetzung auch ohne Member-Daten möglich
     }
 
