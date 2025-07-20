@@ -56,7 +56,7 @@ func HandleCreateTeamArea(bot *discordgo.Session, bot_interaction *discordgo.Int
 	name := fmt.Sprintf("%s %s", game, teamName)
 	color := 0x53b4e2
 	hoist := false
-	mentionable := false
+	mentionable := true
 	roleParams := &discordgo.RoleParams{
 		Name: name, 
 		Color: &color, 

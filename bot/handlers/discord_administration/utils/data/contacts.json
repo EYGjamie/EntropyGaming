@@ -5,7 +5,10 @@
       "title": "<:Entropy2:1225559069167980634> Projektleitung:",
       "items": [
         { "mention": "249673733420089344", "name": "Michael (Gründer & Leitung von Entropy)" },
-        { "mention": "231076165773688842", "name": "Dennis (Leitung Tagesgeschäft, sportliche Direktion)" }
+        { "mention": "231076165773688842", "name": "Dennis (Leitung Tagesgeschäft, sportliche Direktion)" },
+        { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
+        { "mention": "423480294948208661", "name": "Jamie (Leitung Team Akquise, Leitung Discord)" },
+        { "mention": "803194058184327218", "name": "Philipp (Aufsicht Performance und Fortschritt)" }
       ]
     },
     {
@@ -20,20 +23,17 @@
     {
       "title": "<:Entropy2:1225559069167980634> Allgemeines Management:",
       "items": [
-        { "mention": "423480294948208661", "name": "Jamie (Head of Discord)" },
         { "mention": "343791588075372556", "name": "Luca (Head of Discord)" },
         { "mention": "348740066274967562", "name": "Christian (Marketing Assistant)" },
-        { "mention": "423480294948208661", "name": "Jamie (Head of Team Aquise)" },
-        { "mention": "394861885066969098", "name": "Phyn (Team Aquise)" },
-        { "mention": "584803424504381450", "name": "Mario (Team Aquise)" },
-        { "mention": "473480564377255946", "name": "Sechseck (Team Aquise)" }
+        { "mention": "394861885066969098", "name": "Phyn (Team Akquise)" },
+        { "mention": "473480564377255946", "name": "Sechseck (Team Akquise)" }
       ]
     },
     {
       "title": "<:Entropy2:1225559069167980634> E-Sport:",
       "items": [
+        { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
         { "mention": "364019503086174209", "name": "Salvatore (Leitung E-Sport)" },
-        { "mention": "211872448541491201", "name": "Fabian (Stellv. Leitung E-Sport)" },
         { "mention": "135787880273543168", "name": "Matthias (Manager <:RL:1224812865928691772> Main Team)" }
       ]
     },
@@ -43,6 +43,7 @@
         { "mention": "355308272028483595", "name": "Mella (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "465879656973729802", "name": "Minii (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "317728272970547200", "name": "Eric (Leitung <:DiamondClub:1229333849578799175>)" },
+        { "mention": "435444579983032320", "name": "Felix (Head of <:R6:1224812874942382140>)" },
         { "mention": "950755226380566609", "name": "Dominik (Head of <:R6:1224812874942382140>)" },
         { "mention": "771054312650440716", "name": "Marcel (Head of <:R6:1224812874942382140>)" },
         { "mention": "343791588075372556", "name": "Luca (Head of <:RL:1224812865928691772>)" },

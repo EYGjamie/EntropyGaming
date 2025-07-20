@@ -73,7 +73,7 @@ func getLabelsForTicket(bereich string) []string {
         "ticket_content_creator":       {"Vorname", "Alter", "Social Links", "Weiteres"},
         "ticket_game_lol":              {"Vorname", "Alter", "Main Rolle", "Rang", "op.gg Link"},
         "ticket_game_r6":               {"Vorname", "Alter", "R6 Tracker Link", "Plattform", "Infos über DICH!"},
-        "ticket_game_cs2":              {"Vorname", "Alter", "Steam Tracker Link", "Rang"},
+        "ticket_game_cs2":              {"Vorname", "Alter", "Steam Tracker Link", "Rang", "Infos über DICH!"},
         "ticket_game_valorant":         {"Vorname", "Alter", "InGame Name", "Tracker Link"},
         "ticket_game_rocket_league":    {"Vorname", "Alter", "InGame Name", "RL Tracker Network Link", "Wunsch Elo"},
         "ticket_game_sonstige":         {"Vorname", "Alter", "Bitte erkläre kurz für was du dich bewirbst"},

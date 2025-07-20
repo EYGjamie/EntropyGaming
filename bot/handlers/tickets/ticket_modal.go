@@ -39,7 +39,7 @@ func HandleTicketModal(bot *discordgo.Session, bot_interaction *discordgo.Intera
 		modalTitle = "Bewerbung für ein Pro Team"
 		fields = []discordgo.TextInput{
 			{Label: "Vorname", Style: discordgo.TextInputShort, CustomID: "field_one", Required: true},
-			{Label: "Alter", Style: discordgo.TextInputShort, CustomID: "field_two", Required: true},
+			{Label: "Alter (Zahl)", Style: discordgo.TextInputShort, CustomID: "field_two", Required: true},
 			{Label: "Welches Spiel?", Style: discordgo.TextInputShort, CustomID: "field_three", Required: true},
 			{Label: "Erfahrungen im Team?", Style: discordgo.TextInputParagraph, CustomID: "field_four", Required: true, MaxLength: 400},
 			{Label: "Tracker & Social Media", Style: discordgo.TextInputParagraph, CustomID: "field_five", Required: true, MaxLength: 400},
@@ -109,6 +109,7 @@ func HandleTicketModal(bot *discordgo.Session, bot_interaction *discordgo.Intera
 			{Label: "Alter", Style: discordgo.TextInputShort, CustomID: "field_two", Required: false},
 			{Label: "Steam Profile Link", Style: discordgo.TextInputShort, CustomID: "field_three", Required: true},
 			{Label: "Rang", Style: discordgo.TextInputShort, CustomID: "field_four", Required: true},
+			{Label: "Infos über DICH!", Style: discordgo.TextInputParagraph, CustomID: "field_five", Required: true, MaxLength: 600},
 		}
 
 	case "ticket_game_valorant":
@@ -233,6 +234,21 @@ func HandleTicketSubmit(s *discordgo.Session, bot_interaction *discordgo.Interac
 	}
 	if len(labels) > 4 && len(fields) > 4 {
 		labelFive, fieldFive = labels[4], fields[4]
+	}
+
+	if customID == "ticket_pro_teams" {
+		age := 0
+		fmt.Sscanf(fieldTwo, "%d", &age)
+		if age < 16 {
+			_, err = s.FollowupMessageCreate(i.Interaction, false, &discordgo.WebhookParams{
+				Content: "Du bist leider zu jung für ein Pro Team. Bitte öffne stattdessen ein 'Competitive Teams' Ticket.",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			})
+			if err != nil {
+				utils.LogAndNotifyAdmins(s, "high", "Error", "ticket_modal.go", true, err, "Fehler beim Senden der Nachricht für zu junges Alter im Pro Team Ticket")
+			}
+			return
+		}
 	}
 
 	categoryID := utils.GetIdFromDB(s, "CATEGORY_" + strings.ToUpper(customID))

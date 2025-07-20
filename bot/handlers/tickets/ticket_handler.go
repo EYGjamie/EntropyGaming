@@ -64,8 +64,8 @@ func HandleTicketView(bot *discordgo.Session, bot_interaction *discordgo.Interac
 // HandleCreateTicket zeigt das Dropdown-Menü für die Ticket-Bereiche an
 func HandleCreateTicket(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	options := []discordgo.SelectMenuOption{
-		// {Label: "Beitritt Diamond Club", Value: "ticket_diamond_club"},
-		{Label: "Bewerbung Community Teams", Value: "ticket_community_teams"},
+		{Label: "Beitritt Diamond Club", Value: "ticket_diamond_club"},
+		{Label: "Bewerbung Competetive Teams", Value: "ticket_community_teams"},
 		{Label: "Bewerbung Management", Value: "ticket_bewerbung_staff"},
 		{Label: "Bewerbung Content Creator", Value: "ticket_content_creator"},
 		{Label: "Bewerbung Pro Teams", Value: "ticket_pro_teams"},
