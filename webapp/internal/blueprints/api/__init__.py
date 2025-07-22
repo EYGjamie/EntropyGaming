@@ -210,3 +210,31 @@ def api_internal_error(error):
         'success': False,
         'error': 'Internal server error'
     }), 500
+
+@api_bp.route('/orgchart-flat')
+@login_required
+def orgchart_flat():
+    """API endpoint to get flat orgchart data (for JavaScript consumption)"""
+    try:
+        orgchart_file = current_app.config.get('ORGCHART_DATA_FILE', 'data/orgchart.json')
+        
+        if os.path.exists(orgchart_file):
+            with open(orgchart_file, 'r', encoding='utf-8') as f:
+                flat_data = json.load(f)
+                
+                return jsonify({
+                    'success': True,
+                    'data': flat_data
+                })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Organigramm-Datei nicht gefunden'
+            }), 404
+            
+    except Exception as e:
+        logging.error(f"Error in orgchart flat API: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Fehler beim Laden der Organisationsstruktur'
+        }), 500

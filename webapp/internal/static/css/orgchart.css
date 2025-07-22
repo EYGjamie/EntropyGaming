@@ -19,6 +19,7 @@
     --orgchart-line-color: #dee2e6;
     --orgchart-line-width: 2px;
     --orgchart-node-spacing: 2rem;
+    --orgchart-horizontal-spacing: 1.5rem;
 }
 
 /* ===== ORGCHART CONTAINER ===== */
@@ -32,6 +33,7 @@
 
 .orgchart-container.compact {
     --orgchart-node-spacing: 1rem;
+    --orgchart-horizontal-spacing: 1rem;
 }
 
 /* ===== ORG TREE STRUCTURE ===== */
@@ -40,16 +42,136 @@
     flex-direction: column;
     align-items: center;
     min-width: 100%;
+    gap: var(--orgchart-node-spacing);
 }
 
-.org-level {
+/* ===== CEO LEVEL ===== */
+.org-level.ceo-level {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: var(--orgchart-node-spacing);
+}
+
+/* ===== PROJEKTLEITUNG LEVEL ===== */
+.org-level.projektleitung-level {
     display: flex;
     justify-content: center;
     align-items: flex-start;
     flex-wrap: wrap;
-    gap: var(--orgchart-node-spacing);
+    gap: var(--orgchart-horizontal-spacing);
     margin-bottom: var(--orgchart-node-spacing);
     position: relative;
+}
+
+/* ===== CLUB LEITUNG LEVEL ===== */
+.org-level.club-leitung-level {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: var(--orgchart-horizontal-spacing);
+    margin-bottom: var(--orgchart-node-spacing);
+    position: relative;
+}
+
+/* ===== MITARBEITER LEVEL ===== */
+.org-level.mitarbeiter-level {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--orgchart-horizontal-spacing);
+    max-width: 100%;
+    position: relative;
+}
+
+/* ===== CONNECTION LINES ===== */
+/* Verbindungslinie vom CEO zur Projektleitung */
+.ceo-level::after {
+    content: '';
+    position: absolute;
+    bottom: calc(-1 * var(--orgchart-node-spacing) / 2);
+    left: 50%;
+    width: var(--orgchart-line-width);
+    height: calc(var(--orgchart-node-spacing) / 2);
+    background: var(--orgchart-line-color);
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* Horizontale Linie zwischen Projektleitungen */
+.projektleitung-level::before {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--orgchart-node-spacing) / 2);
+    left: 20%;
+    right: 20%;
+    height: var(--orgchart-line-width);
+    background: var(--orgchart-line-color);
+    z-index: 1;
+}
+
+/* Vertikale Linien zu den Projektleitungen */
+.projektleitung-level .org-node::before {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--orgchart-node-spacing) / 2);
+    left: 50%;
+    width: var(--orgchart-line-width);
+    height: calc(var(--orgchart-node-spacing) / 2);
+    background: var(--orgchart-line-color);
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* Verbindung von Club Leitung zu Mitarbeitern */
+.club-leitung-level::after {
+    content: '';
+    position: absolute;
+    bottom: calc(-1 * var(--orgchart-node-spacing) / 2);
+    left: 30%;
+    right: 30%;
+    height: var(--orgchart-line-width);
+    background: var(--orgchart-line-color);
+    z-index: 1;
+}
+
+/* Vertikale Linien von Club Leitung nach unten */
+.club-leitung-level .org-node::after {
+    content: '';
+    position: absolute;
+    bottom: calc(-1 * var(--orgchart-node-spacing) / 2);
+    left: 50%;
+    width: var(--orgchart-line-width);
+    height: calc(var(--orgchart-node-spacing) / 2);
+    background: var(--orgchart-line-color);
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* Horizontale Linie für Mitarbeiter */
+.mitarbeiter-level::before {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--orgchart-node-spacing) / 2);
+    left: 10%;
+    right: 10%;
+    height: var(--orgchart-line-width);
+    background: var(--orgchart-line-color);
+    z-index: 1;
+}
+
+/* Vertikale Linien zu den Mitarbeitern */
+.mitarbeiter-level .org-node::before {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--orgchart-node-spacing) / 2);
+    left: 50%;
+    width: var(--orgchart-line-width);
+    height: calc(var(--orgchart-node-spacing) / 2);
+    background: var(--orgchart-line-color);
+    transform: translateX(-50%);
+    z-index: 1;
 }
 
 /* ===== ORG NODES ===== */
@@ -108,37 +230,35 @@
 }
 
 /* ===== CARD LEVELS ===== */
-.org-card.level-0 {
+.org-card.level-ceo {
     background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
     border-color: var(--orgchart-primary);
     font-weight: 600;
-    min-width: 250px;
+    min-width: 280px;
+    font-size: 1.1rem;
 }
 
-.org-card.level-1 {
+.org-card.level-projektleitung {
     background: linear-gradient(135deg, #28a745, #1e7e34);
     color: white;
     border-color: var(--orgchart-success);
     font-weight: 500;
+    min-width: 240px;
 }
 
-.org-card.level-2 {
+.org-card.level-club-leitung {
     background: linear-gradient(135deg, #17a2b8, #117a8b);
     color: white;
     border-color: var(--orgchart-info);
+    min-width: 220px;
 }
 
-.org-card.level-3 {
+.org-card.level-mitarbeiter {
     background: linear-gradient(135deg, #6f42c1, #563d7c);
     color: white;
     border-color: #6f42c1;
-}
-
-.org-card.level-4 {
-    background: linear-gradient(135deg, #fd7e14, #e55100);
-    color: white;
-    border-color: #fd7e14;
+    min-width: 200px;
 }
 
 /* ===== CARD CONTENT ===== */
@@ -202,38 +322,6 @@
     display: none;
 }
 
-/* ===== CONNECTION LINES ===== */
-.org-node::before {
-    content: '';
-    position: absolute;
-    top: -var(--orgchart-node-spacing);
-    left: 50%;
-    width: var(--orgchart-line-width);
-    height: var(--orgchart-node-spacing);
-    background: var(--orgchart-line-color);
-    transform: translateX(-50%);
-    z-index: 1;
-}
-
-.org-node:first-child::before {
-    display: none;
-}
-
-.org-level::after {
-    content: '';
-    position: absolute;
-    top: calc(-1 * var(--orgchart-node-spacing));
-    left: 0;
-    right: 0;
-    height: var(--orgchart-line-width);
-    background: var(--orgchart-line-color);
-    z-index: 1;
-}
-
-.org-level:first-child::after {
-    display: none;
-}
-
 /* ===== SEARCH HIGHLIGHTS ===== */
 .org-card.search-match {
     border-color: var(--orgchart-warning);
@@ -282,11 +370,16 @@
         max-width: 240px;
         padding: 1rem;
     }
+    
+    :root {
+        --orgchart-horizontal-spacing: 1rem;
+    }
 }
 
 @media (max-width: 768px) {
     :root {
         --orgchart-node-spacing: 1.5rem;
+        --orgchart-horizontal-spacing: 0.75rem;
     }
     
     .orgchart-container {
@@ -313,20 +406,31 @@
         gap: 0.25rem;
     }
     
-    .org-level {
-        gap: 1rem;
+    /* Auf kleineren Bildschirmen Projektleitung vertikal anordnen */
+    .projektleitung-level {
         flex-direction: column;
         align-items: center;
+        gap: 1rem;
     }
     
-    .org-level .org-node {
-        margin: 0.5rem 0;
+    .club-leitung-level {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    /* Verbindungslinien für mobile Ansicht anpassen */
+    .projektleitung-level::before,
+    .club-leitung-level::after,
+    .mitarbeiter-level::before {
+        display: none;
     }
 }
 
 @media (max-width: 576px) {
     :root {
         --orgchart-node-spacing: 1rem;
+        --orgchart-horizontal-spacing: 0.5rem;
     }
     
     .orgchart-container {
@@ -345,6 +449,11 @@
     
     .org-subtitle {
         font-size: 0.775rem;
+    }
+    
+    .mitarbeiter-level {
+        flex-direction: column;
+        align-items: center;
     }
 }
 
@@ -375,11 +484,10 @@
         page-break-inside: avoid;
     }
     
-    .org-card.level-0,
-    .org-card.level-1,
-    .org-card.level-2,
-    .org-card.level-3,
-    .org-card.level-4 {
+    .org-card.level-ceo,
+    .org-card.level-projektleitung,
+    .org-card.level-club-leitung,
+    .org-card.level-mitarbeiter {
         background: white !important;
         color: black !important;
     }

@@ -273,7 +273,7 @@ def get_user_teams():
         return []
 
 def load_orgchart_data():
-    """Load organizational chart data from JSON file and convert to hierarchical structure"""
+    """Load organizational chart data from JSON file and provide both flat and hierarchical structure"""
     try:
         orgchart_file = current_app.config.get('ORGCHART_DATA_FILE', 'data/orgchart.json')
         
@@ -286,6 +286,7 @@ def load_orgchart_data():
                 
                 return {
                     "organization": "Entropy Gaming",
+                    "people": flat_data,  # Add flat data for template compatibility
                     "structure": hierarchical_data,
                     "total_members": len(flat_data),
                     "departments": get_department_stats(flat_data)
@@ -299,6 +300,7 @@ def load_orgchart_data():
         logging.error(f"Error loading orgchart data: {e}")
         return {
             "organization": "Entropy Gaming",
+            "people": [],  # Empty list for template compatibility
             "structure": {
                 "id": 0,
                 "name": "Error",
@@ -307,17 +309,6 @@ def load_orgchart_data():
             },
             "total_members": 0,
             "departments": {}
-        }
-            
-    except Exception as e:
-        logging.error(f"Error loading orgchart data: {e}")
-        return {
-            "organization": "Entropy Gaming",
-            "structure": {
-                "name": "Error",
-                "title": "Fehler beim Laden",
-                "children": []
-            }
         }
     
 def convert_flat_to_hierarchical(flat_data):
