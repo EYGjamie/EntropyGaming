@@ -1,0 +1,429 @@
+/* CSS Variables */
+:root {
+    --entropy-red: #ff0000;
+    --entropy-dark: #1a1a1a;
+    --entropy-gray: #2d2d2d;
+    --entropy-light-gray: #f8f9fa;
+    --entropy-border: #dee2e6;
+    --entropy-success: #198754;
+    --entropy-warning: #ffc107;
+    --entropy-danger: #dc3545;
+    --entropy-info: #0dcaf0;
+    
+    /* Shadows */
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease-in-out;
+    --transition-normal: 0.3s ease-in-out;
+    --transition-slow: 0.5s ease-in-out;
+}
+
+/* Global Styles */
+body {
+    background-color: var(--entropy-light-gray);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.text-entropy {
+    color: var(--entropy-red) !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: bold;
+    color: var(--entropy-red) !important;
+    transition: var(--transition-fast);
+}
+
+.navbar-brand:hover {
+    color: #cc0000 !important;
+}
+
+.navbar-dark {
+    background-color: var(--entropy-dark) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar-nav .nav-link {
+    transition: var(--transition-fast);
+    border-radius: 0.375rem;
+    margin: 0 0.25rem;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-nav .nav-link.active {
+    background-color: var(--entropy-red);
+    color: white !important;
+}
+
+/* Buttons */
+.btn-entropy {
+    background-color: var(--entropy-red);
+    border-color: var(--entropy-red);
+    color: white;
+    font-weight: 500;
+    transition: var(--transition-fast);
+}
+
+.btn-entropy:hover {
+    background-color: #cc0000;
+    border-color: #cc0000;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-outline-entropy {
+    border-color: var(--entropy-red);
+    color: var(--entropy-red);
+    transition: var(--transition-fast);
+}
+
+.btn-outline-entropy:hover {
+    background-color: var(--entropy-red);
+    border-color: var(--entropy-red);
+    color: white;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-normal);
+    border-radius: 0.5rem;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background-color: var(--entropy-light-gray);
+    border-bottom: 1px solid var(--entropy-border);
+    font-weight: 600;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, var(--entropy-red), #ff4444);
+    color: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.stat-card .card-body {
+    position: relative;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+}
+
+.stat-card:hover::before {
+    transform: translateX(100%);
+}
+
+/* Role Badges */
+.role-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+.role-admin {
+    background-color: var(--entropy-danger);
+    color: white;
+}
+
+.role-dev {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.role-mitglied {
+    background-color: var(--entropy-success);
+    color: white;
+}
+
+.role-guest {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Status Badges */
+.status-open {
+    background-color: var(--entropy-success);
+}
+
+.status-claimed {
+    background-color: var(--entropy-warning);
+}
+
+.status-closed {
+    background-color: #6c757d;
+}
+
+.status-deleted {
+    background-color: var(--entropy-danger);
+}
+
+/* Tables */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--entropy-gray);
+    color: white;
+    font-weight: 600;
+    border: none;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(255, 0, 0, 0.05);
+}
+
+/* Forms */
+.form-control:focus {
+    border-color: var(--entropy-red);
+    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+}
+
+.form-select:focus {
+    border-color: var(--entropy-red);
+    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+}
+
+.input-group-text {
+    background-color: var(--entropy-light-gray);
+    border-color: var(--entropy-border);
+    font-weight: 500;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.alert-success {
+    background-color: #d1e7dd;
+    color: #0a3622;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #58151c;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.alert-info {
+    background-color: #cff4fc;
+    color: #055160;
+}
+
+/* Modals */
+.modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    background-color: var(--entropy-light-gray);
+    border-bottom: 1px solid var(--entropy-border);
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.modal-footer {
+    background-color: var(--entropy-light-gray);
+    border-top: 1px solid var(--entropy-border);
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    border: none;
+    box-shadow: var(--shadow-md);
+    border-radius: 0.5rem;
+}
+
+.dropdown-item:hover {
+    background-color: var(--entropy-red);
+    color: white;
+}
+
+.dropdown-header {
+    color: var(--entropy-red);
+    font-weight: 600;
+}
+
+/* Pagination */
+.pagination .page-link {
+    color: var(--entropy-red);
+    border-color: var(--entropy-border);
+}
+
+.pagination .page-link:hover {
+    color: white;
+    background-color: var(--entropy-red);
+    border-color: var(--entropy-red);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--entropy-red);
+    border-color: var(--entropy-red);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--entropy-dark);
+    color: #adb5bd;
+    padding: 2rem 0;
+    margin-top: auto;
+    border-top: 1px solid var(--entropy-border);
+}
+
+.footer a {
+    color: #adb5bd;
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.footer a:hover {
+    color: var(--entropy-red);
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Utility Classes */
+.border-entropy {
+    border-color: var(--entropy-red) !important;
+}
+
+.bg-entropy {
+    background-color: var(--entropy-red) !important;
+}
+
+.bg-entropy-light {
+    background-color: rgba(255, 0, 0, 0.1) !important;
+}
+
+.shadow-entropy {
+    box-shadow: 0 0.5rem 1rem rgba(255, 0, 0, 0.15) !important;
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .stat-card .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        font-size: 0.875rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .navbar,
+    .footer,
+    .btn,
+    .modal {
+        display: none !important;
+    }
+    
+    .container-fluid {
+        margin: 0;
+        padding: 0;
+    }
+    
+    .card {
+        border: 1px solid #000;
+        box-shadow: none;
+    }
+}
