@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, g, jsonify, current_app
+from flask import Blueprint, render_template, g, jsonify, current_app, request
 from utils.decorators import login_required
 from database.db_manager import get_db, get_stats_from_cache, update_stats_cache
 import json
@@ -85,6 +85,52 @@ def api_dashboard_stats():
         return jsonify({
             'success': False,
             'error': 'Fehler beim Laden der Dashboard-Statistiken'
+        }), 500
+    
+@dashboard_bp.route('/api/orgchart-data')
+@login_required
+def api_orgchart_data():
+    """API endpoint to get orgchart data"""
+    try:
+        orgchart_data = load_orgchart_data()
+        return jsonify({
+            'success': True,
+            'data': orgchart_data
+        })
+        
+    except Exception as e:
+        logging.error(f"Error in orgchart API: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Fehler beim Laden der Organisationsstruktur'
+        }), 500
+    
+@dashboard_bp.route('/api/orgchart-search')
+@login_required
+def api_orgchart_search():
+    """API endpoint to search in orgchart"""
+    try:
+        query = request.args.get('q', '').lower()
+        orgchart_data = load_orgchart_data()
+        
+        if not query:
+            return jsonify({
+                'success': True,
+                'data': []
+            })
+        
+        results = search_in_orgchart(orgchart_data.get('structure', {}), query)
+        
+        return jsonify({
+            'success': True,
+            'data': results
+        })
+        
+    except Exception as e:
+        logging.error(f"Error in orgchart search API: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Fehler bei der Suche'
         }), 500
 
 def get_dashboard_stats():
@@ -227,35 +273,41 @@ def get_user_teams():
         return []
 
 def load_orgchart_data():
-    """Load organizational chart data from JSON file"""
+    """Load organizational chart data from JSON file and convert to hierarchical structure"""
     try:
         orgchart_file = current_app.config.get('ORGCHART_DATA_FILE', 'data/orgchart.json')
         
         if os.path.exists(orgchart_file):
             with open(orgchart_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return data
-        else:
-            # Return default structure if file doesn't exist
-            return {
-                "organization": "Entropy Gaming",
-                "structure": {
-                    "name": "Management",
-                    "title": "Führungsebene",
-                    "children": [
-                        {
-                            "name": "Development",
-                            "title": "Entwicklung",
-                            "children": []
-                        },
-                        {
-                            "name": "Teams",
-                            "title": "Gaming Teams",
-                            "children": []
-                        }
-                    ]
+                flat_data = json.load(f)
+                
+                # Convert flat structure with parentIds to hierarchical structure
+                hierarchical_data = convert_flat_to_hierarchical(flat_data)
+                
+                return {
+                    "organization": "Entropy Gaming",
+                    "structure": hierarchical_data,
+                    "total_members": len(flat_data),
+                    "departments": get_department_stats(flat_data)
                 }
-            }
+        else:
+            # Create the default orgchart.json file if it doesn't exist
+            create_default_orgchart_file(orgchart_file)
+            return load_orgchart_data()  # Retry loading
+            
+    except Exception as e:
+        logging.error(f"Error loading orgchart data: {e}")
+        return {
+            "organization": "Entropy Gaming",
+            "structure": {
+                "id": 0,
+                "name": "Error",
+                "position": "Fehler beim Laden",
+                "children": []
+            },
+            "total_members": 0,
+            "departments": {}
+        }
             
     except Exception as e:
         logging.error(f"Error loading orgchart data: {e}")
@@ -267,3 +319,100 @@ def load_orgchart_data():
                 "children": []
             }
         }
+    
+def convert_flat_to_hierarchical(flat_data):
+    """Convert flat orgchart data with parentIds to hierarchical structure"""
+    if not flat_data:
+        return {}
+    
+    # Create a lookup dictionary for quick access
+    nodes_by_id = {person["id"]: {**person, "children": []} for person in flat_data}
+    
+    # Find root nodes (those with no parents or empty parentIds)
+    root_nodes = []
+    
+    for person in flat_data:
+        person_id = person["id"]
+        parent_ids = person.get("parentIds", [])
+        
+        if not parent_ids:  # Root node
+            root_nodes.append(nodes_by_id[person_id])
+        else:
+            # Add this person as child to all their parents
+            for parent_id in parent_ids:
+                if parent_id in nodes_by_id:
+                    nodes_by_id[parent_id]["children"].append(nodes_by_id[person_id])
+    
+    # If we have multiple root nodes, create a virtual root
+    if len(root_nodes) > 1:
+        return {
+            "id": 0,
+            "name": "Entropy Gaming",
+            "position": "Organisation",
+            "children": root_nodes,
+            "isVirtual": True
+        }
+    elif len(root_nodes) == 1:
+        return root_nodes[0]
+    else:
+        return {
+            "id": 0,
+            "name": "Keine Daten",
+            "position": "Fehler",
+            "children": []
+        }
+
+def get_department_stats(flat_data):
+    """Get statistics about departments/positions"""
+    if not flat_data:
+        return {}
+    
+    departments = {}
+    for person in flat_data:
+        position = person.get("position", "Unbekannt")
+        if position not in departments:
+            departments[position] = []
+        departments[position].append(person["name"])
+    
+    return departments
+
+def create_default_orgchart_file(file_path):
+    """Create a default orgchart.json file"""
+    default_data = [
+        {"id": 1, "name": "CEO", "position": "Chief Executive Officer", "parentIds": []},
+        {"id": 2, "name": "CTO", "position": "Chief Technology Officer", "parentIds": [1]},
+        {"id": 3, "name": "Team Lead", "position": "Development Team Lead", "parentIds": [2]}
+    ]
+    
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(default_data, f, indent=2, ensure_ascii=False)
+
+def search_in_orgchart(node, query, results=None, path=None):
+    """Recursively search for people in the orgchart"""
+    if results is None:
+        results = []
+    if path is None:
+        path = []
+    
+    current_path = path + [node.get('name', '')]
+    
+    # Check if current node matches search
+    name = node.get('name', '').lower()
+    position = node.get('position', '').lower()
+    
+    if query in name or query in position:
+        results.append({
+            'id': node.get('id'),
+            'name': node.get('name'),
+            'position': node.get('position'),
+            'path': ' → '.join(current_path[:-1]) if len(current_path) > 1 else 'Wurzel'
+        })
+    
+    # Search in children
+    for child in node.get('children', []):
+        search_in_orgchart(child, query, results, current_path)
+    
+    return results

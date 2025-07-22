@@ -1,3 +1,4 @@
+<!-- webapp/internal/templates/dashboard/orgchart.html -->
 {% extends "base.html" %}
 
 {% block title %}Organigramm - Entropy Gaming{% endblock %}
@@ -11,37 +12,145 @@
     <!-- Header Section -->
     <div class="page-header mb-4">
         <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="gradient-text">
+            <div class="col-lg-6">
+                <h1 class="gradient-text mb-2">
                     <i class="bi bi-diagram-3"></i> Organigramm
                 </h1>
-                <p class="text-muted">
+                <p class="text-muted mb-0">
                     Organisationsstruktur von {{ orgchart_data.organization or 'Entropy Gaming' }}
                 </p>
+                {% if orgchart_data.total_members %}
+                <small class="text-muted">
+                    <i class="bi bi-people"></i> {{ orgchart_data.total_members }} Mitglieder
+                </small>
+                {% endif %}
             </div>
-            <div class="col-md-4 text-md-end">
-                <button class="btn btn-outline-entropy" onclick="expandAll()">
-                    <i class="bi bi-arrows-expand"></i> Alle erweitern
-                </button>
-                <button class="btn btn-outline-secondary" onclick="collapseAll()">
-                    <i class="bi bi-arrows-collapse"></i> Alle einklappen
-                </button>
+            <div class="col-lg-6">
+                <!-- Search and Controls -->
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="orgchart-search" 
+                                   placeholder="Person oder Position suchen...">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-entropy dropdown-toggle w-100" 
+                                    type="button" 
+                                    data-bs-toggle="dropdown">
+                                <i class="bi bi-gear"></i> Optionen
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="expandAll()">
+                                        <i class="bi bi-arrows-expand"></i> Alle erweitern
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="collapseAll()">
+                                        <i class="bi bi-arrows-collapse"></i> Alle einklappen
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="centerView()">
+                                        <i class="bi bi-bullseye"></i> Zentrieren
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="toggleCompactView()">
+                                        <i class="bi bi-layout-three-columns"></i> Kompakte Ansicht
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    {% if orgchart_data.departments %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Bereiche Übersicht</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for department, members in orgchart_data.departments.items() %}
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+                            <div class="bg-light rounded p-3">
+                                <h6 class="text-primary mb-1">{{ department }}</h6>
+                                <div class="text-muted small">
+                                    <i class="bi bi-people"></i> {{ members|length }} Mitglied{% if members|length != 1 %}er{% endif %}
+                                </div>
+                                <div class="mt-2">
+                                    {% for member in members[:3] %}
+                                        <span class="badge bg-secondary me-1">{{ member }}</span>
+                                    {% endfor %}
+                                    {% if members|length > 3 %}
+                                        <span class="text-muted small">+{{ members|length - 3 }} weitere</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Search Results -->
+    <div id="search-results" class="card mb-4" style="display: none;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-search"></i> Suchergebnisse</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="clearSearch()">
+                <i class="bi bi-x"></i> Suche löschen
+            </button>
+        </div>
+        <div class="card-body">
+            <div id="search-results-content">
+                <!-- Results will be populated by JavaScript -->
             </div>
         </div>
     </div>
 
     <!-- Orgchart Container -->
     <div class="card">
-        <div class="card-body">
+        <div class="card-body p-0">
             {% if orgchart_data and orgchart_data.structure %}
             <div id="orgchart" class="orgchart-container">
                 <!-- This will be populated by JavaScript -->
+                <div class="text-center text-muted py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Lade Organigramm...</span>
+                    </div>
+                    <div class="mt-3">Organigramm wird geladen...</div>
+                </div>
             </div>
             {% else %}
             <div class="text-center text-muted py-5">
-                <i class="bi bi-diagram-3 fs-1 mb-3"></i>
+                <i class="bi bi-diagram-3 fs-1 mb-3 text-muted"></i>
                 <h4>Organigramm nicht verfügbar</h4>
                 <p>Die Organisationsstruktur konnte nicht geladen werden.</p>
+                {% if g.user_roles and 'Admin' in g.user_roles %}
+                <div class="mt-3">
+                    <a href="#" class="btn btn-outline-primary" onclick="createDefaultOrgchart()">
+                        <i class="bi bi-plus-circle"></i> Standard-Organigramm erstellen
+                    </a>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -53,6 +162,57 @@
         {{ error }}
     </div>
     {% endif %}
+
+    <!-- Person Detail Modal -->
+    <div class="modal fade" id="personModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person"></i> <span id="modal-person-name"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>Position:</strong>
+                        </div>
+                        <div class="col-sm-8" id="modal-person-position">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-sm-4">
+                            <strong>Hierarchieebene:</strong>
+                        </div>
+                        <div class="col-sm-8" id="modal-person-level">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-sm-4">
+                            <strong>Direkte Untergebene:</strong>
+                        </div>
+                        <div class="col-sm-8" id="modal-person-subordinates">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-sm-4">
+                            <strong>Vorgesetzte:</strong>
+                        </div>
+                        <div class="col-sm-8" id="modal-person-supervisors">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -63,71 +223,112 @@
 {% block scripts %}
 <script>
 // Orgchart data from backend
-const orgchartData = {{ orgchart_data | tojson }};
+const orgchartData = {{ orgchart_data | default({}) | tojson | safe }};
 
 document.addEventListener('DOMContentLoaded', function() {
     if (orgchartData && orgchartData.structure) {
-        renderOrgChart(orgchartData.structure);
+        OrgChart.init(orgchartData);
     }
+    
+    // Setup search functionality
+    setupSearch();
 });
 
-function renderOrgChart(data) {
-    const container = document.getElementById('orgchart');
-    container.innerHTML = generateOrgChartHTML(data);
-}
-
-function generateOrgChartHTML(node, level = 0) {
-    const hasChildren = node.children && node.children.length > 0;
+function setupSearch() {
+    const searchInput = document.getElementById('orgchart-search');
+    if (!searchInput) return;
     
-    let html = `
-        <div class="org-node" data-level="${level}">
-            <div class="org-card ${level === 0 ? 'org-root' : ''}" onclick="toggleNode(this)">
-                <div class="org-title">${node.name || 'Unbekannt'}</div>
-                <div class="org-subtitle">${node.title || ''}</div>
-                ${hasChildren ? '<i class="bi bi-chevron-down toggle-icon"></i>' : ''}
-            </div>
-    `;
-    
-    if (hasChildren) {
-        html += '<div class="org-children">';
-        for (const child of node.children) {
-            html += generateOrgChartHTML(child, level + 1);
+    searchInput.addEventListener('input', EntropyApp.utils.debounce(function(e) {
+        const query = e.target.value.trim();
+        if (query.length >= 2) {
+            searchOrgchart(query);
+        } else if (query.length === 0) {
+            clearSearch();
         }
-        html += '</div>';
-    }
-    
-    html += '</div>';
-    return html;
+    }, 300));
 }
 
-function toggleNode(cardElement) {
-    const node = cardElement.parentElement;
-    const children = node.querySelector('.org-children');
-    const icon = cardElement.querySelector('.toggle-icon');
+function searchOrgchart(query) {
+    fetch(`/api/orgchart-search?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displaySearchResults(data.data);
+            } else {
+                console.error('Search error:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Search failed:', error);
+        });
+}
+
+function displaySearchResults(results) {
+    const resultsContainer = document.getElementById('search-results');
+    const resultsContent = document.getElementById('search-results-content');
     
-    if (children) {
-        children.classList.toggle('collapsed');
-        icon.classList.toggle('bi-chevron-down');
-        icon.classList.toggle('bi-chevron-right');
+    if (results.length === 0) {
+        resultsContent.innerHTML = '<p class="text-muted mb-0">Keine Ergebnisse gefunden.</p>';
+    } else {
+        let html = '<div class="row">';
+        results.forEach(person => {
+            html += `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">${person.name}</h6>
+                            <p class="card-text text-muted small">${person.position}</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-diagram-2"></i> ${person.path}
+                                </small>
+                            </p>
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="highlightPerson(${person.id})">
+                                <i class="bi bi-geo-alt"></i> Anzeigen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        resultsContent.innerHTML = html;
     }
+    
+    resultsContainer.style.display = 'block';
+}
+
+function clearSearch() {
+    document.getElementById('orgchart-search').value = '';
+    document.getElementById('search-results').style.display = 'none';
+    OrgChart.clearHighlights();
+}
+
+function highlightPerson(personId) {
+    OrgChart.highlightPerson(personId);
+    clearSearch();
 }
 
 function expandAll() {
-    document.querySelectorAll('.org-children').forEach(children => {
-        children.classList.remove('collapsed');
-    });
-    document.querySelectorAll('.toggle-icon').forEach(icon => {
-        icon.className = 'bi bi-chevron-down toggle-icon';
-    });
+    OrgChart.expandAll();
 }
 
 function collapseAll() {
-    document.querySelectorAll('.org-children').forEach(children => {
-        children.classList.add('collapsed');
-    });
-    document.querySelectorAll('.toggle-icon').forEach(icon => {
-        icon.className = 'bi bi-chevron-right toggle-icon';
-    });
+    OrgChart.collapseAll();
+}
+
+function centerView() {
+    OrgChart.centerView();
+}
+
+function toggleCompactView() {
+    OrgChart.toggleCompactView();
+}
+
+function createDefaultOrgchart() {
+    // This could trigger an admin action to create a default orgchart
+    alert('Diese Funktion würde ein Standard-Organigramm erstellen.');
 }
 </script>
-{% endblock %>
+{% endblock %}
