@@ -1,0 +1,449 @@
+<!-- webapp/internal/templates/teams/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Teams - Entropy Gaming{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/teams.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="page-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="gradient-text">
+                    <i class="bi bi-people"></i> Gaming Teams
+                </h1>
+                <p class="text-muted">
+                    Übersicht aller aktiven Teams der Organisation
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="stats-summary">
+                    <span class="badge bg-entropy me-2">
+                        <i class="bi bi-controller"></i> {{ total_teams }} Teams
+                    </span>
+                    <span class="badge bg-secondary">
+                        <i class="bi bi-people"></i> {{ total_members }} Mitglieder
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section mb-4">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="game" class="form-label">Spiel filtern</label>
+                        <select class="form-select" id="game" name="game" onchange="this.form.submit()">
+                            <option value="">Alle Spiele</option>
+                            {% for game in available_games %}
+                                <option value="{{ game }}" 
+                                        {% if current_game_filter == game %}selected{% endif %}>
+                                    {{ game }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="search" class="form-label">Team suchen</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="search" 
+                               name="search" 
+                               value="{{ current_search }}"
+                               placeholder="Team-Name eingeben...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-entropy w-100">
+                            <i class="bi bi-search"></i> Suchen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teams Content -->
+    {% if teams_by_game %}
+        {% for game, teams in teams_by_game.items() %}
+        <div class="game-section mb-5 fade-in-up" style="--animation-delay: {{ loop.index0 * 0.1 }}s">
+            <div class="game-header mb-3">
+                <h2 class="game-title">
+                    <i class="bi bi-joystick"></i> {{ game }}
+                    <span class="badge bg-light text-dark ms-2">{{ teams|length }} Team{{ 's' if teams|length != 1 else '' }}</span>
+                </h2>
+            </div>
+
+            <div class="row">
+                {% for team in teams %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="team-card hover-lift">
+                        <div class="team-card-header">
+                            <h5 class="team-name">{{ team.team_name }}</h5>
+                            <span class="team-status badge bg-success">Aktiv</span>
+                        </div>
+                        
+                        <div class="team-card-body">
+                            <div class="team-info mb-3">
+                                <div class="info-item">
+                                    <i class="bi bi-joystick text-entropy"></i>
+                                    <span>{{ team.game }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="bi bi-people text-entropy"></i>
+                                    <span>{{ team.members|length }} Mitglieder</span>
+                                </div>
+                            </div>
+
+                            {% if team.members %}
+                            <div class="team-members mb-3">
+                                <h6 class="members-title">Mitglieder:</h6>
+                                <div class="members-list">
+                                    {% for member in team.members[:5] %}
+                                    <div class="member-item">
+                                        {% if member.avatar_url %}
+                                        <img src="{{ member.avatar_url }}" 
+                                             alt="{{ member.display_name or member.username }}"
+                                             class="member-avatar">
+                                        {% else %}
+                                        <div class="member-avatar-placeholder">
+                                            {{ (member.display_name or member.username)[0]|upper }}
+                                        </div>
+                                        {% endif %}
+                                        <span class="member-name">
+                                            {{ member.display_name or member.username }}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                    
+                                    {% if team.members|length > 5 %}
+                                    <div class="member-item more-members">
+                                        <div class="member-avatar-placeholder">
+                                            +{{ team.members|length - 5 }}
+                                        </div>
+                                        <span class="member-name">weitere</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="team-card-footer">
+                            <a href="{{ url_for('teams.detail', team_id=team.id) }}" 
+                               class="btn btn-outline-entropy btn-sm">
+                                <i class="bi bi-eye"></i> Details anzeigen
+                            </a>
+                            {% if 'Admin' in g.user_roles or 'Dev' in g.user_roles %}
+                            <button class="btn btn-outline-secondary btn-sm" 
+                                    onclick="showTeamInfo({{ team.id }})">
+                                <i class="bi bi-info-circle"></i> Info
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state text-center py-5">
+            <div class="empty-icon mb-3">
+                <i class="bi bi-search"></i>
+            </div>
+            <h3 class="empty-title">Keine Teams gefunden</h3>
+            <p class="empty-description text-muted">
+                {% if current_search or current_game_filter %}
+                    Keine Teams entsprechen Ihren Suchkriterien.
+                    <a href="{{ url_for('teams.index') }}" class="text-decoration-none">
+                        Filter zurücksetzen
+                    </a>
+                {% else %}
+                    Es sind derzeit keine Teams verfügbar.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+
+    <!-- Error State -->
+    {% if error %}
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        {{ error }}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Team Info Modal -->
+<div class="modal fade" id="teamInfoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle"></i> Team-Informationen
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="teamInfoContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Lade...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/teams.js') }}"></script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showTeamInfo(teamId) {
+    const modal = new bootstrap.Modal(document.getElementById('teamInfoModal'));
+    modal.show();
+    
+    // Load team info via AJAX
+    fetch(`/teams/api/teams?team_id=${teamId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.length > 0) {
+                const team = data.data[0];
+                document.getElementById('teamInfoContent').innerHTML = `
+                    <div class="team-info-details">
+                        <h6>Technische Details:</h6>
+                        <p><strong>Team ID:</strong> ${team.id}</p>
+                        <p><strong>Role ID:</strong> ${team.role_id || 'Nicht verfügbar'}</p>
+                        <p><strong>Category ID:</strong> ${team.category_id || 'Nicht verfügbar'}</p>
+                        <p><strong>Voice Channel ID:</strong> ${team.voicechannel_id || 'Nicht verfügbar'}</p>
+                        <p><strong>Status:</strong> ${team.is_active ? 'Aktiv' : 'Inaktiv'}</p>
+                    </div>
+                `;
+            } else {
+                document.getElementById('teamInfoContent').innerHTML = `
+                    <div class="alert alert-warning">
+                        Team-Informationen konnten nicht geladen werden.
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('teamInfoContent').innerHTML = `
+                <div class="alert alert-danger">
+                    Fehler beim Laden der Team-Informationen.
+                </div>
+            `;
+        });
+}
+
+// Auto-submit search form with delay
+let searchTimeout;
+document.getElementById('search').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        this.form.submit();
+    }, 1000);
+});
+</script>
+{% endblock %}
+
+<!-- webapp/internal/templates/teams/detail.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ team.team_name }} - Teams{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/teams.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('teams.index') }}">Teams</a>
+            </li>
+            <li class="breadcrumb-item active">{{ team.team_name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Team Header -->
+    <div class="team-detail-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="gradient-text">
+                    <i class="bi bi-people"></i> {{ team.team_name }}
+                </h1>
+                <div class="team-meta">
+                    <span class="badge bg-entropy me-2">
+                        <i class="bi bi-joystick"></i> {{ team.game }}
+                    </span>
+                    <span class="badge bg-success me-2">
+                        <i class="bi bi-check-circle"></i> Aktiv
+                    </span>
+                    <span class="badge bg-secondary">
+                        <i class="bi bi-people"></i> {{ team.members|length }} Mitglieder
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{{ url_for('teams.index', game=team.game) }}" 
+                   class="btn btn-outline-entropy">
+                    <i class="bi bi-arrow-left"></i> Zurück zu {{ team.game }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Content -->
+    <div class="row">
+        <!-- Team Members -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-people"></i> Team-Mitglieder
+                </div>
+                <div class="card-body">
+                    {% if team.members %}
+                        <div class="members-grid">
+                            {% for member in team.members %}
+                            <div class="member-detail-card">
+                                <div class="member-avatar-large">
+                                    {% if member.avatar_url %}
+                                    <img src="{{ member.avatar_url }}" 
+                                         alt="{{ member.display_name or member.username }}">
+                                    {% else %}
+                                    <div class="avatar-placeholder">
+                                        {{ (member.display_name or member.username)[0]|upper }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="member-info">
+                                    <h6 class="member-name">
+                                        {{ member.display_name or member.username }}
+                                    </h6>
+                                    {% if member.nickname %}
+                                    <p class="member-nickname text-muted">
+                                        "{{ member.nickname }}"
+                                    </p>
+                                    {% endif %}
+                                    <p class="member-id text-muted small">
+                                        ID: {{ member.discord_id }}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-people fs-1 mb-2"></i>
+                            <p>Keine Mitglieder gefunden.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Info Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-info-circle"></i> Team-Informationen
+                </div>
+                <div class="card-body">
+                    <div class="info-list">
+                        <div class="info-item">
+                            <label>Team-Name:</label>
+                            <span>{{ team.team_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Spiel:</label>
+                            <span>{{ team.game }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Mitglieder-Anzahl:</label>
+                            <span>{{ team.members|length }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Status:</label>
+                            <span class="badge bg-success">Aktiv</span>
+                        </div>
+                        
+                        {% if 'Admin' in g.user_roles or 'Dev' in g.user_roles %}
+                        <hr>
+                        <h6>Technische Details:</h6>
+                        <div class="info-item">
+                            <label>Team ID:</label>
+                            <span>{{ team.id }}</span>
+                        </div>
+                        {% if team.role_id %}
+                        <div class="info-item">
+                            <label>Discord Role ID:</label>
+                            <span class="font-monospace">{{ team.role_id }}</span>
+                        </div>
+                        {% endif %}
+                        {% if team.category_id %}
+                        <div class="info-item">
+                            <label>Category ID:</label>
+                            <span class="font-monospace">{{ team.category_id }}</span>
+                        </div>
+                        {% endif %}
+                        {% if team.voicechannel_id %}
+                        <div class="info-item">
+                            <label>Voice Channel ID:</label>
+                            <span class="font-monospace">{{ team.voicechannel_id }}</span>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="bi bi-lightning"></i> Aktionen
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('teams.index') }}" 
+                           class="btn btn-outline-entropy">
+                            <i class="bi bi-list"></i> Alle Teams
+                        </a>
+                        <a href="{{ url_for('teams.index', game=team.game) }}" 
+                           class="btn btn-outline-entropy">
+                            <i class="bi bi-joystick"></i> {{ team.game }} Teams
+                        </a>
+                        {% if 'Admin' in g.user_roles %}
+                        <button class="btn btn-outline-secondary" disabled>
+                            <i class="bi bi-gear"></i> Team bearbeiten
+                            <small class="d-block">(Bald verfügbar)</small>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %>

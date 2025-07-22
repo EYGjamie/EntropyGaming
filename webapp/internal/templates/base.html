@@ -1,3 +1,4 @@
+<!-- webapp/internal/templates/base.html -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -20,13 +21,13 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark entropy-navbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
                 <i class="bi bi-controller"></i> Entropy Gaming
             </a>
             
-            {% if current_user() %}
+            {% if g.user %}
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -34,88 +35,80 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link {{ active_nav_class('dashboard') }}" href="{{ url_for('dashboard.index') }}">
+                        <a class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}" 
+                           href="{{ url_for('dashboard.index') }}">
                             <i class="bi bi-house"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ active_nav_class('teams') }}" href="{{ url_for('teams.index') }}">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('teams') %}active{% endif %}" 
+                           href="{{ url_for('teams.index') }}">
                             <i class="bi bi-people"></i> Teams
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ active_nav_class('dashboard.orgchart') }}" href="{{ url_for('dashboard.orgchart') }}">
+                        <a class="nav-link {% if request.endpoint == 'dashboard.orgchart' %}active{% endif %}" 
+                           href="{{ url_for('dashboard.orgchart') }}">
                             <i class="bi bi-diagram-3"></i> Organigramm
                         </a>
                     </li>
-                    
-                    {% if has_any_role('Admin', 'Dev', 'Mitglied') %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="toolsDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-tools"></i> Tools
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('tickets') %}active{% endif %}" 
+                           href="{{ url_for('tickets.index') }}">
+                            <i class="bi bi-ticket"></i> Tickets
                         </a>
-                        <ul class="dropdown-menu">
-                            {% if has_any_role('Admin', 'Dev') %}
-                            <li><a class="dropdown-item" href="{{ url_for('admin.bot_configs') }}">
-                                <i class="bi bi-gear"></i> Bot Konfiguration
-                            </a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item" href="#" onclick="showTicketSearch()">
-                                <i class="bi bi-file-text"></i> Ticket suchen
-                            </a></li>
-                            {% if has_any_role('Admin', 'Dev') %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin.activity_logs') }}">
-                                <i class="bi bi-list-ul"></i> System-Logs
-                            </a></li>
-                            {% endif %}
-                        </ul>
                     </li>
-                    {% endif %}
                     
-                    {% if has_role('Admin') %}
+                    {% if g.user_roles and ('Admin' in g.user_roles or 'Dev' in g.user_roles) %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ active_nav_class('admin') }}" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-shield-check"></i> Admin
+                        <a class="nav-link dropdown-toggle {% if request.endpoint and request.endpoint.startswith('admin') %}active{% endif %}" 
+                           href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> Admin
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url_for('admin.index') }}">
-                                <i class="bi bi-speedometer2"></i> Admin Dashboard
-                            </a></li>
+                                <i class="bi bi-speedometer2"></i> Admin Dashboard</a></li>
+                            {% if 'Admin' in g.user_roles %}
                             <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">
-                                <i class="bi bi-people"></i> Benutzer verwalten
-                            </a></li>
+                                <i class="bi bi-people"></i> Benutzerverwaltung</a></li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin.activity_logs') }}">
-                                <i class="bi bi-activity"></i> Aktivitätslogs
-                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showBotConfigModal()">
+                                <i class="bi bi-robot"></i> Bot Configs</a></li>
                         </ul>
                     </li>
                     {% endif %}
                 </ul>
                 
+                <!-- User Menu -->
                 <ul class="navbar-nav">
+                    <!-- Quick Ticket Search -->
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light btn-sm me-2" onclick="showTicketSearchModal()">
+                            <i class="bi bi-search"></i> Ticket suchen
+                        </button>
+                    </li>
+                    
+                    <!-- User Dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {{ format_user_display(current_user()) }}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + (g.user.profile_image or 'default-avatar.png')) }}" 
+                                 alt="Profilbild" class="rounded-circle me-2" width="24" height="24">
+                            {{ g.user.full_name or g.user.username }}
+                            {% if g.user_roles %}
+                                <small class="text-muted ms-1">({{ ', '.join(g.user_roles) }})</small>
+                            {% endif %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li class="dropdown-header">
-                                {% for role in current_user_roles() %}
-                                    <span class="badge {{ role | role_badge_class }} me-1">{{ role | get_role_display_name }}</span>
-                                {% endfor %}
-                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile.index') }}">
+                                <i class="bi bi-person"></i> Mein Profil</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile.settings') }}">
+                                <i class="bi bi-gear"></i> Einstellungen</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile.activity') }}">
+                                <i class="bi bi-activity"></i> Aktivitäten</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">
-                                <i class="bi bi-person"></i> Profil
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
-                                <i class="bi bi-key"></i> Passwort ändern
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> Abmelden
-                            </a></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Abmelden</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -127,18 +120,9 @@
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="container-fluid mt-3">
+            <div class="container-fluid mt-2">
                 {% for category, message in messages %}
                     <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        {% if category == 'success' %}
-                            <i class="bi bi-check-circle me-2"></i>
-                        {% elif category == 'error' %}
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                        {% elif category == 'warning' %}
-                            <i class="bi bi-exclamation-circle me-2"></i>
-                        {% else %}
-                            <i class="bi bi-info-circle me-2"></i>
-                        {% endif %}
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -148,9 +132,9 @@
     {% endwith %}
 
     <!-- Main Content -->
-    <div class="container-fluid">
+    <main class="main-content">
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
     <!-- Ticket Search Modal -->
     <div class="modal fade" id="ticketSearchModal" tabindex="-1">
@@ -164,37 +148,80 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="ticketId" class="form-label">Ticket ID</label>
-                        <input type="number" class="form-control" id="ticketId" placeholder="z.B. 123" autofocus>
-                        <div class="form-text">Geben Sie die Ticket-ID ein, um das Transkript anzuzeigen.</div>
+                        <label for="ticketSearchInput" class="form-label">Ticket-ID oder Suchbegriff</label>
+                        <input type="text" class="form-control" id="ticketSearchInput" 
+                               placeholder="z.B. 123 oder 'Login Problem'" autofocus>
+                        <div class="form-text">Geben Sie eine Ticket-ID oder einen Suchbegriff ein.</div>
                     </div>
                     <div id="ticketSearchResults" class="d-none">
                         <h6>Suchergebnisse:</h6>
-                        <div id="ticketSearchResultsList"></div>
+                        <div id="ticketSearchResultsList" class="list-group"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="button" class="btn btn-entropy" onclick="openTicket()">
-                        <i class="bi bi-box-arrow-up-right"></i> Öffnen
+                    <button type="button" class="btn btn-entropy" onclick="performTicketSearch()">
+                        <i class="bi bi-search"></i> Suchen
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Bot Config Modal -->
+    <div class="modal fade" id="botConfigModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-robot"></i> Bot Konfigurationen
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="botConfigContent">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Lade...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <footer class="footer mt-5">
-        <div class="container text-center">
+    <footer class="footer mt-5 py-4 bg-dark text-light">
+        <div class="container">
             <div class="row">
-                <div class="col-md-6 text-md-start">
-                    <small>&copy; 2025 Entropy Gaming. Interne Webseite für Organisationsmitglieder.</small>
+                <div class="col-md-6">
+                    <h6 class="text-white">Entropy Gaming</h6>
+                    <small class="text-muted">
+                        Interne Webseite für Organisationsmitglieder<br>
+                        &copy; 2025 Entropy Gaming. Alle Rechte vorbehalten.
+                    </small>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <small>
-                        <a href="#" class="text-decoration-none">Hilfe</a> |
-                        <a href="#" class="text-decoration-none">Kontakt</a> |
-                        Version 1.0.0
+                    <div class="mb-2">
+                        <a href="#" class="text-decoration-none text-light me-3">
+                            <i class="bi bi-question-circle"></i> Hilfe
+                        </a>
+                        <a href="#" class="text-decoration-none text-light me-3">
+                            <i class="bi bi-envelope"></i> Kontakt
+                        </a>
+                        <a href="#" class="text-decoration-none text-light">
+                            <i class="bi bi-github"></i> GitHub
+                        </a>
+                    </div>
+                    <small class="text-muted">
+                        Version 1.0.0 | Flask MVP
+                        {% if g.user_roles and 'Dev' in g.user_roles %}
+                        <br><span class="badge bg-warning text-dark">DEV MODE</span>
+                        {% endif %}
                     </small>
                 </div>
             </div>

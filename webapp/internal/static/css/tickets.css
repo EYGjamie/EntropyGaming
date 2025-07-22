@@ -1,0 +1,243 @@
+.table {
+    font-size: 0.9rem;
+}
+
+.ticket-row {
+    transition: all 0.2s ease;
+}
+
+.ticket-row:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+    cursor: pointer;
+}
+
+.ticket-id {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: var(--entropy-primary);
+    font-size: 0.9rem;
+}
+
+.ticket-title {
+    font-weight: 600;
+    color: var(--entropy-dark);
+    margin-bottom: 0.25rem;
+}
+
+.user-info strong {
+    color: var(--entropy-dark);
+}
+
+/* ===== TICKET DETAIL PAGE ===== */
+.ticket-detail-header {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-radius: 1rem;
+    padding: 2rem;
+    border-left: 5px solid var(--entropy-primary);
+}
+
+.ticket-meta {
+    margin-top: 1rem;
+}
+
+.ticket-meta .badge {
+    margin-right: 0.5rem;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+}
+
+/* ===== TICKET FIELDS ===== */
+.ticket-fields .field-group {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 1rem;
+}
+
+.ticket-fields .field-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.field-label {
+    font-weight: 600;
+    color: var(--entropy-dark);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.field-value {
+    color: var(--entropy-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* ===== TRANSCRIPT STYLES ===== */
+.transcript-container {
+    max-height: 600px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.transcript-container.transcript-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    max-height: none;
+    z-index: 9999;
+    background: white;
+    border-radius: 0;
+    padding: 2rem;
+}
+
+.transcript-content {
+    padding: 1rem 0;
+}
+
+.message-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(248, 249, 250, 0.5);
+    border-radius: 0.75rem;
+    border-left: 3px solid var(--entropy-primary);
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.message-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    color: var(--entropy-dark);
+}
+
+.author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.author-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--entropy-gradient);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.message-time {
+    font-size: 0.8rem;
+    color: var(--entropy-secondary);
+    font-family: 'Courier New', monospace;
+}
+
+.message-content {
+    color: var(--entropy-dark);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    margin-bottom: 0.5rem;
+}
+
+.message-attachments {
+    margin-top: 0.75rem;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+}
+
+.attachment-item i {
+    color: var(--entropy-primary);
+}
+
+.attachment-item a {
+    color: var(--entropy-primary);
+    text-decoration: none;
+}
+
+.attachment-item a:hover {
+    text-decoration: underline;
+}
+
+/* ===== INFO LIST ===== */
+.info-list .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-list .info-item:last-child {
+    border-bottom: none;
+}
+
+.info-list .info-item label {
+    font-weight: 600;
+    color: var(--entropy-dark);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.info-list .info-item span {
+    font-size: 0.9rem;
+    color: var(--entropy-secondary);
+    text-align: right;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .ticket-detail-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .ticket-meta {
+        text-align: center;
+    }
+    
+    .message-item {
+        padding: 0.75rem;
+    }
+    
+    .message-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .info-list .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .info-list .info-item span {
+        text-align: left;
+    }
+    
+    .transcript-container.transcript-fullscreen {
+        padding: 1rem;
+    }
+}

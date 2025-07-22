@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}403 - Zugriff verweigert{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-page text-center">
+        <div class="error-illustration mb-4">
+            <i class="bi bi-shield-x error-icon text-danger"></i>
+        </div>
+        
+        <div class="error-content">
+            <h1 class="error-code gradient-text">403</h1>
+            <h2 class="error-title">Zugriff verweigert</h2>
+            <p class="error-description text-muted">
+                Sie haben nicht die erforderlichen Berechtigungen, um auf diese Seite zuzugreifen.
+                {% if error_message %}
+                    <br><em>{{ error_message }}</em>
+                {% endif %}
+            </p>
+            
+            <div class="error-actions mt-4">
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-entropy me-2">
+                    <i class="bi bi-house"></i> Zum Dashboard
+                </a>
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück
+                </button>
+            </div>
+            
+            <div class="error-help mt-4">
+                <p class="text-muted">
+                    <small>
+                        Wenn Sie glauben, dass Sie Zugriff haben sollten, kontaktieren Sie einen Administrator.
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.error-icon {
+    font-size: 6rem;
+    animation: shake 2s ease-in-out infinite;
+}
+
+.error-code {
+    font-size: 8rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+
+.error-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--entropy-dark);
+    margin-bottom: 1rem;
+}
+
+.error-description {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 5rem;
+    }
+    
+    .error-title {
+        font-size: 2rem;
+    }
+    
+    .error-description {
+        font-size: 1rem;
+    }
+    
+    .error-icon {
+        font-size: 4rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Seite nicht gefunden{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-page text-center">
+        <div class="error-illustration mb-4">
+            <i class="bi bi-exclamation-triangle error-icon"></i>
+        </div>
+        
+        <div class="error-content">
+            <h1 class="error-code gradient-text">404</h1>
+            <h2 class="error-title">Seite nicht gefunden</h2>
+            <p class="error-description text-muted">
+                Die angeforderte Seite konnte nicht gefunden werden.
+                {% if error_message %}
+                    <br><em>{{ error_message }}</em>
+                {% endif %}
+            </p>
+            
+            <div class="error-actions mt-4">
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-entropy me-2">
+                    <i class="bi bi-house"></i> Zum Dashboard
+                </a>
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.error-icon {
+    font-size: 6rem;
+    color: var(--entropy-warning);
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.error-code {
+    font-size: 8rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+
+.error-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--entropy-dark);
+    margin-bottom: 1rem;
+}
+
+.error-description {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 5rem;
+    }
+    
+    .error-title {
+        font-size: 2rem;
+    }
+    
+    .error-description {
+        font-size: 1rem;
+    }
+    
+    .error-icon {
+        font-size: 4rem;
+    }
+}
+</style>
+{% endblock %}

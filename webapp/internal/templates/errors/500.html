@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Serverfehler{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-page text-center">
+        <div class="error-illustration mb-4">
+            <i class="bi bi-exclamation-octagon error-icon text-danger"></i>
+        </div>
+        
+        <div class="error-content">
+            <h1 class="error-code gradient-text">500</h1>
+            <h2 class="error-title">Interner Serverfehler</h2>
+            <p class="error-description text-muted">
+                Es ist ein unerwarteter Fehler aufgetreten. Unser Team wurde automatisch benachrichtigt.
+                {% if error_message %}
+                    <br><em>{{ error_message }}</em>
+                {% endif %}
+            </p>
+            
+            <div class="error-actions mt-4">
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-entropy me-2">
+                    <i class="bi bi-house"></i> Zum Dashboard
+                </a>
+                <button onclick="location.reload()" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-arrow-clockwise"></i> Seite neu laden
+                </button>
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück
+                </button>
+            </div>
+            
+            <div class="error-help mt-4">
+                <p class="text-muted">
+                    <small>
+                        Falls das Problem weiterhin besteht, kontaktieren Sie bitte den Support.
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.error-icon {
+    font-size: 6rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.error-code {
+    font-size: 8rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+
+.error-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--entropy-dark);
+    margin-bottom: 1rem;
+}
+
+.error-description {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 5rem;
+    }
+    
+    .error-title {
+        font-size: 2rem;
+    }
+    
+    .error-description {
+        font-size: 1rem;
+    }
+    
+    .error-icon {
+        font-size: 4rem;
+    }
+}
+</style>
+{% endblock %}

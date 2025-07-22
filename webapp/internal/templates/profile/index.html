@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Mein Profil - {{ g.user.username }}{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Profile Header -->
+    <div class="profile-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="profile-avatar-large">
+                    <img src="{{ url_for('static', filename='uploads/profiles/' + (g.user.profile_image or 'default-avatar.png')) }}" 
+                         alt="Profilbild" class="profile-image">
+                    <div class="avatar-overlay">
+                        <a href="{{ url_for('profile.edit') }}" class="btn btn-sm btn-light">
+                            <i class="bi bi-pencil"></i> Bearbeiten
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <h1 class="profile-name gradient-text">
+                    {{ g.user.full_name or g.user.username }}
+                </h1>
+                <p class="profile-username text-muted">@{{ g.user.username }}</p>
+                
+                {% if g.user_roles %}
+                <div class="profile-roles mb-3">
+                    {% for role in g.user_roles %}
+                        <span class="badge {{ role | role_badge_class }} me-1">{{ role }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if g.user.description %}
+                <p class="profile-description">{{ g.user.description }}</p>
+                {% endif %}
+                
+                <div class="profile-meta">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar"></i>
+                        Mitglied seit {{ g.user.created_at | datetime_format if g.user.created_at else 'Unbekannt' }}
+                    </small>
+                    {% if g.user.last_login %}
+                    <small class="text-muted ms-3">
+                        <i class="bi bi-clock"></i>
+                        Letzter Login: {{ g.user.last_login | datetime_format }}
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-person"></i> Profil-Informationen
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group mb-3">
+                                <label class="info-label">Vollständiger Name:</label>
+                                <div class="info-value">{{ g.user.full_name or 'Nicht angegeben' }}</div>
+                            </div>
+                            <div class="info-group mb-3">
+                                <label class="info-label">E-Mail-Adresse:</label>
+                                <div class="info-value">{{ g.user.email }}</div>
+                            </div>
+                            <div class="info-group mb-3">
+                                <label class="info-label">Telefonnummer:</label>
+                                <div class="info-value">{{ g.user.phone or 'Nicht angegeben' }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group mb-3">
+                                <label class="info-label">Discord ID:</label>
+                                <div class="info-value">{{ g.user.discord_id or 'Nicht verknüpft' }}</div>
+                            </div>
+                            <div class="info-group mb-3">
+                                <label class="info-label">Account-Status:</label>
+                                <div class="info-value">
+                                    <span class="badge bg-success">Aktiv</span>
+                                </div>
+                            </div>
+                            <div class="info-group mb-3">
+                                <label class="info-label">Rollen:</label>
+                                <div class="info-value">
+                                    {% if g.user_roles %}
+                                        {% for role in g.user_roles %}
+                                            <span class="badge {{ role | role_badge_class }} me-1">{{ role }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">Keine Rollen zugewiesen</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if g.user.description %}
+                    <div class="info-group">
+                        <label class="info-label">Beschreibung:</label>
+                        <div class="info-value">{{ g.user.description }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('profile.edit') }}" class="btn btn-entropy">
+                        <i class="bi bi-pencil"></i> Profil bearbeiten
+                    </a>
+                    <a href="{{ url_for('profile.settings') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear"></i> Einstellungen
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity & Quick Actions -->
+        <div class="col-lg-4 mb-4">
+            <!-- Quick Actions -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="bi bi-lightning"></i> Schnellzugriff
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('profile.edit') }}" class="btn btn-outline-entropy">
+                            <i class="bi bi-pencil"></i> Profil bearbeiten
+                        </a>
+                        <a href="{{ url_for('profile.activity') }}" class="btn btn-outline-entropy">
+                            <i class="bi bi-activity"></i> Meine Aktivitäten
+                        </a>
+                        <a href="{{ url_for('profile.settings') }}" class="btn btn-outline-entropy">
+                            <i class="bi bi-gear"></i> Einstellungen
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-activity"></i> Letzte Aktivitäten</span>
+                    <a href="{{ url_for('profile.activity') }}" class="btn btn-sm btn-outline-light">
+                        Alle anzeigen
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if user_activity %}
+                        <div class="activity-timeline">
+                            {% for activity in user_activity %}
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    {% if activity.action == 'login' %}
+                                        <i class="bi bi-box-arrow-in-right text-success"></i>
+                                    {% elif activity.action == 'profile_update' %}
+                                        <i class="bi bi-person-gear text-info"></i>
+                                    {% else %}
+                                        <i class="bi bi-activity text-primary"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-description">
+                                        {% if activity.action == 'login' %}
+                                            Anmeldung
+                                        {% elif activity.action == 'profile_update' %}
+                                            Profil aktualisiert
+                                        {% else %}
+                                            {{ activity.action }}
+                                        {% endif %}
+                                    </div>
+                                    <small class="activity-time text-muted">
+                                        {{ activity.created_at | datetime_format }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-activity fs-3 mb-2"></i>
+                            <p class="mb-0">Keine Aktivitäten verfügbar</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

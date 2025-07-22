@@ -40,3 +40,5 @@ db/data/entropy.db-wal
 /bot/transcripts
 db/data/test.db-shm
 db/data/test.db-wal
+
+__pycache__/

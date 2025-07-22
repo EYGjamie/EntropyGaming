@@ -1,15 +1,18 @@
-from flask import Blueprint, render_template, g, redirect, url_for
-from database.db_manager import get_db
+from flask import Blueprint, render_template, g, jsonify, current_app
 from utils.decorators import login_required
-from utils.stats_helper import get_dashboard_stats
+from database.db_manager import get_db, get_stats_from_cache, update_stats_cache
+import json
+import os
 import logging
+from datetime import datetime, timedelta
 
-dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
+dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/')
 
 @dashboard_bp.route('/')
+@dashboard_bp.route('/dashboard')
 @login_required
 def index():
-    """Main dashboard page"""
+    """Dashboard overview page"""
     try:
         # Get dashboard statistics
         stats = get_dashboard_stats()
@@ -17,8 +20,8 @@ def index():
         # Get recent activity
         recent_activity = get_recent_activity()
         
-        # Get user's quick actions based on roles
-        quick_actions = get_user_quick_actions(g.user_roles)
+        # Get user's teams (if applicable)
+        user_teams = get_user_teams()
         
         return render_template(
             'dashboard/index.html',
@@ -26,7 +29,7 @@ def index():
             roles=g.user_roles,
             stats=stats,
             recent_activity=recent_activity,
-            quick_actions=quick_actions
+            user_teams=user_teams
         )
         
     except Exception as e:
@@ -37,171 +40,23 @@ def index():
             roles=g.user_roles,
             stats={},
             recent_activity=[],
-            quick_actions=[],
-            error="Fehler beim Laden der Dashboard-Daten"
+            user_teams=[],
+            error="Fehler beim Laden des Dashboards"
         )
-
-@dashboard_bp.route('/widgets/stats')
-@login_required
-def widget_stats():
-    """AJAX endpoint for statistics widget"""
-    try:
-        stats = get_dashboard_stats()
-        return stats
-    except Exception as e:
-        logging.error(f"Error loading stats widget: {e}")
-        return {'error': 'Fehler beim Laden der Statistiken'}, 500
-
-def get_recent_activity(limit=10):
-    """Get recent activity from database"""
-    try:
-        db = get_db()
-        
-        # Get recent tickets
-        recent_tickets = db.execute('''
-            SELECT ticket_id, ticket_bereich, ticket_ersteller_name, 
-                   ticket_erstellungszeit, ticket_status
-            FROM tickets 
-            WHERE ticket_erstellungszeit IS NOT NULL
-            ORDER BY ticket_erstellungszeit DESC 
-            LIMIT ?
-        ''', (limit,)).fetchall()
-        
-        # Get recent team creations
-        recent_teams = db.execute('''
-            SELECT team_name, game, id
-            FROM team_areas 
-            WHERE is_active = 1
-            ORDER BY id DESC 
-            LIMIT 5
-        ''').fetchall()
-        
-        # Get recent user registrations (web users)
-        recent_users = db.execute('''
-            SELECT username, full_name, created_at
-            FROM web_users 
-            WHERE is_active = 1
-            ORDER BY created_at DESC 
-            LIMIT 5
-        ''').fetchall()
-        
-        activity = {
-            'tickets': [dict(ticket) for ticket in recent_tickets],
-            'teams': [dict(team) for team in recent_teams],
-            'users': [dict(user) for user in recent_users]
-        }
-        
-        return activity
-        
-    except Exception as e:
-        logging.error(f"Error getting recent activity: {e}")
-        return {
-            'tickets': [],
-            'teams': [],
-            'users': []
-        }
-
-def get_user_quick_actions(user_roles):
-    """Get quick actions based on user roles"""
-    actions = [
-        {
-            'title': 'Teams',
-            'description': 'Teamübersicht anzeigen',
-            'url': 'teams.index',
-            'icon': 'bi-people',
-            'color': 'primary',
-            'roles': ['Admin', 'Dev', 'Mitglied']
-        },
-        {
-            'title': 'Organigramm',
-            'description': 'Organisationsstruktur',
-            'url': 'dashboard.orgchart',
-            'icon': 'bi-diagram-3',
-            'color': 'info',
-            'roles': ['Admin', 'Dev', 'Mitglied']
-        },
-        {
-            'title': 'Ticket suchen',
-            'description': 'Ticket-Transkript finden',
-            'url': '#',
-            'icon': 'bi-search',
-            'color': 'warning',
-            'onclick': 'showTicketSearch()',
-            'roles': ['Admin', 'Dev', 'Mitglied']
-        },
-        {
-            'title': 'Bot Konfiguration',
-            'description': 'Bot-Einstellungen verwalten',
-            'url': 'admin.bot_configs',
-            'icon': 'bi-gear',
-            'color': 'danger',
-            'roles': ['Admin', 'Dev']
-        },
-        {
-            'title': 'Benutzer verwalten',
-            'description': 'Benutzer und Rollen',
-            'url': 'admin.users',
-            'icon': 'bi-person-gear',
-            'color': 'success',
-            'roles': ['Admin']
-        },
-        {
-            'title': 'System-Logs',
-            'description': 'Aktivitätslogs anzeigen',
-            'url': 'admin.activity_logs',
-            'icon': 'bi-list-ul',
-            'color': 'secondary',
-            'roles': ['Admin', 'Dev']
-        }
-    ]
-    
-    # Filter actions based on user roles
-    user_actions = []
-    for action in actions:
-        if any(role in user_roles for role in action['roles']):
-            user_actions.append(action)
-    
-    return user_actions
 
 @dashboard_bp.route('/orgchart')
 @login_required
 def orgchart():
-    """Organization chart page"""
+    """Organizational chart page"""
     try:
-        import json
-        import os
-        
-        # Try to load contacts/organization data
-        contacts_file = os.path.join('..', '..', 'bot', 'handlers', 'discord_administration', 'utils', 'data', 'contacts.json')
-        
-        if os.path.exists(contacts_file):
-            with open(contacts_file, 'r', encoding='utf-8') as f:
-                org_data = json.load(f)
-        else:
-            # Fallback data structure
-            org_data = {
-                "title": "Entropy Gaming Organisation",
-                "sections": [
-                    {
-                        "title": "Projektleitung",
-                        "items": [
-                            {"mention": "000000000000000000", "name": "Beispiel User (Leitung)"}
-                        ]
-                    },
-                    {
-                        "title": "Management",
-                        "items": [
-                            {"mention": "000000000000000001", "name": "Beispiel Manager"}
-                        ]
-                    }
-                ]
-            }
+        # Load organizational chart data
+        orgchart_data = load_orgchart_data()
         
         return render_template(
             'dashboard/orgchart.html',
             user=g.user,
             roles=g.user_roles,
-            org_data=org_data
+            orgchart_data=orgchart_data
         )
         
     except Exception as e:
@@ -210,11 +65,205 @@ def orgchart():
             'dashboard/orgchart.html',
             user=g.user,
             roles=g.user_roles,
-            org_data={"title": "Organisation", "sections": []},
+            orgchart_data={},
             error="Fehler beim Laden des Organigramms"
         )
 
-@dashboard_bp.route('/redirect')
-def redirect_to_dashboard():
-    """Redirect to dashboard - used as default route"""
-    return redirect(url_for('dashboard.index'))
+@dashboard_bp.route('/api/dashboard-stats')
+@login_required
+def api_dashboard_stats():
+    """API endpoint for dashboard statistics"""
+    try:
+        stats = get_dashboard_stats()
+        return jsonify({
+            'success': True,
+            'data': stats
+        })
+        
+    except Exception as e:
+        logging.error(f"Error in dashboard stats API: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Fehler beim Laden der Dashboard-Statistiken'
+        }), 500
+
+def get_dashboard_stats():
+    """Get dashboard statistics with caching"""
+    try:
+        # Check cache first
+        cached_stats = get_stats_from_cache('dashboard_stats')
+        
+        # Refresh if cache is older than 5 minutes
+        if cached_stats and cached_stats.get('last_updated'):
+            last_updated = datetime.fromisoformat(cached_stats['last_updated'])
+            if datetime.now() - last_updated < timedelta(minutes=5):
+                return json.loads(cached_stats['value'])
+        
+        # Generate fresh stats
+        db = get_db()
+        
+        # Get total members count from Discord bot database
+        try:
+            total_members = db.execute(
+                'SELECT COUNT(*) as count FROM users WHERE is_bot = 0'
+            ).fetchone()['count']
+        except:
+            total_members = 0
+        
+        # Get total teams count
+        try:
+            total_teams = db.execute(
+                'SELECT COUNT(*) as count FROM team_areas WHERE is_active = "true"'
+            ).fetchone()['count']
+        except:
+            total_teams = 0
+        
+        # Get total tickets count
+        try:
+            total_tickets = db.execute(
+                'SELECT COUNT(*) as count FROM tickets'
+            ).fetchone()['count']
+        except:
+            total_tickets = 0
+        
+        # Get open tickets count
+        try:
+            open_tickets = db.execute(
+                'SELECT COUNT(*) as count FROM tickets WHERE ticket_status = "open"'
+            ).fetchone()['count']
+        except:
+            open_tickets = 0
+        
+        # Get active web users count
+        try:
+            web_users = db.execute(
+                'SELECT COUNT(*) as count FROM web_users WHERE is_active = 1'
+            ).fetchone()['count']
+        except:
+            web_users = 0
+        
+        # Get games count
+        try:
+            games = db.execute(
+                'SELECT COUNT(DISTINCT game) as count FROM team_areas WHERE is_active = "true"'
+            ).fetchone()['count']
+        except:
+            games = 0
+        
+        stats = {
+            'total_members': total_members,
+            'total_teams': total_teams,
+            'total_tickets': total_tickets,
+            'open_tickets': open_tickets,
+            'web_users': web_users,
+            'games': games,
+            'last_updated': datetime.now().isoformat()
+        }
+        
+        # Cache the stats
+        update_stats_cache('dashboard_stats', json.dumps(stats))
+        
+        return stats
+        
+    except Exception as e:
+        logging.error(f"Error generating dashboard stats: {e}")
+        return {
+            'total_members': 0,
+            'total_teams': 0,
+            'total_tickets': 0,
+            'open_tickets': 0,
+            'web_users': 0,
+            'games': 0,
+            'error': True
+        }
+
+def get_recent_activity():
+    """Get recent activity from web activity log"""
+    try:
+        db = get_db()
+        
+        activities = db.execute('''
+            SELECT 
+                wal.action,
+                wal.resource_type,
+                wal.resource_id,
+                wal.details,
+                wal.created_at,
+                wu.username,
+                wu.full_name
+            FROM web_activity_log wal
+            LEFT JOIN web_users wu ON wal.user_id = wu.id
+            ORDER BY wal.created_at DESC
+            LIMIT 10
+        ''').fetchall()
+        
+        return [dict(activity) for activity in activities]
+        
+    except Exception as e:
+        logging.error(f"Error fetching recent activity: {e}")
+        return []
+
+def get_user_teams():
+    """Get teams associated with current user (if Discord ID is linked)"""
+    try:
+        if not g.user.discord_id:
+            return []
+        
+        db = get_db()
+        
+        # This is simplified - you might need more complex logic
+        # to determine which teams a user belongs to based on their Discord roles
+        teams = db.execute('''
+            SELECT ta.* 
+            FROM team_areas ta
+            WHERE ta.is_active = "true"
+            ORDER BY ta.game, ta.team_name
+        ''').fetchall()
+        
+        return [dict(team) for team in teams[:5]]  # Limit to 5 for dashboard
+        
+    except Exception as e:
+        logging.error(f"Error fetching user teams: {e}")
+        return []
+
+def load_orgchart_data():
+    """Load organizational chart data from JSON file"""
+    try:
+        orgchart_file = current_app.config.get('ORGCHART_DATA_FILE', 'data/orgchart.json')
+        
+        if os.path.exists(orgchart_file):
+            with open(orgchart_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data
+        else:
+            # Return default structure if file doesn't exist
+            return {
+                "organization": "Entropy Gaming",
+                "structure": {
+                    "name": "Management",
+                    "title": "Führungsebene",
+                    "children": [
+                        {
+                            "name": "Development",
+                            "title": "Entwicklung",
+                            "children": []
+                        },
+                        {
+                            "name": "Teams",
+                            "title": "Gaming Teams",
+                            "children": []
+                        }
+                    ]
+                }
+            }
+            
+    except Exception as e:
+        logging.error(f"Error loading orgchart data: {e}")
+        return {
+            "organization": "Entropy Gaming",
+            "structure": {
+                "name": "Error",
+                "title": "Fehler beim Laden",
+                "children": []
+            }
+        }

@@ -1,0 +1,455 @@
+/* webapp/internal/static/css/dashboard.css */
+/* Dashboard page specific styles */
+
+/* ===== WELCOME HEADER ===== */
+.welcome-header {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-left: 5px solid var(--entropy-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: var(--entropy-gradient);
+    border-radius: 50%;
+    opacity: 0.1;
+    z-index: 1;
+}
+
+.welcome-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.welcome-header p {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 2;
+}
+
+/* ===== STATISTICS CARDS ===== */
+.card-stats {
+    border: none;
+    border-radius: 1rem;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-stats::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--entropy-gradient);
+    transition: width 0.3s ease;
+}
+
+.card-stats:hover::before {
+    width: 100%;
+    opacity: 0.05;
+}
+
+.card-stats:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-stats .card-body {
+    padding: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.card-stats .stats-icon {
+    font-size: 2.5rem;
+    background: var(--entropy-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: transform 0.3s ease;
+}
+
+.card-stats:hover .stats-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.card-stats .stats-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--entropy-dark);
+    line-height: 1;
+    transition: transform 0.3s ease;
+}
+
+.card-stats:hover .stats-number {
+    transform: scale(1.05);
+}
+
+.card-stats .stats-label {
+    color: var(--entropy-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+/* ===== QUICK ACTIONS CARD ===== */
+.card .card-header {
+    background: var(--entropy-gradient);
+    color: white;
+    border-radius: 1rem 1rem 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: none;
+}
+
+.card .card-body {
+    padding: 1.5rem;
+}
+
+.card .d-grid .btn {
+    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    text-align: left;
+    border: 2px solid transparent;
+}
+
+.card .d-grid .btn:hover {
+    transform: translateX(5px);
+    border-color: var(--entropy-primary);
+}
+
+.card .d-grid .btn i {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* ===== ACTIVITY LIST ===== */
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--entropy-primary) transparent;
+}
+
+.activity-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.activity-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.activity-list::-webkit-scrollbar-thumb {
+    background: var(--entropy-primary);
+    border-radius: 3px;
+}
+
+.activity-item {
+    transition: all 0.3s ease;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.activity-item:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateX(5px);
+}
+
+.activity-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover .activity-icon {
+    background: var(--entropy-gradient);
+    color: white;
+    transform: scale(1.1);
+}
+
+.activity-description {
+    font-weight: 500;
+    color: var(--entropy-dark);
+    margin-bottom: 0.25rem;
+}
+
+/* ===== TEAM CARDS ===== */
+.team-card {
+    background: white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.team-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--entropy-gradient);
+}
+
+.team-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.team-card .team-name {
+    color: var(--entropy-dark);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.team-card .team-game {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.team-card .btn {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+}
+
+/* ===== RESPONSIVE DASHBOARD ===== */
+@media (max-width: 1200px) {
+    .welcome-header h1 {
+        font-size: 2rem;
+    }
+    
+    .stats-number {
+        font-size: 1.75rem !important;
+    }
+    
+    .stats-icon {
+        font-size: 2rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .welcome-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .welcome-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .welcome-header p {
+        font-size: 1rem;
+    }
+    
+    .card-stats .card-body {
+        padding: 1.25rem;
+        text-align: center;
+    }
+    
+    .card-stats .stats-icon {
+        margin-bottom: 0.5rem;
+    }
+    
+    .activity-list {
+        max-height: 300px;
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .activity-icon {
+        margin-bottom: 0.5rem;
+    }
+    
+    .team-card {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .welcome-header {
+        padding: 1rem;
+    }
+    
+    .welcome-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem !important;
+    }
+    
+    .stats-icon {
+        font-size: 1.75rem !important;
+    }
+    
+    .card .card-body {
+        padding: 1rem;
+    }
+    
+    .card .d-grid .btn {
+        font-size: 0.9rem;
+        padding: 0.6rem 0.8rem;
+    }
+}
+
+/* ===== LOADING STATES ===== */
+.stats-loading {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.stats-loading .stats-number {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+    color: transparent;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* ===== ERROR STATES ===== */
+.dashboard-error {
+    background: rgba(220, 53, 69, 0.05);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    color: var(--entropy-danger);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.dashboard-error i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* ===== ANIMATION ENHANCEMENTS ===== */
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out both;
+}
+
+.staggered-animation:nth-child(1) { animation-delay: 0.1s; }
+.staggered-animation:nth-child(2) { animation-delay: 0.2s; }
+.staggered-animation:nth-child(3) { animation-delay: 0.3s; }
+.staggered-animation:nth-child(4) { animation-delay: 0.4s; }
+.staggered-animation:nth-child(5) { animation-delay: 0.5s; }
+.staggered-animation:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+    .card-stats,
+    .activity-item,
+    .team-card,
+    .stats-icon,
+    .stats-number {
+        transition: none;
+        animation: none;
+    }
+    
+    .fade-in-up {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+    .welcome-header {
+        background: rgba(102, 126, 234, 0.2);
+        color: #e9ecef;
+    }
+    
+    .card-stats {
+        background: #2d2d2d;
+        color: #e9ecef;
+    }
+    
+    .activity-item:hover {
+        background: rgba(102, 126, 234, 0.2);
+    }
+    
+    .team-card {
+        background: #2d2d2d;
+        color: #e9ecef;
+        border-color: #495057;
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .welcome-header,
+    .card-stats,
+    .card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    
+    .btn {
+        display: none;
+    }
+    
+    .activity-list {
+        max-height: none;
+        overflow: visible;
+    }
+}

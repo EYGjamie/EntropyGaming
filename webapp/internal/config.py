@@ -8,6 +8,8 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
     DATABASE_PATH = os.getenv('DATABASE_PATH', '../../db/data/entropy.db')
     TRANSCRIPTS_DIR = os.getenv('TRANSCRIPTS_DIR', '../../bot/transcripts')
+    BOT_CONFIG_DIR = os.getenv('BOT_CONFIG_DIR', '../../bot/config')
+    ORGCHART_DATA_FILE = os.getenv('ORGCHART_DATA_FILE', 'data/orgchart.json')
     
     # Flask configuration
     FLASK_ENV = os.getenv('FLASK_ENV', 'development')
@@ -22,13 +24,22 @@ class Config:
     # Upload configuration
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     UPLOAD_FOLDER = 'static/uploads'
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'txt', 'doc', 'docx'}
     
     # Pagination
     ITEMS_PER_PAGE = 20
     
-    # Bot API configuration (if needed)
+    # Bot API configuration
     BOT_API_URL = os.getenv('BOT_API_URL', 'http://localhost:8080')
     BOT_API_ENABLED = os.getenv('BOT_API_ENABLED', 'False').lower() == 'true'
+    
+    # Discord configuration
+    DISCORD_GUILD_ID = os.getenv('DISCORD_GUILD_ID')
+    DISCORD_GUILD_NAME = os.getenv('DISCORD_GUILD_NAME', 'Entropy Gaming')
+    
+    # Security
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_TIME_LIMIT = 3600
 
 class DevelopmentConfig(Config):
     """Development configuration"""

@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Entropy Gaming{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Admin Header -->
+    <div class="admin-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="gradient-text">
+                    <i class="bi bi-gear"></i> Administration
+                </h1>
+                <p class="text-muted">
+                    System-Verwaltung und Überwachung
+                    <span class="badge bg-warning text-dark ms-2">
+                        <i class="bi bi-shield-exclamation"></i> Admin-Bereich
+                    </span>
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="admin-status">
+                    <span class="badge bg-entropy">{{ system_info.flask_env or 'unknown' }}</span>
+                    {% if system_info.debug_mode %}
+                    <span class="badge bg-warning text-dark">DEBUG</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card card-stats admin-stat-card hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon me-3 text-primary">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div>
+                            <h3 class="stats-number mb-0">{{ stats.total_web_users or 0 }}</h3>
+                            <p class="stats-label mb-0">Web-Benutzer</p>
+                            <small class="text-success">{{ stats.active_web_users or 0 }} aktiv</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card card-stats admin-stat-card hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon me-3 text-info">
+                            <i class="bi bi-discord"></i>
+                        </div>
+                        <div>
+                            <h3 class="stats-number mb-0">{{ stats.discord_users or 0 }}</h3>
+                            <p class="stats-label mb-0">Discord-Nutzer</p>
+                            <small class="text-muted">Bot-Datenbank</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card card-stats admin-stat-card hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon me-3 text-warning">
+                            <i class="bi bi-ticket"></i>
+                        </div>
+                        <div>
+                            <h3 class="stats-number mb-0">{{ stats.total_tickets or 0 }}</h3>
+                            <p class="stats-label mb-0">Tickets Total</p>
+                            <small class="text-warning">{{ stats.open_tickets or 0 }} offen</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card card-stats admin-stat-card hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon me-3 text-success">
+                            <i class="bi bi-activity"></i>
+                        </div>
+                        <div>
+                            <h3 class="stats-number mb-0">{{ stats.activity_logs_today or 0 }}</h3>
+                            <p class="stats-label mb-0">Aktivitäten heute</p>
+                            <small class="text-muted">Letzte 24h</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Content -->
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning"></i> Administrative Aktionen
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if 'Admin' in g.user_roles %}
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-entropy">
+                            <i class="bi bi-people"></i> Benutzerverwaltung
+                        </a>
+                        <a href="{{ url_for('admin.create_user') }}" class="btn btn-outline-success">
+                            <i class="bi bi-person-plus"></i> Benutzer erstellen
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('admin.activity') }}" class="btn btn-outline-info">
+                            <i class="bi bi-activity"></i> System-Aktivitäten
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="showBotConfigModal()">
+                            <i class="bi bi-robot"></i> Bot-Konfiguration
+                        </button>
+                        <a href="/api/health" target="_blank" class="btn btn-outline-warning">
+                            <i class="bi bi-heart-pulse"></i> System-Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-info-circle"></i> System-Informationen
+                </div>
+                <div class="card-body">
+                    <div class="system-info">
+                        <div class="info-item">
+                            <label>Python Version:</label>
+                            <span>{{ system_info.python_version or 'Unbekannt' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Plattform:</label>
+                            <span>{{ system_info.platform or 'Unbekannt' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Flask Umgebung:</label>
+                            <span class="badge {{ 'bg-warning text-dark' if system_info.debug_mode else 'bg-success' }}">
+                                {{ system_info.flask_env or 'Unbekannt' }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <label>Debug Modus:</label>
+                            <span class="badge {{ 'bg-warning text-dark' if system_info.debug_mode else 'bg-secondary' }}">
+                                {{ 'Aktiviert' if system_info.debug_mode else 'Deaktiviert' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Admin Activity -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clock-history"></i> Letzte Admin-Aktivitäten</span>
+                    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-outline-light">
+                        Alle anzeigen
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                        <div class="admin-activity-list">
+                            {% for activity in recent_activity[:5] %}
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    {% if activity.action == 'user_created' %}
+                                        <i class="bi bi-person-plus text-success"></i>
+                                    {% elif activity.action == 'user_updated' %}
+                                        <i class="bi bi-person-gear text-info"></i>
+                                    {% elif activity.action == 'role_assigned' %}
+                                        <i class="bi bi-shield-plus text-primary"></i>
+                                    {% elif activity.action == 'login_failed' %}
+                                        <i class="bi bi-shield-x text-danger"></i>
+                                    {% else %}
+                                        <i class="bi bi-activity text-secondary"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-description">
+                                        <strong>{{ activity.username or 'System' }}</strong>
+                                        {% if activity.action == 'user_created' %}
+                                            hat einen Benutzer erstellt
+                                        {% elif activity.action == 'user_updated' %}
+                                            hat einen Benutzer aktualisiert
+                                        {% elif activity.action == 'role_assigned' %}
+                                            hat eine Rolle zugewiesen
+                                        {% elif activity.action == 'login_failed' %}
+                                            fehlgeschlagener Login-Versuch
+                                        {% else %}
+                                            {{ activity.action }}
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ activity.created_at | datetime_format }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-clock-history fs-3 mb-2"></i>
+                            <p class="mb-0">Keine Admin-Aktivitäten</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    {% if error %}
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        {{ error }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

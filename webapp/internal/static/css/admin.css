@@ -1,0 +1,174 @@
+.admin-header {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(255, 193, 7, 0.1));
+    border-radius: 1rem;
+    padding: 2rem;
+    border-left: 5px solid #dc3545;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, #dc3545, #ffc107);
+    border-radius: 50%;
+    opacity: 0.05;
+}
+
+.admin-status .badge {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    margin-left: 0.5rem;
+}
+
+/* ===== ADMIN STAT CARDS ===== */
+.admin-stat-card {
+    border: none;
+    border-radius: 1rem;
+    background: white;
+    box-shadow: var(--entropy-box-shadow);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #dc3545, #ffc107);
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--entropy-box-shadow-lg);
+}
+
+.admin-stat-card .stats-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(220, 53, 69, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-stat-card .stats-number {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--entropy-dark);
+    line-height: 1;
+}
+
+.admin-stat-card .stats-label {
+    color: var(--entropy-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+/* ===== SYSTEM INFO ===== */
+.system-info .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.system-info .info-item:last-child {
+    border-bottom: none;
+}
+
+.system-info .info-item label {
+    font-weight: 600;
+    color: var(--entropy-dark);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.system-info .info-item span {
+    font-size: 0.9rem;
+}
+
+/* ===== ADMIN ACTIVITY ===== */
+.admin-activity-list {
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #dc3545 transparent;
+}
+
+.admin-activity-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.admin-activity-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-activity-list::-webkit-scrollbar-thumb {
+    background: #dc3545;
+    border-radius: 3px;
+}
+
+.admin-activity-list .activity-item {
+    transition: all 0.3s ease;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.admin-activity-list .activity-item:hover {
+    background: rgba(220, 53, 69, 0.05);
+    transform: translateX(5px);
+}
+
+.admin-activity-list .activity-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: rgba(220, 53, 69, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .admin-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .admin-stat-card .card-body {
+        padding: 1.25rem;
+        text-align: center;
+    }
+    
+    .admin-stat-card .stats-icon {
+        margin: 0 auto 0.5rem;
+    }
+    
+    .system-info .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .admin-activity-list {
+        max-height: 250px;
+    }
+}

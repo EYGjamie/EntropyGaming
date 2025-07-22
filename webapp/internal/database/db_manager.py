@@ -2,12 +2,15 @@ import sqlite3
 import bcrypt
 from flask import current_app, g
 import logging
+from datetime import datetime
 
 def get_db():
     """Get database connection for current request"""
     if 'db' not in g:
         g.db = sqlite3.connect(current_app.config['DATABASE_PATH'])
         g.db.row_factory = sqlite3.Row
+        # Enable foreign keys
+        g.db.execute('PRAGMA foreign_keys = ON')
     return g.db
 
 def close_db(e=None):
@@ -21,7 +24,7 @@ def init_db(app):
     with app.app_context():
         db = get_db()
         create_tables(db)
-        create_default_users(db)
+        create_default_data(db)
         
     # Register close_db with app teardown
     app.teardown_appcontext(close_db)
@@ -29,7 +32,7 @@ def init_db(app):
 def create_tables(db):
     """Create necessary tables for web application"""
     try:
-        # Web users table
+        # Web users table (separate from Discord bot users)
         db.execute('''
             CREATE TABLE IF NOT EXISTS web_users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,6 +43,7 @@ def create_tables(db):
                 phone TEXT,
                 description TEXT,
                 profile_image TEXT DEFAULT 'default-avatar.png',
+                discord_id TEXT,
                 is_active BOOLEAN DEFAULT TRUE,
                 last_login TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -47,7 +51,7 @@ def create_tables(db):
             )
         ''')
         
-        # User roles table
+        # User roles table (multiple roles per user possible)
         db.execute('''
             CREATE TABLE IF NOT EXISTS web_user_roles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,13 +65,15 @@ def create_tables(db):
             )
         ''')
         
-        # User sessions table (optional, for session management)
+        # User sessions table (for session management)
         db.execute('''
             CREATE TABLE IF NOT EXISTS web_user_sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 session_token TEXT UNIQUE NOT NULL,
                 expires_at TIMESTAMP NOT NULL,
+                ip_address TEXT,
+                user_agent TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES web_users (id) ON DELETE CASCADE
             )
@@ -79,12 +85,23 @@ def create_tables(db):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
                 action TEXT NOT NULL,
-                resource TEXT,
+                resource_type TEXT,
                 resource_id TEXT,
                 ip_address TEXT,
                 user_agent TEXT,
+                details TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES web_users (id)
+                FOREIGN KEY (user_id) REFERENCES web_users (id) ON DELETE SET NULL
+            )
+        ''')
+        
+        # Stats cache table (for dashboard performance)
+        db.execute('''
+            CREATE TABLE IF NOT EXISTS web_stats_cache (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                stat_key TEXT UNIQUE NOT NULL,
+                stat_value TEXT NOT NULL,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         
@@ -92,78 +109,105 @@ def create_tables(db):
         logging.info("Database tables created successfully")
         
     except Exception as e:
-        logging.error(f"Error creating database tables: {e}")
         db.rollback()
+        logging.error(f"Error creating database tables: {e}")
         raise
 
-def create_default_users(db):
-    """Create default admin user if it doesn't exist"""
+def create_default_data(db):
+    """Create default users and roles"""
     try:
         # Check if admin user exists
         admin_exists = db.execute(
-            'SELECT id FROM web_users WHERE username = ?', ('admin',)
-        ).fetchone()
+            'SELECT COUNT(*) FROM web_users WHERE username = ?',
+            ('admin',)
+        ).fetchone()[0]
         
-        if not admin_exists:
-            password_hash = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt())
+        if admin_exists == 0:
+            # Create admin user
+            password_hash = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
             cursor = db.execute('''
-                INSERT INTO web_users (username, email, password_hash, full_name, description)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO web_users (username, email, password_hash, full_name, description, is_active)
+                VALUES (?, ?, ?, ?, ?, ?)
             ''', (
-                'admin', 
-                'admin@entropy.local', 
-                password_hash, 
-                'System Administrator', 
-                'Standard-Administratorkonto mit vollständigen Berechtigungen'
+                'admin',
+                'admin@entropy.local',
+                password_hash,
+                'System Administrator',
+                'System Administrator mit vollständigen Berechtigungen',
+                True
             ))
             
-            user_id = cursor.lastrowid
+            admin_id = cursor.lastrowid
             
             # Assign admin role
-            db.execute(
-                'INSERT INTO web_user_roles (user_id, role) VALUES (?, ?)', 
-                (user_id, 'Admin')
-            )
+            db.execute('''
+                INSERT INTO web_user_roles (user_id, role)
+                VALUES (?, ?)
+            ''', (admin_id, 'Admin'))
             
-            logging.info("Default admin user created")
-        
-        # Check if dev user exists
-        dev_exists = db.execute(
-            'SELECT id FROM web_users WHERE username = ?', ('developer',)
-        ).fetchone()
-        
-        if not dev_exists:
-            password_hash = bcrypt.hashpw('dev123'.encode('utf-8'), bcrypt.gensalt())
+            # Create dev user
+            dev_password_hash = bcrypt.hashpw('dev123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
             cursor = db.execute('''
-                INSERT INTO web_users (username, email, password_hash, full_name, description)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO web_users (username, email, password_hash, full_name, description, is_active)
+                VALUES (?, ?, ?, ?, ?, ?)
             ''', (
-                'developer', 
-                'dev@entropy.local', 
-                password_hash, 
-                'Developer Account', 
-                'Entwicklerkonto für Bot-Konfiguration und technische Verwaltung'
+                'developer',
+                'dev@entropy.local',
+                dev_password_hash,
+                'Entwickler',
+                'Developer mit erweiterten Berechtigungen',
+                True
             ))
             
-            user_id = cursor.lastrowid
+            dev_id = cursor.lastrowid
             
-            # Assign dev and mitglied roles
-            db.execute(
-                'INSERT INTO web_user_roles (user_id, role) VALUES (?, ?)', 
-                (user_id, 'Dev')
-            )
-            db.execute(
-                'INSERT INTO web_user_roles (user_id, role) VALUES (?, ?)', 
-                (user_id, 'Mitglied')
-            )
+            # Assign dev role
+            db.execute('''
+                INSERT INTO web_user_roles (user_id, role)
+                VALUES (?, ?)
+            ''', (dev_id, 'Dev'))
             
-            logging.info("Default developer user created")
-        
-        db.commit()
-        
+            db.commit()
+            logging.info("Default users created successfully")
+            
     except Exception as e:
-        logging.error(f"Error creating default users: {e}")
         db.rollback()
+        logging.error(f"Error creating default data: {e}")
         raise
+
+def get_stats_from_cache(stat_key):
+    """Get cached statistics"""
+    db = get_db()
+    result = db.execute(
+        'SELECT stat_value, last_updated FROM web_stats_cache WHERE stat_key = ?',
+        (stat_key,)
+    ).fetchone()
+    
+    if result:
+        return {
+            'value': result['stat_value'],
+            'last_updated': result['last_updated']
+        }
+    return None
+
+def update_stats_cache(stat_key, stat_value):
+    """Update cached statistics"""
+    db = get_db()
+    db.execute('''
+        INSERT OR REPLACE INTO web_stats_cache (stat_key, stat_value, last_updated)
+        VALUES (?, ?, ?)
+    ''', (stat_key, str(stat_value), datetime.now()))
+    db.commit()
+
+def log_activity(user_id, action, resource_type=None, resource_id=None, 
+                ip_address=None, user_agent=None, details=None):
+    """Log user activity"""
+    db = get_db()
+    db.execute('''
+        INSERT INTO web_activity_log 
+        (user_id, action, resource_type, resource_id, ip_address, user_agent, details)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (user_id, action, resource_type, resource_id, ip_address, user_agent, details))
+    db.commit()

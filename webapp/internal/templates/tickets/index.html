@@ -1,0 +1,593 @@
+<!-- webapp/internal/templates/tickets/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Tickets - Entropy Gaming{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tickets.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="page-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="gradient-text">
+                    <i class="bi bi-ticket"></i> Support Tickets
+                </h1>
+                <p class="text-muted">
+                    Übersicht aller Support-Tickets mit Transkripten
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="stats-summary">
+                    <span class="badge bg-entropy me-2">
+                        <i class="bi bi-list"></i> {{ tickets_data.total }} Tickets
+                    </span>
+                    <button class="btn btn-outline-entropy" onclick="showTicketSearchModal()">
+                        <i class="bi bi-search"></i> Ticket suchen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section mb-4">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" onchange="this.form.submit()">
+                            <option value="">Alle Status</option>
+                            <option value="open" {% if current_status_filter == 'open' %}selected{% endif %}>
+                                Offen
+                            </option>
+                            <option value="closed" {% if current_status_filter == 'closed' %}selected{% endif %}>
+                                Geschlossen
+                            </option>
+                            <option value="in_progress" {% if current_status_filter == 'in_progress' %}selected{% endif %}>
+                                In Bearbeitung
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="bereich" class="form-label">Bereich</label>
+                        <select class="form-select" id="bereich" name="bereich" onchange="this.form.submit()">
+                            <option value="">Alle Bereiche</option>
+                            <option value="technical" {% if current_bereich_filter == 'technical' %}selected{% endif %}>
+                                Technisch
+                            </option>
+                            <option value="general" {% if current_bereich_filter == 'general' %}selected{% endif %}>
+                                Allgemein
+                            </option>
+                            <option value="gaming" {% if current_bereich_filter == 'gaming' %}selected{% endif %}>
+                                Gaming
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Suchen</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="search" 
+                               name="search" 
+                               value="{{ current_search }}"
+                               placeholder="Ticket-ID, Ersteller oder Titel...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-entropy w-100">
+                            <i class="bi bi-search"></i> Filtern
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    {% if tickets_data.tickets %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-list"></i> Tickets</span>
+            <span class="badge bg-light text-dark">
+                {{ tickets_data.total }} Tickets gefunden
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Titel</th>
+                            <th>Ersteller</th>
+                            <th>Status</th>
+                            <th>Bereich</th>
+                            <th>Erstellt</th>
+                            <th>Bearbeiter</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets_data.tickets %}
+                        <tr class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}">
+                            <td>
+                                <span class="ticket-id">#{{ ticket.ticket_id }}</span>
+                            </td>
+                            <td>
+                                <div class="ticket-title">
+                                    {{ ticket.ticket_modal_field_one or 'Kein Titel' }}
+                                </div>
+                                {% if ticket.ticket_modal_field_two %}
+                                <small class="text-muted">
+                                    {{ ticket.ticket_modal_field_two | truncate_words(10) }}
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="user-info">
+                                    <strong>{{ ticket.ticket_ersteller_name or 'Unbekannt' }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge {{ ticket.ticket_status | status_badge_class }}">
+                                    {% if ticket.ticket_status == 'open' %}
+                                        <i class="bi bi-circle-fill"></i> Offen
+                                    {% elif ticket.ticket_status == 'closed' %}
+                                        <i class="bi bi-check-circle"></i> Geschlossen
+                                    {% elif ticket.ticket_status == 'in_progress' %}
+                                        <i class="bi bi-clock"></i> In Bearbeitung
+                                    {% else %}
+                                        <i class="bi bi-question-circle"></i> {{ ticket.ticket_status or 'Unbekannt' }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if ticket.ticket_bereich %}
+                                    <span class="badge bg-secondary">{{ ticket.ticket_bereich }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ticket.ticket_erstellungszeit %}
+                                    {{ ticket.ticket_erstellungszeit | datetime_format }}
+                                {% else %}
+                                    <span class="text-muted">Unbekannt</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ticket.ticket_bearbeiter_name %}
+                                    <div class="user-info">
+                                        <strong>{{ ticket.ticket_bearbeiter_name }}</strong>
+                                        {% if ticket.ticket_bearbeitungszeit %}
+                                        <br><small class="text-muted">
+                                            {{ ticket.ticket_bearbeitungszeit | datetime_format }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">Nicht bearbeitet</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('tickets.detail', ticket_id=ticket.ticket_id) }}" 
+                                       class="btn btn-sm btn-outline-entropy">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if tickets_data.pages > 1 %}
+        <div class="card-footer">
+            <nav aria-label="Ticket pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if tickets_data.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('tickets.index', page=tickets_data.prev_num, search=current_search, status=current_status_filter, bereich=current_bereich_filter) }}">
+                            <i class="bi bi-chevron-left"></i> Zurück
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in range(1, tickets_data.pages + 1) %}
+                        {% if page_num == tickets_data.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% elif page_num <= 3 or page_num > tickets_data.pages - 3 or (page_num >= tickets_data.page - 1 and page_num <= tickets_data.page + 1) %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('tickets.index', page=page_num, search=current_search, status=current_status_filter, bereich=current_bereich_filter) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% elif page_num == 4 or page_num == tickets_data.pages - 3 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if tickets_data.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('tickets.index', page=tickets_data.next_num, search=current_search, status=current_status_filter, bereich=current_bereich_filter) }}">
+                            Weiter <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state text-center py-5">
+            <div class="empty-icon mb-3">
+                <i class="bi bi-ticket"></i>
+            </div>
+            <h3 class="empty-title">Keine Tickets gefunden</h3>
+            <p class="empty-description text-muted">
+                {% if current_search or current_status_filter or current_bereich_filter %}
+                    Keine Tickets entsprechen Ihren Suchkriterien.
+                    <a href="{{ url_for('tickets.index') }}" class="text-decoration-none">
+                        Filter zurücksetzen
+                    </a>
+                {% else %}
+                    Es sind derzeit keine Tickets verfügbar.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+
+    <!-- Error State -->
+    {% if error %}
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        {{ error }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/tickets.js') }}"></script>
+{% endblock %}
+
+<!-- webapp/internal/templates/tickets/detail.html -->
+{% extends "base.html" %}
+
+{% block title %}Ticket #{{ ticket.ticket_id }} - Tickets{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tickets.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('tickets.index') }}">Tickets</a>
+            </li>
+            <li class="breadcrumb-item active">Ticket #{{ ticket.ticket_id }}</li>
+        </ol>
+    </nav>
+
+    <!-- Ticket Header -->
+    <div class="ticket-detail-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="gradient-text">
+                    <i class="bi bi-ticket"></i> Ticket #{{ ticket.ticket_id }}
+                </h1>
+                <div class="ticket-meta">
+                    <span class="badge {{ ticket.ticket_status | status_badge_class }} me-2">
+                        {% if ticket.ticket_status == 'open' %}
+                            <i class="bi bi-circle-fill"></i> Offen
+                        {% elif ticket.ticket_status == 'closed' %}
+                            <i class="bi bi-check-circle"></i> Geschlossen
+                        {% else %}
+                            <i class="bi bi-clock"></i> {{ ticket.ticket_status or 'Unbekannt' }}
+                        {% endif %}
+                    </span>
+                    {% if ticket.ticket_bereich %}
+                    <span class="badge bg-secondary me-2">{{ ticket.ticket_bereich }}</span>
+                    {% endif %}
+                    <span class="text-muted">
+                        Erstellt: {{ ticket.ticket_erstellungszeit | datetime_format if ticket.ticket_erstellungszeit else 'Unbekannt' }}
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{{ url_for('tickets.index') }}" class="btn btn-outline-entropy">
+                    <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Ticket Details -->
+        <div class="col-lg-8 mb-4">
+            <!-- Ticket Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-info-circle"></i> Ticket-Details
+                </div>
+                <div class="card-body">
+                    <div class="ticket-fields">
+                        {% if ticket.ticket_modal_field_one %}
+                        <div class="field-group mb-3">
+                            <label class="field-label">Titel/Betreff:</label>
+                            <div class="field-value">{{ ticket.ticket_modal_field_one }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if ticket.ticket_modal_field_two %}
+                        <div class="field-group mb-3">
+                            <label class="field-label">Beschreibung:</label>
+                            <div class="field-value">{{ ticket.ticket_modal_field_two }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if ticket.ticket_modal_field_three %}
+                        <div class="field-group mb-3">
+                            <label class="field-label">Zusätzliche Informationen:</label>
+                            <div class="field-value">{{ ticket.ticket_modal_field_three }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if ticket.ticket_modal_field_four %}
+                        <div class="field-group mb-3">
+                            <label class="field-label">Weitere Details:</label>
+                            <div class="field-value">{{ ticket.ticket_modal_field_four }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if ticket.ticket_modal_field_five %}
+                        <div class="field-group mb-3">
+                            <label class="field-label">Anmerkungen:</label>
+                            <div class="field-value">{{ ticket.ticket_modal_field_five }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transcript -->
+            {% if transcript_data %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-chat-text"></i> Ticket-Transkript</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleTranscriptExpand()">
+                        <i class="bi bi-arrows-expand" id="transcriptExpandIcon"></i> Vollbild
+                    </button>
+                </div>
+                <div class="card-body transcript-container" id="transcriptContainer">
+                    <div class="transcript-content">
+                        {% if transcript_data.messages %}
+                            {% for message in transcript_data.messages %}
+                            <div class="message-item">
+                                <div class="message-header">
+                                    <div class="message-author">
+                                        {% if message.avatar %}
+                                        <img src="{{ message.avatar }}" alt="{{ message.author }}" class="author-avatar">
+                                        {% else %}
+                                        <div class="author-avatar-placeholder">
+                                            {{ message.author[0]|upper if message.author else '?' }}
+                                        </div>
+                                        {% endif %}
+                                        <strong>{{ message.author or 'Unbekannt' }}</strong>
+                                    </div>
+                                    <div class="message-time">
+                                        {{ message.timestamp | datetime_format if message.timestamp else 'Unbekannt' }}
+                                    </div>
+                                </div>
+                                <div class="message-content">
+                                    {{ message.content or message.message or 'Keine Nachricht' }}
+                                </div>
+                                {% if message.attachments %}
+                                <div class="message-attachments">
+                                    {% for attachment in message.attachments %}
+                                    <div class="attachment-item">
+                                        <i class="bi bi-paperclip"></i>
+                                        <a href="{{ attachment.url }}" target="_blank">{{ attachment.filename }}</a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-chat-text fs-1 mb-2"></i>
+                                <p>Keine Nachrichten im Transkript verfügbar.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center text-muted py-4">
+                    <i class="bi bi-file-text fs-1 mb-2"></i>
+                    <h5>Kein Transkript verfügbar</h5>
+                    <p>Für dieses Ticket ist kein Transkript vorhanden oder es konnte nicht geladen werden.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <!-- Ticket Info -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="bi bi-info-circle"></i> Ticket-Informationen
+                </div>
+                <div class="card-body">
+                    <div class="info-list">
+                        <div class="info-item">
+                            <label>Ticket-ID:</label>
+                            <span>#{{ ticket.ticket_id }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Status:</label>
+                            <span class="badge {{ ticket.ticket_status | status_badge_class }}">
+                                {{ ticket.ticket_status or 'Unbekannt' }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <label>Bereich:</label>
+                            <span>{{ ticket.ticket_bereich or 'Nicht angegeben' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Ersteller:</label>
+                            <span>{{ ticket.ticket_ersteller_name or 'Unbekannt' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Erstellt am:</label>
+                            <span>{{ ticket.ticket_erstellungszeit | datetime_format if ticket.ticket_erstellungszeit else 'Unbekannt' }}</span>
+                        </div>
+                        {% if ticket.ticket_bearbeiter_name %}
+                        <div class="info-item">
+                            <label>Bearbeiter:</label>
+                            <span>{{ ticket.ticket_bearbeiter_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Bearbeitet am:</label>
+                            <span>{{ ticket.ticket_bearbeitungszeit | datetime_format if ticket.ticket_bearbeitungszeit else 'Unbekannt' }}</span>
+                        </div>
+                        {% endif %}
+                        {% if ticket.ticket_schliesser_name %}
+                        <div class="info-item">
+                            <label>Geschlossen von:</label>
+                            <span>{{ ticket.ticket_schliesser_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Geschlossen am:</label>
+                            <span>{{ ticket.ticket_schliesszeit | datetime_format if ticket.ticket_schliesszeit else 'Unbekannt' }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning"></i> Aktionen
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('tickets.index') }}" class="btn btn-outline-entropy">
+                            <i class="bi bi-list"></i> Alle Tickets
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="copyTicketUrl()">
+                            <i class="bi bi-link"></i> Link kopieren
+                        </button>
+                        {% if transcript_data %}
+                        <button class="btn btn-outline-secondary" onclick="downloadTranscript()">
+                            <i class="bi bi-download"></i> Transkript herunterladen
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/tickets.js') }}"></script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleTranscriptExpand() {
+    const container = document.getElementById('transcriptContainer');
+    const icon = document.getElementById('transcriptExpandIcon');
+    
+    if (container.classList.contains('transcript-fullscreen')) {
+        container.classList.remove('transcript-fullscreen');
+        icon.className = 'bi bi-arrows-expand';
+    } else {
+        container.classList.add('transcript-fullscreen');
+        icon.className = 'bi bi-arrows-collapse';
+    }
+}
+
+function copyTicketUrl() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        // Show toast or notification
+        const toast = document.createElement('div');
+        toast.className = 'toast position-fixed top-0 end-0 m-3';
+        toast.innerHTML = `
+            <div class="toast-header bg-success text-white">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong class="me-auto">Erfolg</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                Ticket-URL wurde in die Zwischenablage kopiert.
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    });
+}
+
+function downloadTranscript() {
+    // Create a downloadable text file from transcript
+    const messages = document.querySelectorAll('.message-item');
+    let transcriptText = `Ticket #{{ ticket.ticket_id }} - Transkript\n\n`;
+    
+    messages.forEach(message => {
+        const author = message.querySelector('.message-author strong').textContent;
+        const time = message.querySelector('.message-time').textContent;
+        const content = message.querySelector('.message-content').textContent;
+        
+        transcriptText += `[${time}] ${author}: ${content}\n\n`;
+    });
+    
+    const blob = new Blob([transcriptText], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ticket-{{ ticket.ticket_id }}-transcript.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+// Auto-scroll to bottom of transcript
+document.addEventListener('DOMContentLoaded', function() {
+    const transcript = document.querySelector('.transcript-content');
+    if (transcript) {
+        transcript.scrollTop = transcript.scrollHeight;
+    }
+});
+</script>
+{% endblock %}

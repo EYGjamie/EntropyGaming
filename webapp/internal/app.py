@@ -19,12 +19,16 @@ def create_app(config_class=Config):
     from blueprints.dashboard import dashboard_bp
     from blueprints.teams import teams_bp
     from blueprints.admin import admin_bp
+    from blueprints.tickets import tickets_bp
+    from blueprints.profile import profile_bp
     from blueprints.api import api_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(teams_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(tickets_bp)
+    app.register_blueprint(profile_bp)
     app.register_blueprint(api_bp)
     
     # Register template filters and globals

@@ -1,0 +1,213 @@
+<!-- webapp/internal/templates/auth/login.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anmeldung - Entropy Gaming</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <!-- Login-specific CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Logo/Header -->
+            <div class="auth-header text-center mb-4">
+                <div class="auth-logo mb-3">
+                    <i class="bi bi-controller"></i>
+                </div>
+                <h2 class="gradient-text mb-2">Entropy Gaming</h2>
+                <p class="text-muted">Interne Webseite</p>
+            </div>
+
+            <!-- Login Form -->
+            <form method="POST" class="auth-form" data-validate>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                {% if category == 'error' %}
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                {% elif category == 'success' %}
+                                    <i class="bi bi-check-circle"></i>
+                                {% elif category == 'info' %}
+                                    <i class="bi bi-info-circle"></i>
+                                {% elif category == 'warning' %}
+                                    <i class="bi bi-exclamation-circle"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">
+                        <i class="bi bi-person"></i> Benutzername oder E-Mail
+                    </label>
+                    <input type="text" 
+                           class="form-control form-control-lg" 
+                           id="username" 
+                           name="username" 
+                           placeholder="Benutzername oder E-Mail-Adresse"
+                           required
+                           autofocus>
+                    <div class="invalid-feedback">
+                        Bitte geben Sie Ihren Benutzernamen oder E-Mail-Adresse ein.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">
+                        <i class="bi bi-lock"></i> Passwort
+                    </label>
+                    <div class="password-input-group">
+                        <input type="password" 
+                               class="form-control form-control-lg" 
+                               id="password" 
+                               name="password" 
+                               placeholder="Passwort"
+                               required>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="bi bi-eye" id="passwordToggleIcon"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback">
+                        Bitte geben Sie Ihr Passwort ein.
+                    </div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                    <label class="form-check-label" for="remember_me">
+                        Angemeldet bleiben
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-entropy btn-lg w-100 mb-3">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Anmelden
+                </button>
+
+                <div class="auth-footer text-center">
+                    <p class="text-muted mb-2">
+                        <small>Standard-Anmeldedaten für das MVP:</small>
+                    </p>
+                    <div class="demo-credentials">
+                        <small class="text-muted d-block">
+                            <strong>Admin:</strong> admin@entropy.local / admin123
+                        </small>
+                        <small class="text-muted d-block">
+                            <strong>Dev:</strong> developer@entropy.local / dev123
+                        </small>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="auth-info mt-4 text-center">
+            <p class="text-muted">
+                <small>
+                    Probleme beim Anmelden? Kontaktieren Sie einen Administrator.
+                </small>
+            </p>
+            <div class="auth-links">
+                <a href="#" class="text-decoration-none text-muted me-3">
+                    <i class="bi bi-question-circle"></i> Hilfe
+                </a>
+                <a href="#" class="text-decoration-none text-muted">
+                    <i class="bi bi-shield-check"></i> Datenschutz
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Animation -->
+    <div class="auth-background">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Auth JavaScript -->
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+    <script>
+        // Password visibility toggle
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'bi bi-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'bi bi-eye';
+            }
+        }
+
+        // Form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('.auth-form');
+            
+            form.addEventListener('submit', function(e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+
+            // Auto-focus on first input
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                setTimeout(() => usernameInput.focus(), 100);
+            }
+
+            // Demo credentials quick-fill
+            document.addEventListener('keydown', function(e) {
+                if (e.altKey && e.key === '1') {
+                    document.getElementById('username').value = 'admin@entropy.local';
+                    document.getElementById('password').value = 'admin123';
+                } else if (e.altKey && e.key === '2') {
+                    document.getElementById('username').value = 'developer@entropy.local';
+                    document.getElementById('password').value = 'dev123';
+                }
+            });
+        });
+
+        // Loading state
+        document.querySelector('.auth-form').addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Anmeldung...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after timeout (in case of client-side validation failure)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

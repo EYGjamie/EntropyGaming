@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Organigramm - Entropy Gaming{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/orgchart.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="page-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="gradient-text">
+                    <i class="bi bi-diagram-3"></i> Organigramm
+                </h1>
+                <p class="text-muted">
+                    Organisationsstruktur von {{ orgchart_data.organization or 'Entropy Gaming' }}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-outline-entropy" onclick="expandAll()">
+                    <i class="bi bi-arrows-expand"></i> Alle erweitern
+                </button>
+                <button class="btn btn-outline-secondary" onclick="collapseAll()">
+                    <i class="bi bi-arrows-collapse"></i> Alle einklappen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orgchart Container -->
+    <div class="card">
+        <div class="card-body">
+            {% if orgchart_data and orgchart_data.structure %}
+            <div id="orgchart" class="orgchart-container">
+                <!-- This will be populated by JavaScript -->
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-diagram-3 fs-1 mb-3"></i>
+                <h4>Organigramm nicht verfügbar</h4>
+                <p>Die Organisationsstruktur konnte nicht geladen werden.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger mt-3">
+        <i class="bi bi-exclamation-triangle"></i>
+        {{ error }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/orgchart.js') }}"></script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Orgchart data from backend
+const orgchartData = {{ orgchart_data | tojson }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (orgchartData && orgchartData.structure) {
+        renderOrgChart(orgchartData.structure);
+    }
+});
+
+function renderOrgChart(data) {
+    const container = document.getElementById('orgchart');
+    container.innerHTML = generateOrgChartHTML(data);
+}
+
+function generateOrgChartHTML(node, level = 0) {
+    const hasChildren = node.children && node.children.length > 0;
+    
+    let html = `
+        <div class="org-node" data-level="${level}">
+            <div class="org-card ${level === 0 ? 'org-root' : ''}" onclick="toggleNode(this)">
+                <div class="org-title">${node.name || 'Unbekannt'}</div>
+                <div class="org-subtitle">${node.title || ''}</div>
+                ${hasChildren ? '<i class="bi bi-chevron-down toggle-icon"></i>' : ''}
+            </div>
+    `;
+    
+    if (hasChildren) {
+        html += '<div class="org-children">';
+        for (const child of node.children) {
+            html += generateOrgChartHTML(child, level + 1);
+        }
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function toggleNode(cardElement) {
+    const node = cardElement.parentElement;
+    const children = node.querySelector('.org-children');
+    const icon = cardElement.querySelector('.toggle-icon');
+    
+    if (children) {
+        children.classList.toggle('collapsed');
+        icon.classList.toggle('bi-chevron-down');
+        icon.classList.toggle('bi-chevron-right');
+    }
+}
+
+function expandAll() {
+    document.querySelectorAll('.org-children').forEach(children => {
+        children.classList.remove('collapsed');
+    });
+    document.querySelectorAll('.toggle-icon').forEach(icon => {
+        icon.className = 'bi bi-chevron-down toggle-icon';
+    });
+}
+
+function collapseAll() {
+    document.querySelectorAll('.org-children').forEach(children => {
+        children.classList.add('collapsed');
+    });
+    document.querySelectorAll('.toggle-icon').forEach(icon => {
+        icon.className = 'bi bi-chevron-right toggle-icon';
+    });
+}
+</script>
+{% endblock %>

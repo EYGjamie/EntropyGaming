@@ -1,429 +1,444 @@
-/* CSS Variables */
+/* webapp/internal/static/css/global.css */
+/* Globale Styles für die Flask MVP Anwendung */
+
+/* ===== CSS CUSTOM PROPERTIES ===== */
 :root {
-    --entropy-red: #ff0000;
-    --entropy-dark: #1a1a1a;
-    --entropy-gray: #2d2d2d;
-    --entropy-light-gray: #f8f9fa;
-    --entropy-border: #dee2e6;
+    /* Entropy Gaming Brand Colors */
+    --entropy-primary: #6f42c1;
+    --entropy-secondary: #6c757d;
     --entropy-success: #198754;
-    --entropy-warning: #ffc107;
     --entropy-danger: #dc3545;
+    --entropy-warning: #ffc107;
     --entropy-info: #0dcaf0;
+    --entropy-light: #f8f9fa;
+    --entropy-dark: #212529;
     
-    /* Shadows */
-    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    /* Gradients */
+    --entropy-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --entropy-gradient-hover: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    
+    /* Spacing */
+    --entropy-border-radius: 0.5rem;
+    --entropy-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --entropy-box-shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     
     /* Transitions */
-    --transition-fast: 0.15s ease-in-out;
-    --transition-normal: 0.3s ease-in-out;
-    --transition-slow: 0.5s ease-in-out;
+    --entropy-transition: all 0.2s ease-in-out;
 }
 
-/* Global Styles */
+/* ===== GLOBAL STYLES ===== */
 body {
-    background-color: var(--entropy-light-gray);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: var(--entropy-dark);
     line-height: 1.6;
-    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-    color: #2c3e50;
-    font-weight: 600;
+.main-content {
+    flex: 1;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
 }
 
-.text-entropy {
-    color: var(--entropy-red) !important;
+/* ===== NAVIGATION ===== */
+.entropy-navbar {
+    background: var(--entropy-gradient) !important;
+    box-shadow: var(--entropy-box-shadow-lg);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.text-muted {
-    color: #6c757d !important;
-}
-
-/* Navigation */
 .navbar-brand {
     font-weight: bold;
-    color: var(--entropy-red) !important;
-    transition: var(--transition-fast);
+    font-size: 1.4rem;
+    color: white !important;
 }
 
 .navbar-brand:hover {
-    color: #cc0000 !important;
-}
-
-.navbar-dark {
-    background-color: var(--entropy-dark) !important;
-    box-shadow: var(--shadow-sm);
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: var(--entropy-transition);
 }
 
 .navbar-nav .nav-link {
-    transition: var(--transition-fast);
-    border-radius: 0.375rem;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    transition: var(--entropy-transition);
+    border-radius: var(--entropy-border-radius);
     margin: 0 0.25rem;
 }
 
 .navbar-nav .nav-link:hover {
+    color: white !important;
     background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
 }
 
 .navbar-nav .nav-link.active {
-    background-color: var(--entropy-red);
     color: white !important;
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: 600;
 }
 
-/* Buttons */
+.dropdown-menu {
+    border: none;
+    box-shadow: var(--entropy-box-shadow-lg);
+    border-radius: var(--entropy-border-radius);
+}
+
+.dropdown-item {
+    transition: var(--entropy-transition);
+}
+
+.dropdown-item:hover {
+    background: var(--entropy-gradient);
+    color: white;
+    transform: translateX(5px);
+}
+
+/* ===== BUTTONS ===== */
 .btn-entropy {
-    background-color: var(--entropy-red);
-    border-color: var(--entropy-red);
+    background: var(--entropy-gradient);
+    border: none;
     color: white;
     font-weight: 500;
-    transition: var(--transition-fast);
+    border-radius: var(--entropy-border-radius);
+    transition: var(--entropy-transition);
+    box-shadow: var(--entropy-box-shadow);
 }
 
 .btn-entropy:hover {
-    background-color: #cc0000;
-    border-color: #cc0000;
+    background: var(--entropy-gradient-hover);
     color: white;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    box-shadow: var(--entropy-box-shadow-lg);
+}
+
+.btn-entropy:active {
+    transform: translateY(0);
 }
 
 .btn-outline-entropy {
-    border-color: var(--entropy-red);
-    color: var(--entropy-red);
-    transition: var(--transition-fast);
+    border: 2px solid var(--entropy-primary);
+    color: var(--entropy-primary);
+    background: transparent;
+    transition: var(--entropy-transition);
 }
 
 .btn-outline-entropy:hover {
-    background-color: var(--entropy-red);
-    border-color: var(--entropy-red);
+    background: var(--entropy-gradient);
+    border-color: transparent;
     color: white;
+    transform: translateY(-2px);
 }
 
-/* Cards */
+/* ===== CARDS ===== */
 .card {
     border: none;
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-normal);
-    border-radius: 0.5rem;
+    border-radius: var(--entropy-border-radius);
+    box-shadow: var(--entropy-box-shadow);
+    transition: var(--entropy-transition);
 }
 
 .card:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--entropy-box-shadow-lg);
     transform: translateY(-2px);
 }
 
 .card-header {
-    background-color: var(--entropy-light-gray);
-    border-bottom: 1px solid var(--entropy-border);
+    background: var(--entropy-gradient);
+    color: white;
     font-weight: 600;
+    border-radius: var(--entropy-border-radius) var(--entropy-border-radius) 0 0 !important;
 }
 
-.stat-card {
-    background: linear-gradient(135deg, var(--entropy-red), #ff4444);
-    color: white;
-    border-radius: 0.5rem;
-    overflow: hidden;
+.card-stats {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-left: 4px solid var(--entropy-primary);
 }
 
-.stat-card .card-body {
-    position: relative;
+.card-stats .card-body {
+    padding: 1.5rem;
 }
 
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 0.6s;
+.card-stats .stats-icon {
+    font-size: 2.5rem;
+    color: var(--entropy-primary);
+    opacity: 0.8;
 }
 
-.stat-card:hover::before {
-    transform: translateX(100%);
+.card-stats .stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--entropy-primary);
+    margin: 0;
 }
 
-/* Role Badges */
-.role-badge {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
+.card-stats .stats-label {
+    color: var(--entropy-secondary);
     font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
 }
 
-.role-admin {
-    background-color: var(--entropy-danger);
-    color: white;
-}
-
-.role-dev {
-    background-color: #6f42c1;
-    color: white;
-}
-
-.role-mitglied {
-    background-color: var(--entropy-success);
-    color: white;
-}
-
-.role-guest {
-    background-color: #6c757d;
-    color: white;
-}
-
-/* Status Badges */
-.status-open {
-    background-color: var(--entropy-success);
-}
-
-.status-claimed {
-    background-color: var(--entropy-warning);
-}
-
-.status-closed {
-    background-color: #6c757d;
-}
-
-.status-deleted {
-    background-color: var(--entropy-danger);
-}
-
-/* Tables */
+/* ===== TABLES ===== */
 .table {
-    border-radius: 0.5rem;
+    background: white;
+    border-radius: var(--entropy-border-radius);
     overflow: hidden;
+    box-shadow: var(--entropy-box-shadow);
 }
 
 .table thead th {
-    background-color: var(--entropy-gray);
+    background: var(--entropy-gradient);
     color: white;
-    font-weight: 600;
     border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+.table tbody tr {
+    transition: var(--entropy-transition);
 }
 
 .table tbody tr:hover {
-    background-color: rgba(255, 0, 0, 0.05);
+    background-color: rgba(102, 126, 234, 0.05);
+    transform: scale(1.01);
 }
 
-/* Forms */
+.table tbody td {
+    vertical-align: middle;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ===== FORMS ===== */
+.form-control {
+    border-radius: var(--entropy-border-radius);
+    border: 2px solid #e9ecef;
+    transition: var(--entropy-transition);
+}
+
 .form-control:focus {
-    border-color: var(--entropy-red);
-    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+    border-color: var(--entropy-primary);
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.15);
 }
 
-.form-select:focus {
-    border-color: var(--entropy-red);
-    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+.form-label {
+    font-weight: 600;
+    color: var(--entropy-dark);
+    margin-bottom: 0.5rem;
 }
 
-.input-group-text {
-    background-color: var(--entropy-light-gray);
-    border-color: var(--entropy-border);
+.input-group {
+    border-radius: var(--entropy-border-radius);
+    overflow: hidden;
+}
+
+/* ===== BADGES ===== */
+.badge {
     font-weight: 500;
+    border-radius: var(--entropy-border-radius);
 }
 
-/* Alerts */
+.badge-role-admin {
+    background: var(--entropy-gradient);
+    color: white;
+}
+
+.badge-role-dev {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.badge-role-member {
+    background: linear-gradient(135deg, #007bff, #6f42c1);
+    color: white;
+}
+
+.badge-role-guest {
+    background: var(--entropy-secondary);
+    color: white;
+}
+
+/* ===== ALERTS ===== */
 .alert {
     border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
+    border-radius: var(--entropy-border-radius);
+    border-left: 4px solid;
 }
 
 .alert-success {
-    background-color: #d1e7dd;
-    color: #0a3622;
+    border-left-color: var(--entropy-success);
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.1), rgba(25, 135, 84, 0.05));
 }
 
 .alert-danger {
-    background-color: #f8d7da;
-    color: #58151c;
+    border-left-color: var(--entropy-danger);
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
 }
 
 .alert-warning {
-    background-color: #fff3cd;
-    color: #664d03;
+    border-left-color: var(--entropy-warning);
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
 }
 
 .alert-info {
-    background-color: #cff4fc;
-    color: #055160;
+    border-left-color: var(--entropy-info);
+    background: linear-gradient(135deg, rgba(13, 202, 240, 0.1), rgba(13, 202, 240, 0.05));
 }
 
-/* Modals */
-.modal-content {
-    border: none;
-    border-radius: 0.5rem;
-    box-shadow: var(--shadow-lg);
-}
-
-.modal-header {
-    background-color: var(--entropy-light-gray);
-    border-bottom: 1px solid var(--entropy-border);
-    border-radius: 0.5rem 0.5rem 0 0;
-}
-
-.modal-footer {
-    background-color: var(--entropy-light-gray);
-    border-top: 1px solid var(--entropy-border);
-    border-radius: 0 0 0.5rem 0.5rem;
-}
-
-/* Dropdowns */
-.dropdown-menu {
-    border: none;
-    box-shadow: var(--shadow-md);
-    border-radius: 0.5rem;
-}
-
-.dropdown-item:hover {
-    background-color: var(--entropy-red);
-    color: white;
-}
-
-.dropdown-header {
-    color: var(--entropy-red);
-    font-weight: 600;
-}
-
-/* Pagination */
+/* ===== PAGINATION ===== */
 .pagination .page-link {
-    color: var(--entropy-red);
-    border-color: var(--entropy-border);
+    color: var(--entropy-primary);
+    border-color: #dee2e6;
+    transition: var(--entropy-transition);
 }
 
 .pagination .page-link:hover {
+    background: var(--entropy-gradient);
+    border-color: transparent;
     color: white;
-    background-color: var(--entropy-red);
-    border-color: var(--entropy-red);
+    transform: translateY(-1px);
 }
 
 .pagination .page-item.active .page-link {
-    background-color: var(--entropy-red);
-    border-color: var(--entropy-red);
+    background: var(--entropy-gradient);
+    border-color: transparent;
+    color: white;
 }
 
-/* Footer */
+/* ===== SPINNERS ===== */
+.spinner-border-entropy {
+    border-color: rgba(111, 66, 193, 0.25);
+    border-right-color: var(--entropy-primary);
+}
+
+/* ===== FOOTER ===== */
 .footer {
-    background-color: var(--entropy-dark);
-    color: #adb5bd;
-    padding: 2rem 0;
+    background: var(--entropy-dark);
     margin-top: auto;
-    border-top: 1px solid var(--entropy-border);
 }
 
 .footer a {
-    color: #adb5bd;
-    text-decoration: none;
-    transition: var(--transition-fast);
+    transition: var(--entropy-transition);
 }
 
 .footer a:hover {
-    color: var(--entropy-red);
+    color: var(--entropy-info) !important;
+    transform: translateY(-1px);
 }
 
-/* Loading States */
-.loading {
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-.spinner-border-sm {
-    width: 1rem;
-    height: 1rem;
-}
-
-/* Utility Classes */
-.border-entropy {
-    border-color: var(--entropy-red) !important;
-}
-
-.bg-entropy {
-    background-color: var(--entropy-red) !important;
-}
-
-.bg-entropy-light {
-    background-color: rgba(255, 0, 0, 0.1) !important;
-}
-
-.shadow-entropy {
-    box-shadow: 0 0.5rem 1rem rgba(255, 0, 0, 0.15) !important;
-}
-
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.slide-in-left {
-    animation: slideInLeft 0.5s ease-out;
-}
-
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-30px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* Responsive Adjustments */
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-    .navbar-brand {
-        font-size: 1.1rem;
-    }
-    
-    .stat-card .card-body {
-        padding: 1rem;
-    }
-    
-    .table-responsive {
-        font-size: 0.875rem;
-    }
-    
-    .modal-dialog {
-        margin: 0.5rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .container-fluid {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
+    .main-content {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
     }
     
     .card {
         margin-bottom: 1rem;
     }
     
+    .table-responsive {
+        border-radius: var(--entropy-border-radius);
+    }
+    
     .btn {
-        font-size: 0.875rem;
+        font-size: 0.9rem;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem !important;
+    }
+    
+    .stats-icon {
+        font-size: 2rem !important;
     }
 }
 
-/* Print Styles */
-@media print {
-    .navbar,
-    .footer,
-    .btn,
-    .modal {
-        display: none !important;
+/* ===== UTILITY CLASSES ===== */
+.text-entropy {
+    color: var(--entropy-primary) !important;
+}
+
+.bg-entropy {
+    background: var(--entropy-gradient) !important;
+}
+
+.border-entropy {
+    border-color: var(--entropy-primary) !important;
+}
+
+.shadow-entropy {
+    box-shadow: var(--entropy-box-shadow-lg) !important;
+}
+
+.hover-lift {
+    transition: var(--entropy-transition);
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--entropy-box-shadow-lg);
+}
+
+.gradient-text {
+    background: var(--entropy-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+}
+
+/* ===== ANIMATION CLASSES ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-    
-    .container-fluid {
-        margin: 0;
-        padding: 0;
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.staggered-animation {
+    animation-delay: var(--animation-delay, 0s);
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1a1a1a;
+        color: #e9ecef;
     }
     
     .card {
-        border: 1px solid #000;
-        box-shadow: none;
+        background-color: #2d2d2d;
+        color: #e9ecef;
+    }
+    
+    .table {
+        background-color: #2d2d2d;
+        color: #e9ecef;
+    }
+    
+    .form-control {
+        background-color: #2d2d2d;
+        border-color: #495057;
+        color: #e9ecef;
+    }
+    
+    .form-control:focus {
+        background-color: #2d2d2d;
+        color: #e9ecef;
     }
 }
