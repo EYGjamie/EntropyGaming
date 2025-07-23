@@ -160,12 +160,6 @@
                                             {{ activity.action }}
                                         {% endif %}
                                     </div>
-                                    <small class="text-muted">
-                                        {{ activity.created_at.strftime('%d.%m.%Y %H:%M') if activity.created_at else 'Unbekannt' }}
-                                        {% if activity.details %}
-                                            - {{ activity.details }}
-                                        {% endif %}
-                                    </small>
                                 </div>
                             </div>
                             {% endfor %}
@@ -217,22 +211,6 @@
     </div>
     {% endif %}
 
-    <!-- Error State -->
-    {% if error %}
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle"></i>
-                {{ error }}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-{% endblock %}
-
-{% block page_js %}
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
 
 {% block scripts %}

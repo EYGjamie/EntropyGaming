@@ -3,17 +3,10 @@
 
 /* ===== TICKETS OVERVIEW PAGE ===== */
 .tickets-header {
-    background: linear-gradient(135deg, 
-        rgba(220, 38, 38, 0.15) 0%, 
-        rgba(153, 27, 27, 0.1) 50%,
-        rgba(15, 15, 15, 0.9) 100%);
-    border-radius: var(--entropy-border-radius);
+    background: transparent;
     padding: 2rem;
-    border: 1px solid var(--entropy-red-primary);
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(10px);
-    box-shadow: var(--entropy-box-shadow-lg);
     margin-bottom: 2rem;
 }
 
@@ -24,7 +17,6 @@
     left: 0;
     width: 100%;
     height: 4px;
-    background: var(--entropy-gradient-main);
 }
 
 .tickets-header > * {
@@ -172,17 +164,11 @@
 
 /* ===== TICKET DETAIL PAGE ===== */
 .ticket-detail-header {
-    background: linear-gradient(135deg, 
-        rgba(220, 38, 38, 0.15) 0%, 
-        rgba(153, 27, 27, 0.1) 50%,
-        rgba(15, 15, 15, 0.9) 100%);
-    border-radius: var(--entropy-border-radius);
+    background: transparent;
     padding: 2rem;
-    border: 1px solid var(--entropy-red-primary);
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(10px);
-    box-shadow: var(--entropy-box-shadow-lg);
     margin-bottom: 2rem;
 }
 
@@ -193,7 +179,6 @@
     left: 0;
     width: 100%;
     height: 4px;
-    background: var(--entropy-gradient-main);
 }
 
 .ticket-detail-header > * {
@@ -217,7 +202,7 @@
 
 /* ===== TICKET FIELDS ===== */
 .ticket-fields {
-    background: var(--entropy-black-light);
+    background: transparent;
     border: 1px solid var(--entropy-gray-dark);
     border-radius: var(--entropy-border-radius);
     padding: 2rem;
@@ -632,5 +617,175 @@
     
     .ticket-filters {
         padding: 1rem;
+    }
+}
+
+/* ===== ENHANCED TRANSCRIPT STYLES ===== */
+
+.message-item {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--entropy-black-medium);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius-small);
+    transition: var(--entropy-transition);
+}
+
+.message-item:hover {
+    background: rgba(220, 38, 38, 0.05);
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.message-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--entropy-red-primary);
+    background: var(--entropy-black-light);
+    object-fit: cover;
+}
+
+.author-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--entropy-red-primary);
+    background: linear-gradient(45deg, var(--entropy-red-primary), var(--entropy-red-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.message-author strong {
+    color: var(--entropy-white-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.username-hint {
+    color: var(--entropy-white-muted);
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.message-time {
+    color: var(--entropy-white-muted);
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    background: rgba(15, 15, 15, 0.5);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--entropy-gray-dark);
+}
+
+.message-content {
+    color: var(--entropy-white-secondary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin-left: 2.5rem; /* Align with username */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background: rgba(15, 15, 15, 0.3);
+    padding: 0.75rem;
+    border-radius: var(--entropy-border-radius-small);
+    border-left: 3px solid var(--entropy-red-primary);
+}
+
+.no-messages {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--entropy-white-muted);
+}
+
+.no-messages i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--entropy-red-primary);
+    opacity: 0.5;
+}
+
+.no-messages p {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS FOR TRANSCRIPT ===== */
+
+@media (max-width: 768px) {
+    .message-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .message-author {
+        gap: 0.5rem;
+    }
+    
+    .author-avatar,
+    .author-avatar-placeholder {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .message-content {
+        margin-left: 0;
+        margin-top: 0.5rem;
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .message-item {
+        padding: 0.5rem;
+    }
+    
+    .author-avatar,
+    .author-avatar-placeholder {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .message-author strong {
+        font-size: 0.9rem;
+    }
+    
+    .username-hint {
+        font-size: 0.75rem;
+    }
+    
+    .message-content {
+        padding: 0.5rem;
+        font-size: 0.85rem;
     }
 }

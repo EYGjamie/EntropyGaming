@@ -203,7 +203,7 @@ def get_ticket_by_id(ticket_id):
         return None
 
 def load_ticket_transcript(ticket_id):
-    """Load ticket transcript from JSON file"""
+    """Load ticket transcript from JSON file and enrich with user data"""
     try:
         transcripts_dir = current_app.config.get('TRANSCRIPTS_DIR', '../../bot/transcripts')
         
@@ -220,6 +220,8 @@ def load_ticket_transcript(ticket_id):
             f'{ticket_id}_*.json'  # Fallback pattern
         ]
         
+        transcript_data = None
+        
         # First try the exact filename format
         for filename in possible_files:
             if '*' in filename:
@@ -229,41 +231,117 @@ def load_ticket_transcript(ticket_id):
                 for filepath in matching_files:
                     if os.path.exists(filepath):
                         with open(filepath, 'r', encoding='utf-8') as f:
-                            data = json.load(f)
-                            # Sort messages by timestamp (newest first)
-                            if isinstance(data, list):
-                                data.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-                            return data
+                            transcript_data = json.load(f)
+                            break
+                if transcript_data:
+                    break
             else:
                 # Direct file check
                 filepath = os.path.join(transcripts_dir, filename)
                 if os.path.exists(filepath):
                     with open(filepath, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        # Sort messages by timestamp (newest first)
-                        if isinstance(data, list):
-                            data.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-                        return data
+                        transcript_data = json.load(f)
+                    break
         
         # If no direct file found, search for files containing the ticket ID
-        pattern = os.path.join(transcripts_dir, '*.json')
-        for filepath in glob.glob(pattern):
-            try:
-                filename = os.path.basename(filepath)
-                # Check if filename starts with the ticket_id followed by underscore
-                if filename.startswith(f'{ticket_id}_'):
-                    with open(filepath, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        # The transcript is an array of messages, not an object with ticket_id
-                        if isinstance(data, list) and len(data) > 0:
-                            # Sort messages by timestamp (newest first)
-                            data.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-                            return data
-            except Exception as e:
-                logging.error(f"Error reading transcript file {filepath}: {e}")
-                continue
+        if not transcript_data:
+            pattern = os.path.join(transcripts_dir, '*.json')
+            for filepath in glob.glob(pattern):
+                try:
+                    filename = os.path.basename(filepath)
+                    # Check if filename starts with the ticket_id followed by underscore
+                    if filename.startswith(f'{ticket_id}_'):
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            transcript_data = json.load(f)
+                            if isinstance(transcript_data, list) and len(transcript_data) > 0:
+                                break
+                except Exception as e:
+                    logging.error(f"Error reading transcript file {filepath}: {e}")
+                    continue
         
-        return None
+        if not transcript_data:
+            return None
+        
+        # Ensure transcript_data is a list
+        if not isinstance(transcript_data, list):
+            return None
+            
+        # Sort messages by timestamp (oldest first for chat display)
+        transcript_data.sort(key=lambda x: x.get('timestamp', ''))
+        
+        # Enrich each message with user data from database
+        db = get_db()
+        enhanced_messages = []
+        
+        for message in transcript_data:
+            user_id = message.get('userID')
+            if not user_id:
+                continue
+                
+            try:
+                # Look up user in database by discord_id
+                user_row = db.execute(
+                    'SELECT discord_id, username, display_name, nickname, avatar_url FROM users WHERE discord_id = ?',
+                    (str(user_id),)
+                ).fetchone()
+                
+                # Create enhanced message object
+                enhanced_message = {
+                    'userID': user_id,
+                    'username': message.get('username', 'Unknown User'),
+                    'message': message.get('message', ''),
+                    'timestamp': message.get('timestamp', ''),
+                    'avatar_url': None,
+                    'display_name': None,
+                    'nickname': None
+                }
+                
+                # If user found in database, use their data
+                if user_row:
+                    user_data = dict(user_row)
+                    enhanced_message.update({
+                        'username': user_data.get('username', enhanced_message['username']),
+                        'display_name': user_data.get('display_name'),
+                        'nickname': user_data.get('nickname'),
+                        'avatar_url': user_data.get('avatar_url')
+                    })
+                
+                # Determine display name (priority: nickname > display_name > username)
+                display_name = (enhanced_message['nickname'] or 
+                               enhanced_message['display_name'] or 
+                               enhanced_message['username'])
+                enhanced_message['display_name'] = display_name
+                
+                # Format timestamp for display
+                try:
+                    if enhanced_message['timestamp']:
+                        # Parse ISO format timestamp: 2025-04-09T14:26:55Z
+                        dt = datetime.fromisoformat(enhanced_message['timestamp'].replace('Z', '+00:00'))
+                        enhanced_message['formatted_timestamp'] = dt.strftime('%d.%m.%Y %H:%M')
+                    else:
+                        enhanced_message['formatted_timestamp'] = 'Unknown'
+                except Exception as e:
+                    logging.error(f"Error parsing timestamp {enhanced_message['timestamp']}: {e}")
+                    enhanced_message['formatted_timestamp'] = 'Invalid Date'
+                
+                enhanced_messages.append(enhanced_message)
+                
+            except Exception as e:
+                logging.error(f"Error processing message for user {user_id}: {e}")
+                # Add message without user enhancement as fallback
+                enhanced_message = {
+                    'userID': user_id,
+                    'username': message.get('username', 'Unknown User'),
+                    'display_name': message.get('username', 'Unknown User'),
+                    'message': message.get('message', ''),
+                    'timestamp': message.get('timestamp', ''),
+                    'formatted_timestamp': 'Unknown',
+                    'avatar_url': None,
+                    'nickname': None
+                }
+                enhanced_messages.append(enhanced_message)
+        
+        return {'messages': enhanced_messages} if enhanced_messages else None
         
     except Exception as e:
         logging.error(f"Error loading transcript for ticket {ticket_id}: {e}")

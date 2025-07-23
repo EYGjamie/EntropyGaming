@@ -123,7 +123,7 @@
                                 </div>
                                 {% if ticket.ticket_modal_field_two %}
                                 <small class="text-muted">
-                                    {{ ticket.ticket_modal_field_two | truncate_words(10) }}
+                                    {{ ticket.ticket_modal_field_two or 'Keine Beschreibung' }}
                                 </small>
                                 {% endif %}
                             </td>
@@ -154,7 +154,7 @@
                             </td>
                             <td>
                                 {% if ticket.ticket_erstellungszeit %}
-                                    {{ ticket.ticket_erstellungszeit | datetime_format }}
+                                    {{ ticket.ticket_erstellungszeit }}
                                 {% else %}
                                     <span class="text-muted">Unbekannt</span>
                                 {% endif %}
@@ -165,7 +165,7 @@
                                         <strong>{{ ticket.ticket_bearbeiter_name }}</strong>
                                         {% if ticket.ticket_bearbeitungszeit %}
                                         <br><small class="text-muted">
-                                            {{ ticket.ticket_bearbeitungszeit | datetime_format }}
+                                            {{ ticket.ticket_bearbeitungszeit }}
                                         </small>
                                         {% endif %}
                                     </div>
