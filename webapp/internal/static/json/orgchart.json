@@ -1,27 +1,177 @@
 [
-  { "id": 1,  "name": "Michael Decker",       "position": "CEO",                          "parentIds": []           },
-  { "id": 2,  "name": "Jamie Rohner",          "position": "Projektleitung",               "parentIds": [1]          },
-  { "id": 3,  "name": "Fabian \"Evolution\"", "position": "Projektleitung",               "parentIds": [1]          },
-  { "id": 4,  "name": "Philipp",               "position": "Projektleitung",               "parentIds": [1]          },
-  { "id": 5,  "name": "Roskato",               "position": "Projektleitung",               "parentIds": [1]          },
-  { "id": 6,  "name": "TBD",                   "position": "Projektleitung",               "parentIds": [1]          },
-  { "id": 7,  "name": "Marvin",                "position": "Mediengestalter",              "parentIds": [5]          },
-  { "id": 8,  "name": "Paul",                  "position": "Social Media Manager",         "parentIds": [5]          },
-  { "id": 9,  "name": "Marcel",                "position": "Social Media Manager",         "parentIds": [5]          },
-  { "id": 10, "name": "Eric",                  "position": "Club Leitung",                 "parentIds": [6]          },
-  { "id": 11, "name": "Mini",                  "position": "Club Leitung",                 "parentIds": [6]          },
-  { "id": 12, "name": "Mella",                 "position": "Club Leitung",                 "parentIds": [6]          },
-  { "id": 13, "name": "Phyn",                  "position": "Team Akquise",                 "parentIds": [2]          },
-  { "id": 14, "name": "Sechseck",              "position": "Team Akquise",                 "parentIds": [2]          },
-  { "id": 15, "name": "Dominik",               "position": "Bereichsleitung R6",           "parentIds": [16]         },
-  { "id": 16, "name": "Felix",                 "position": "Bereichsleitung R6",           "parentIds": [10,11,12]   },
-  { "id": 17, "name": "Ferrit",                "position": "Social Media Manager",         "parentIds": [5]          },
-  { "id": 18, "name": "Luca",                  "position": "Bereichsleitung Rocket League","parentIds": [10,11,12]   },
-  { "id": 19, "name": "Mario",                 "position": "Bereichsleitung Rocket League","parentIds": [18]         },
-  { "id": 20, "name": "Lunarell",              "position": "Head of Content Creation",     "parentIds": [5]          },
-  { "id": 21, "name": "NYC_1809",              "position": "Bereichsleitung Valorant",     "parentIds": [10,11,12]   },
-  { "id": 22, "name": "OsirisGCC",             "position": "Bereichsleitung R6",           "parentIds": [16]         },
-  { "id": 23, "name": "RagzyEntropy",          "position": "Bereichsleitung R6",           "parentIds": [16]         },
-  { "id": 24, "name": "Salva",                 "position": "Head of eSports",              "parentIds": [3]          },
-  { "id": 25, "name": "Zain",                  "position": "Eventmanagement",              "parentIds": [10,11,12]   }
+  { 
+    "id": 1, 
+    "name": "Michael Decker", 
+    "position": "CEO", 
+    "specific": "Geschäftsführung & strategische Leitung",
+    "parentIds": [] 
+  },
+  { 
+    "id": 2, 
+    "name": "Jamie Rohner", 
+    "position": "Projektleitung", 
+    "specific": "Team Akquise & Rekrutierung",
+    "parentIds": [1] 
+  },
+  { 
+    "id": 3, 
+    "name": "Fabian \"Evolution\"", 
+    "position": "Projektleitung", 
+    "specific": "eSports Koordination",
+    "parentIds": [1] 
+  },
+  { 
+    "id": 4, 
+    "name": "Philipp", 
+    "position": "Projektleitung", 
+    "specific": "Allgemeine Projektkoordination",
+    "parentIds": [1] 
+  },
+  { 
+    "id": 5, 
+    "name": "Roskato", 
+    "position": "Projektleitung", 
+    "specific": "Content & Social Media Koordination",
+    "parentIds": [1] 
+  },
+  { 
+    "id": 6, 
+    "name": "TBD", 
+    "position": "Projektleitung", 
+    "specific": "Club Management & Operations",
+    "parentIds": [1] 
+  },
+  { 
+    "id": 10, 
+    "name": "Eric", 
+    "position": "Club Leitung", 
+    "specific": "Operative Clubführung",
+    "parentIds": [6] 
+  },
+  { 
+    "id": 11, 
+    "name": "Mini", 
+    "position": "Club Leitung", 
+    "specific": "Community Management",
+    "parentIds": [6] 
+  },
+  { 
+    "id": 12, 
+    "name": "Mella", 
+    "position": "Club Leitung", 
+    "specific": "Event Koordination",
+    "parentIds": [6] 
+  },
+  { 
+    "id": 7, 
+    "name": "Marvin", 
+    "position": "Mediengestalter", 
+    "specific": "Grafik Design & visuelle Inhalte",
+    "parentIds": [5] 
+  },
+  { 
+    "id": 8, 
+    "name": "Paul", 
+    "position": "Social Media Manager", 
+    "specific": "Social Media Strategie",
+    "parentIds": [5] 
+  },
+  { 
+    "id": 9, 
+    "name": "Marcel", 
+    "position": "Social Media Manager", 
+    "specific": "Content Creation & Posting",
+    "parentIds": [5] 
+  },
+  { 
+    "id": 17, 
+    "name": "Ferrit", 
+    "position": "Social Media Manager", 
+    "specific": "Community Engagement",
+    "parentIds": [5] 
+  },
+  { 
+    "id": 20, 
+    "name": "Lunarell", 
+    "position": "Head of Content Creation", 
+    "specific": "Content Strategie & Produktion",
+    "parentIds": [5] 
+  },
+  { 
+    "id": 13, 
+    "name": "Phyn", 
+    "position": "Team Akquise", 
+    "specific": "Talentscouting & Rekrutierung",
+    "parentIds": [2] 
+  },
+  { 
+    "id": 14, 
+    "name": "Sechseck", 
+    "position": "Team Akquise", 
+    "specific": "Player Relations",
+    "parentIds": [2] 
+  },
+  { 
+    "id": 24, 
+    "name": "Salva", 
+    "position": "Head of eSports", 
+    "specific": "eSports Strategie & Management",
+    "parentIds": [3] 
+  },
+  { 
+    "id": 16, 
+    "name": "Felix", 
+    "position": "Bereichsleitung R6", 
+    "specific": "Rainbow Six Siege Team Management",
+    "parentIds": [10, 11, 12] 
+  },
+  { 
+    "id": 18, 
+    "name": "Luca", 
+    "position": "Bereichsleitung Rocket League", 
+    "specific": "Rocket League Team Koordination",
+    "parentIds": [10, 11, 12] 
+  },
+  { 
+    "id": 21, 
+    "name": "NYC_1809", 
+    "position": "Bereichsleitung Valorant", 
+    "specific": "Valorant Team Management",
+    "parentIds": [10, 11, 12] 
+  },
+  { 
+    "id": 25, 
+    "name": "Zain", 
+    "position": "Eventmanagement", 
+    "specific": "Tournament & Event Organisation",
+    "parentIds": [10, 11, 12] 
+  },
+  { 
+    "id": 15, 
+    "name": "Dominik", 
+    "position": "Bereichsleitung R6", 
+    "specific": "R6 Team Koordination",
+    "parentIds": [16] 
+  },
+  { 
+    "id": 22, 
+    "name": "OsirisGCC", 
+    "position": "Bereichsleitung R6", 
+    "specific": "R6 Competitive Strategy",
+    "parentIds": [16] 
+  },
+  { 
+    "id": 23, 
+    "name": "RagzyEntropy", 
+    "position": "Bereichsleitung R6", 
+    "specific": "R6 Player Development",
+    "parentIds": [16] 
+  },
+  { 
+    "id": 19, 
+    "name": "Mario", 
+    "position": "Bereichsleitung Rocket League", 
+    "specific": "RL Team Coaching",
+    "parentIds": [18] 
+  }
 ]

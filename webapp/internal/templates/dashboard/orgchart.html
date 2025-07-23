@@ -1,4 +1,3 @@
-<!-- webapp/internal/templates/dashboard/orgchart.html -->
 {% extends "base.html" %}
 
 {% block title %}Organigramm - Entropy Gaming{% endblock %}
@@ -9,166 +8,35 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header Section -->
-    <div class="page-header mb-4">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="gradient-text mb-2">
-                    <i class="bi bi-diagram-3"></i> Organigramm
-                </h1>
-                <p class="text-muted mb-0">
-                    Organisationsstruktur von {{ orgchart_data.organization or 'Entropy Gaming' }}
-                </p>
-                {% if orgchart_data.total_members %}
-                <small class="text-muted">
-                    <i class="bi bi-people"></i> {{ orgchart_data.total_members }} Mitglieder
-                </small>
-                {% endif %}
-            </div>
-            <div class="col-lg-6">
-                <!-- Search and Controls -->
-                <div class="row g-2">
-                    <div class="col-md-8">
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="orgchart-search" 
-                                   placeholder="Person oder Position suchen...">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-entropy dropdown-toggle w-100" 
-                                    type="button" 
-                                    data-bs-toggle="dropdown">
-                                <i class="bi bi-gear"></i> Optionen
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <button class="dropdown-item" onclick="toggleCompactView()">
-                                        <i class="bi bi-arrows-collapse"></i> Kompakte Ansicht
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class="dropdown-item" onclick="centerView()">
-                                        <i class="bi bi-arrows-move"></i> Zentrieren
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class="dropdown-item" onclick="exportOrgchart()">
-                                        <i class="bi bi-download"></i> Exportieren
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="orgchart-title"><i class="bi bi-diagram-3"></i> Organigramm</h1>
+            <p class="orgchart-text">Organisationsstruktur von Entropy Gaming</p>
+            {% if orgchart_data.total_members %}
+            <small class="orgchart-text">{{ orgchart_data.total_members }} Mitglieder</small>
+            {% endif %}
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" onclick="expandAll()">Alle ausklappen</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="collapseAll()">Alle einklappen</button>
             </div>
         </div>
     </div>
 
     <!-- Orgchart Container -->
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
+    <div class="row">
+        <div class="col-12">
             {% if orgchart_data and orgchart_data.people %}
             <div class="orgchart-container" id="orgchart">
-                <div class="org-tree">
-                    <!-- CEO Level -->
-                    <div class="org-level ceo-level">
-                        <!-- CEO wird aus der JSON-Datei geladen -->
-                        <div class="org-node" data-person-id="1">
-                            <div class="org-card level-ceo" 
-                                 data-bs-toggle="tooltip" 
-                                 title="Klicken für Details"
-                                 onclick="showPersonDetails(1)">
-                                <div class="org-title">Michael Decker</div>
-                                <div class="org-subtitle">CEO</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Projektleitung Level -->
-                    <div class="org-level projektleitung-level">
-                    <!-- Projektleitung -->
-                        <div class="org-node" data-person-id="2">
-                            <div class="org-card level-projektleitung" onclick="showPersonDetails(2)">
-                                <div class="org-title">Jamie Rohner</div>
-                                <div class="org-subtitle">Projektleitung</div>
-                            </div>
-                        </div>
-                        <div class="org-node" data-person-id="3">
-                            <div class="org-card level-projektleitung" onclick="showPersonDetails(3)">
-                                <div class="org-title">Fabian "Evolution"</div>
-                                <div class="org-subtitle">Projektleitung</div>
-                            </div>
-                        </div>
-                        <div class="org-node" data-person-id="4">
-                            <div class="org-card level-projektleitung" onclick="showPersonDetails(4)">
-                                <div class="org-title">Philipp</div>
-                                <div class="org-subtitle">Projektleitung</div>
-                            </div>
-                        </div>
-                        <div class="org-node" data-person-id="5">
-                            <div class="org-card level-projektleitung" onclick="showPersonDetails(5)">
-                                <div class="org-title">Roskato</div>
-                                <div class="org-subtitle">Projektleitung</div>
-                            </div>
-                        </div>
-                        <div class="org-node" data-person-id="6">
-                            <div class="org-card level-projektleitung" onclick="showPersonDetails(6)">
-                                <div class="org-title">TBD</div>
-                                <div class="org-subtitle">Projektleitung</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Club Leitung Level -->
-                    <div class="org-level club-leitung-level">
-                    <!-- Club Leitung -->
-                        <div class="org-node" data-person-id="10">
-                            <div class="org-card level-club-leitung" onclick="showPersonDetails(10)">
-                                <div class="org-title">Eric</div>
-                                <div class="org-subtitle">Club Leitung</div>
-                            </div>
-                        </div>
-                        <div class="org-node" data-person-id="11">
-                            <div class="org-card level-club-leitung" onclick="showPersonDetails(11)">
-                                <div class="org-title">Mini</div>
-                                <div class="org-subtitle">Club Leitung</div>
-                            </div>
-                        </div>
-                        <div class="org-node" data-person-id="12">
-                            <div class="org-card level-club-leitung" onclick="showPersonDetails(12)">
-                                <div class="org-title">Mella</div>
-                                <div class="org-subtitle">Club Leitung</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mitarbeiter Level -->
-                    <div class="org-level mitarbeiter-level">
-                    <!-- Mitarbeiter werden dynamisch geladen -->
-                    <div id="mitarbeiter-container">
-                        <!-- Wird von JavaScript gefüllt -->
-                    </div>
-                    </div>
-                </div>
+                <!-- Content wird von JavaScript generiert -->
             </div>
             {% else %}
-            <!-- Empty State -->
-            <div class="empty-state text-center py-5">
-                <i class="bi bi-diagram-3 fs-1 mb-3 text-muted"></i>
-                <h4>Organigramm nicht verfügbar</h4>
-                <p>Die Organisationsstruktur konnte nicht geladen werden.</p>
-                {% if g.user_roles and 'Admin' in g.user_roles %}
-                <div class="mt-3">
-                    <a href="#" class="btn btn-outline-primary" onclick="createDefaultOrgchart()">
-                        <i class="bi bi-plus-circle"></i> Standard-Organigramm erstellen
-                    </a>
-                </div>
+            <div class="text-center py-5">
+                <p class="text-muted">Organigramm konnte nicht geladen werden.</p>
+                {% if 'Admin' in (g.user_roles or []) %}
+                <button class="btn btn-primary" onclick="createDefaultOrgchart()">Standard-Organigramm erstellen</button>
                 {% endif %}
             </div>
             {% endif %}
@@ -176,285 +44,23 @@
     </div>
 
     {% if error %}
-    <div class="alert alert-danger mt-3">
-        <i class="bi bi-exclamation-triangle"></i>
-        {{ error }}
-    </div>
+    <div class="alert alert-danger mt-3">{{ error }}</div>
     {% endif %}
-
-    <!-- Person Detail Modal -->
-    <div class="modal fade" id="personModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-person"></i> <span id="modal-person-name"></span>
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-4">
-                            <strong>Position:</strong>
-                        </div>
-                        <div class="col-sm-8" id="modal-person-position">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-sm-4">
-                            <strong>Hierarchieebene:</strong>
-                        </div>
-                        <div class="col-sm-8" id="modal-person-level">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-sm-4">
-                            <strong>Berichtet an:</strong>
-                        </div>
-                        <div class="col-sm-8" id="modal-person-parents">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-sm-4">
-                            <strong>Direkte Untergebene:</strong>
-                        </div>
-                        <div class="col-sm-8" id="modal-person-subordinates">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <h6>Team-Informationen:</h6>
-                            <div id="modal-person-team-info" class="bg-light p-3 rounded">
-                                <!-- Will be populated by JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    {% if g.user_roles and ('Admin' in g.user_roles or 'Management' in g.user_roles) %}
-                    <button type="button" class="btn btn-outline-warning">
-                        <i class="bi bi-pencil"></i> Bearbeiten
-                    </button>
-                    {% endif %}
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Schließen
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
+
+<!-- JavaScript Daten -->
+<script>
+window.orgData = {{ orgchart_data.people | tojson | safe if orgchart_data.people else '[]' }};
+</script>
 {% endblock %}
 
 {% block page_js %}
 <script src="{{ url_for('static', filename='js/orgchart.js') }}"></script>
-{% endblock %}
-
-{% block scripts %}
 <script>
-// Initialize orgchart on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Initialize search functionality
-    const searchInput = document.getElementById('orgchart-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
+    if (window.orgData && window.orgData.length > 0) {
+        initOrgChart(window.orgData);
     }
-    
-    // Load orgchart data and render mitarbeiter
-    loadOrgchartData();
-    
-    // Center view on CEO card
-    setTimeout(() => {
-        centerView();
-    }, 500);
 });
-
-// Global variable to store orgchart data
-let orgchartData = null;
-
-// Load orgchart data from API
-async function loadOrgchartData() {
-    try {
-        // Use the existing orgchart.json data directly without API call
-        // This is a temporary fix - in production you'd use the API
-        orgchartData = [
-            { "id": 1,  "name": "Michael Decker",       "position": "CEO",                          "parentIds": []           },
-            { "id": 2,  "name": "Jamie Rohner",          "position": "Projektleitung",               "parentIds": [1]          },
-            { "id": 3,  "name": "Fabian Evolution",      "position": "Projektleitung",               "parentIds": [1]          },
-            { "id": 4,  "name": "Philipp",               "position": "Projektleitung",               "parentIds": [1]          },
-            { "id": 5,  "name": "Roskato",               "position": "Projektleitung",               "parentIds": [1]          },
-            { "id": 6,  "name": "TBD",                   "position": "Projektleitung",               "parentIds": [1]          },
-            { "id": 7,  "name": "Marvin",                "position": "Mediengestalter",              "parentIds": [5]          },
-            { "id": 8,  "name": "Paul",                  "position": "Social Media Manager",         "parentIds": [5]          },
-            { "id": 9,  "name": "Marcel",                "position": "Social Media Manager",         "parentIds": [5]          },
-            { "id": 10, "name": "Eric",                  "position": "Club Leitung",                 "parentIds": [6]          },
-            { "id": 11, "name": "Mini",                  "position": "Club Leitung",                 "parentIds": [6]          },
-            { "id": 12, "name": "Mella",                 "position": "Club Leitung",                 "parentIds": [6]          },
-            { "id": 13, "name": "Phyn",                  "position": "Team Akquise",                 "parentIds": [2]          },
-            { "id": 14, "name": "Sechseck",              "position": "Team Akquise",                 "parentIds": [2]          },
-            { "id": 15, "name": "Dominik",               "position": "Bereichsleitung R6",           "parentIds": [10,11,12]   },
-            { "id": 16, "name": "Felix",                 "position": "Bereichsleitung R6",           "parentIds": [10,11,12]   },
-            { "id": 17, "name": "Ferrit",                "position": "Social Media Manager",         "parentIds": [5]          },
-            { "id": 18, "name": "Luca",                  "position": "Bereichsleitung Rocket League","parentIds": [10,11,12]   },
-            { "id": 19, "name": "Mario",                 "position": "Bereichsleitung Rocket League","parentIds": [18]         },
-            { "id": 20, "name": "Lunarell",              "position": "Head of Content Creation",     "parentIds": [5]          },
-            { "id": 21, "name": "NYC_1809",              "position": "Bereichsleitung Valorant",     "parentIds": [10,11,12]   },
-            { "id": 22, "name": "OsirisGCC",             "position": "Bereichsleitung R6",           "parentIds": [16]         },
-            { "id": 23, "name": "RagzyEntropy",          "position": "Bereichsleitung R6",           "parentIds": [16]         },
-            { "id": 24, "name": "Salva",                 "position": "Head of eSports",              "parentIds": [3]          },
-            { "id": 25, "name": "Zain",                  "position": "Eventmanagement",              "parentIds": [10,11,12]   }
-        ];
-        
-        renderMitarbeiter();
-        
-    } catch (error) {
-        console.error('Error loading orgchart data:', error);
-    }
-}
-
-// Render mitarbeiter section
-function renderMitarbeiter() {
-    const container = document.getElementById('mitarbeiter-container');
-    if (!container || !orgchartData) return;
-    
-    const mitarbeiter = orgchartData.filter(person => 
-        !['CEO', 'Projektleitung', 'Club Leitung'].includes(person.position)
-    );
-    
-    container.innerHTML = '';
-    
-    mitarbeiter.forEach(person => {
-        const isShared = person.parentIds && person.parentIds.length > 1;
-        
-        const nodeHTML = `
-            <div class="org-node" data-person-id="${person.id}">
-                <div class="org-card level-mitarbeiter" 
-                     data-bs-toggle="tooltip" 
-                     title="Klicken für Details"
-                     onclick="showPersonDetails(${person.id})">
-                    <div class="org-title">${person.name}</div>
-                    <div class="org-subtitle">${person.position}</div>
-                    ${isShared ? '<div class="org-stats"><span class="stat-item"><i class="bi bi-diagram-2"></i> Shared</span></div>' : ''}
-                </div>
-            </div>
-        `;
-        
-        container.innerHTML += nodeHTML;
-    });
-}
-    
-    // Populate modal
-    document.getElementById('modal-person-name').textContent = person.name;
-    document.getElementById('modal-person-position').textContent = person.position;
-    
-    // Determine level
-    let level = 'Mitarbeiter';
-    if (person.position === 'CEO') level = 'Geschäftsführung';
-    else if (person.position === 'Projektleitung') level = 'Führungsebene';
-    else if (person.position === 'Club Leitung') level = 'Bereichsleitung';
-    
-    document.getElementById('modal-person-level').textContent = level;
-    
-    // Find parents
-    const parents = orgchartData.filter(p => person.parentIds.includes(p.id));
-    const parentNames = parents.map(p => p.name).join(', ') || 'Keine';
-    document.getElementById('modal-person-parents').textContent = parentNames;
-    
-    // Find subordinates
-    const subordinates = orgchartData.filter(p => p.parentIds.includes(person.id));
-    const subordinateNames = subordinates.map(p => `${p.name} (${p.position})`).join(', ') || 'Keine';
-    document.getElementById('modal-person-subordinates').textContent = subordinateNames;
-    
-    // Team info
-    const teamInfo = `
-        <strong>Anzahl Mitarbeiter:</strong> ${subordinates.length}<br>
-        <strong>Berichtslinie:</strong> ${parents.length > 0 ? parents.map(p => p.name).join(' & ') : 'Top-Level'}<br>
-        <strong>Bereich:</strong> ${person.position}
-    `;
-    document.getElementById('modal-person-team-info').innerHTML = teamInfo;
-    
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('personModal'));
-    modal.show();
-
-
-// Search functionality
-function handleSearch(event) {
-    const searchTerm = event.target.value.toLowerCase();
-    const cards = document.querySelectorAll('.org-card');
-    
-    if (!searchTerm) {
-        // Show all cards if search is empty
-        cards.forEach(card => {
-            card.classList.remove('search-match');
-            card.parentElement.style.display = '';
-        });
-        return;
-    }
-    
-    cards.forEach(card => {
-        const name = card.querySelector('.org-title').textContent.toLowerCase();
-        const position = card.querySelector('.org-subtitle').textContent.toLowerCase();
-        
-        if (name.includes(searchTerm) || position.includes(searchTerm)) {
-            card.classList.add('search-match');
-            card.parentElement.style.display = '';
-            
-            // Scroll to first match
-            if (document.querySelectorAll('.search-match').length === 1) {
-                card.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-            }
-        } else {
-            card.classList.remove('search-match');
-            card.parentElement.style.display = 'none';
-        }
-    });
-}
-
-// Center view function
-function centerView() {
-    const ceoCard = document.querySelector('.org-card.level-ceo');
-    if (ceoCard) {
-        ceoCard.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-            inline: 'center'
-        });
-    }
-}
-
-// Toggle compact view
-function toggleCompactView() {
-    const container = document.getElementById('orgchart');
-    if (container) {
-        container.classList.toggle('compact');
-    }
-}
-
-// Export functionality (placeholder)
-function exportOrgchart() {
-    alert('Export-Funktion wird implementiert...');
-}
-
-// Create default orgchart (admin function)
-function createDefaultOrgchart() {
-    if (confirm('Möchten Sie ein Standard-Organigramm erstellen?')) {
-        // Implementation would call backend API
-        alert('Standard-Organigramm wird erstellt...');
-    }
-}
 </script>
 {% endblock %}

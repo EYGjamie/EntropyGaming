@@ -354,7 +354,7 @@ def convert_flat_to_hierarchical(flat_data):
         }
 
 def get_department_stats(flat_data):
-    """Get statistics about departments/positions"""
+    """Get statistics about departments/positions including specific descriptions"""
     if not flat_data:
         return {}
     
@@ -362,8 +362,15 @@ def get_department_stats(flat_data):
     for person in flat_data:
         position = person.get("position", "Unbekannt")
         if position not in departments:
-            departments[position] = []
-        departments[position].append(person["name"])
+            departments[position] = {
+                'count': 0,
+                'members': [],
+                'specifics': []
+            }
+        departments[position]['count'] += 1
+        departments[position]['members'].append(person["name"])
+        if person.get("specific"):
+            departments[position]['specifics'].append(person["specific"])
     
     return departments
 

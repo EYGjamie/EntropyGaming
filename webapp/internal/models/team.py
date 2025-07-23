@@ -18,7 +18,7 @@ class Team:
         """Get all teams with optional filtering"""
         db = get_db()
         
-        sql = 'SELECT * FROM team_areas WHERE is_active = "true"'
+        sql = 'SELECT * FROM team_areas WHERE is_active = "1"'
         params = []
         
         if game_filter:
@@ -99,7 +99,7 @@ class Team:
         
         try:
             rows = db.execute(
-                'SELECT DISTINCT game FROM team_areas WHERE is_active = "true" ORDER BY game'
+                'SELECT DISTINCT game FROM team_areas WHERE is_active = "1" ORDER BY game'
             ).fetchall()
             
             return [row['game'] for row in rows]
