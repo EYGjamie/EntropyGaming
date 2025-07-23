@@ -15,7 +15,7 @@
             <div class="welcome-header">
                 <h1 class="gradient-text">
                     <i class="bi bi-house"></i> 
-                    Willkommen, {{ g.user.full_name or g.user.username }}!
+                    Willkommen, {{ g.user.effective_name }}!
                 </h1>
                 <p class="text">
                     {% if g.user_roles %}

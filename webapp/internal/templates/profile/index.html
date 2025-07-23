@@ -24,9 +24,9 @@
             </div>
             <div class="col-md-9">
                 <h1 class="profile-name gradient-text">
-                    {{ g.user.full_name or g.user.username }}
+                    {{ g.user.effective_name }}
                 </h1>
-                <p class="profile-username text-muted">@{{ g.user.username }}</p>
+                <p class="profile-username">{{ g.user.username }}</p>
                 
                 {% if g.user_roles %}
                 <div class="profile-roles mb-3">
@@ -40,17 +40,6 @@
                 <p class="profile-description">{{ g.user.description }}</p>
                 {% endif %}
                 
-                <div class="profile-meta">
-                    <small class="text-muted">
-                        <i class="bi bi-calendar"></i>
-                        Mitglied seit {{ g.user.created_at  if g.user.created_at else 'Unbekannt' }}
-                    </small>
-                    {% if g.user.last_login %}
-                    <small class="text-muted ms-3">
-                        <i class="bi bi-clock"></i>
-                        Letzter Login: {{ g.user.last_login  }}
-                    </small>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -72,7 +61,7 @@
                             </div>
                             <div class="info-group mb-3">
                                 <label class="info-label">E-Mail-Adresse:</label>
-                                <div class="info-value">{{ g.user.email }}</div>
+                                <div class="info-value">{{ g.user.email or 'Nicht angegeben'}}</div>
                             </div>
                             <div class="info-group mb-3">
                                 <label class="info-label">Telefonnummer:</label>
@@ -104,20 +93,11 @@
                             </div>
                         </div>
                     </div>
-                    
-                    {% if g.user.description %}
-                    <div class="info-group">
-                        <label class="info-label">Beschreibung:</label>
-                        <div class="info-value">{{ g.user.description }}</div>
-                    </div>
-                    {% endif %}
+
                 </div>
                 <div class="card-footer">
                     <a href="{{ url_for('profile.edit') }}" class="btn btn-entropy">
                         <i class="bi bi-pencil"></i> Profil bearbeiten
-                    </a>
-                    <a href="{{ url_for('profile.settings') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-gear"></i> Einstellungen
                     </a>
                 </div>
             </div>
@@ -125,25 +105,6 @@
 
         <!-- Activity & Quick Actions -->
         <div class="col-lg-4 mb-4">
-            <!-- Quick Actions -->
-            <div class="card mb-3">
-                <div class="card-header">
-                    <i class="bi bi-lightning"></i> Schnellzugriff
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('profile.edit') }}" class="btn btn-outline-entropy">
-                            <i class="bi bi-pencil"></i> Profil bearbeiten
-                        </a>
-                        <a href="{{ url_for('profile.activity') }}" class="btn btn-outline-entropy">
-                            <i class="bi bi-activity"></i> Meine Aktivitäten
-                        </a>
-                        <a href="{{ url_for('profile.settings') }}" class="btn btn-outline-entropy">
-                            <i class="bi bi-gear"></i> Einstellungen
-                        </a>
-                    </div>
-                </div>
-            </div>
 
             <!-- Recent Activity -->
             <div class="card">

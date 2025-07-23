@@ -1,186 +1,217 @@
-import bcrypt
+from database.db_manager import get_db
 from datetime import datetime
-from database.db_manager import get_db, log_activity
 import logging
 
 class User:
-    def __init__(self, id, username, email, password_hash, full_name=None, 
-                 phone=None, description=None, profile_image='default-avatar.png',
-                 discord_id=None, is_active=True, last_login=None, 
-                 created_at=None, updated_at=None):
+    def __init__(self, id, discord_id, username, display_name, nickname, avatar_url, 
+                 is_bot, joined_server_at, first_seen, last_seen, 
+                 role_diamond_club, role_diamond_teams, role_entropy_member,
+                 role_management, role_developer, role_head_management, role_projektleitung):
         self.id = id
-        self.username = username
-        self.email = email
-        self.password_hash = password_hash
-        self.full_name = full_name
-        self.phone = phone
-        self.description = description
-        self.profile_image = profile_image
         self.discord_id = discord_id
-        self.is_active = is_active
-        self.last_login = last_login
-        self.created_at = created_at
-        self.updated_at = updated_at
-    
+        self.username = username
+        self.display_name = display_name
+        self.nickname = nickname
+        self.avatar_url = avatar_url
+        self.is_bot = is_bot
+        self.joined_server_at = joined_server_at
+        self.first_seen = first_seen
+        self.last_seen = last_seen
+        
+        # Rollen
+        self.role_diamond_club = role_diamond_club
+        self.role_diamond_teams = role_diamond_teams
+        self.role_entropy_member = role_entropy_member
+        self.role_management = role_management
+        self.role_developer = role_developer
+        self.role_head_management = role_head_management
+        self.role_projektleitung = role_projektleitung
+
+    @classmethod
+    def get_by_discord_id(cls, discord_id):
+        """Get user by Discord ID"""
+        try:
+            db = get_db()
+            row = db.execute(
+                '''SELECT * FROM users WHERE discord_id = ?''',
+                (str(discord_id),)
+            ).fetchone()
+            
+            if row:
+                return cls(**dict(row))
+            return None
+            
+        except Exception as e:
+            logging.error(f"Error getting user by Discord ID {discord_id}: {e}")
+            return None
+
     @classmethod
     def get_by_id(cls, user_id):
-        """Get user by ID"""
-        db = get_db()
-        row = db.execute(
-            'SELECT * FROM web_users WHERE id = ? AND is_active = 1',
-            (user_id,)
-        ).fetchone()
-        
-        if row:
-            return cls(**dict(row))
-        return None
-    
-    @classmethod
-    def get_by_username_or_email(cls, username_or_email):
-        """Get user by username or email"""
-        db = get_db()
-        row = db.execute(
-            'SELECT * FROM web_users WHERE (username = ? OR email = ?) AND is_active = 1',
-            (username_or_email, username_or_email)
-        ).fetchone()
-        
-        if row:
-            return cls(**dict(row))
-        return None
-    
-    def verify_password(self, password):
-        """Verify password against hash"""
+        """Get user by internal ID"""
         try:
-            return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+            db = get_db()
+            row = db.execute(
+                '''SELECT * FROM users WHERE id = ?''',
+                (user_id,)
+            ).fetchone()
+            
+            if row:
+                return cls(**dict(row))
+            return None
+            
         except Exception as e:
-            logging.error(f"Password verification error: {e}")
-            return False
-    
+            logging.error(f"Error getting user by ID {user_id}: {e}")
+            return None
+
+    @classmethod
+    def create_or_update_from_discord(cls, discord_user_data, guild_member_data=None):
+        """Create or update user from Discord API data"""
+        try:
+            db = get_db()
+            
+            # Extract Discord user info
+            discord_id = str(discord_user_data['id'])
+            username = discord_user_data['username']
+            display_name = discord_user_data.get('global_name', username)
+            avatar_url = f"https://cdn.discordapp.com/avatars/{discord_id}/{discord_user_data['avatar']}.png" if discord_user_data.get('avatar') else None
+            
+            # Guild member info
+            nickname = None
+            joined_server_at = None
+            if guild_member_data:
+                nickname = guild_member_data.get('nick')
+                joined_server_at = guild_member_data.get('joined_at')
+            
+            # Check if user exists
+            existing_user = cls.get_by_discord_id(discord_id)
+            
+            if existing_user:
+                # Update existing user
+                db.execute('''
+                    UPDATE users 
+                    SET username = ?, display_name = ?, nickname = ?, avatar_url = ?, 
+                        last_seen = CURRENT_TIMESTAMP
+                    WHERE discord_id = ?
+                ''', (username, display_name, nickname, avatar_url, discord_id))
+                
+                db.commit()
+                return cls.get_by_discord_id(discord_id)
+            else:
+                # Create new user
+                cursor = db.execute('''
+                    INSERT INTO users 
+                    (discord_id, username, display_name, nickname, avatar_url, is_bot, 
+                     joined_server_at, first_seen, last_seen)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                ''', (discord_id, username, display_name, nickname, avatar_url, False, joined_server_at))
+                
+                db.commit()
+                return cls.get_by_id(cursor.lastrowid)
+                
+        except Exception as e:
+            logging.error(f"Error creating/updating user from Discord: {e}")
+            return None
+
+    def update_last_seen(self):
+        """Update last seen timestamp"""
+        try:
+            db = get_db()
+            db.execute(
+                'UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?',
+                (self.id,)
+            )
+            db.commit()
+            
+        except Exception as e:
+            logging.error(f"Error updating last seen for user {self.id}: {e}")
+
     def get_roles(self):
-        """Get user roles"""
-        db = get_db()
-        rows = db.execute(
-            'SELECT role FROM web_user_roles WHERE user_id = ?',
-            (self.id,)
-        ).fetchall()
+        """Get list of roles for this user"""
+        roles = []
         
-        return [row['role'] for row in rows]
-    
+        if self.role_head_management:
+            roles.append('Head Management')
+        if self.role_management:
+            roles.append('Management')
+        if self.role_developer:
+            roles.append('Developer')
+        if self.role_projektleitung:
+            roles.append('Projektleitung')
+        if self.role_diamond_club:
+            roles.append('Diamond Club')
+        if self.role_diamond_teams:
+            roles.append('Diamond Teams')
+        if self.role_entropy_member:
+            roles.append('Entropy Member')
+            
+        return roles
+
     def has_role(self, *roles):
         """Check if user has any of the specified roles"""
         user_roles = self.get_roles()
         return any(role in user_roles for role in roles)
-    
-    def update_last_login(self):
-        """Update last login timestamp"""
-        db = get_db()
-        db.execute(
-            'UPDATE web_users SET last_login = ? WHERE id = ?',
-            (datetime.now(), self.id)
-        )
-        db.commit()
-        self.last_login = datetime.now()
-    
-    def update_profile(self, full_name=None, phone=None, description=None, profile_image=None):
-        """Update user profile"""
-        db = get_db()
-        
-        updates = []
-        params = []
-        
-        if full_name is not None:
-            updates.append('full_name = ?')
-            params.append(full_name)
-            self.full_name = full_name
-        
-        if phone is not None:
-            updates.append('phone = ?')
-            params.append(phone)
-            self.phone = phone
-        
-        if description is not None:
-            updates.append('description = ?')
-            params.append(description)
-            self.description = description
-        
-        if profile_image is not None:
-            updates.append('profile_image = ?')
-            params.append(profile_image)
-            self.profile_image = profile_image
-        
-        if updates:
-            updates.append('updated_at = ?')
-            params.append(datetime.now())
-            params.append(self.id)
-            
-            sql = f"UPDATE web_users SET {', '.join(updates)} WHERE id = ?"
-            db.execute(sql, params)
-            db.commit()
-            
-            log_activity(
-                user_id=self.id,
-                action='profile_update',
-                details=f"Updated: {', '.join(updates)}"
-            )
-    
-    def add_role(self, role, assigned_by=None):
-        """Add role to user"""
-        db = get_db()
+
+    def has_management_role(self):
+        """Check if user has any management role"""
+        return self.role_management or self.role_head_management or self.role_developer
+
+    def update_roles_from_discord(self, guild_roles):
+        """Update user roles based on Discord guild roles"""
         try:
-            db.execute(
-                'INSERT INTO web_user_roles (user_id, role, assigned_by) VALUES (?, ?, ?)',
-                (self.id, role, assigned_by)
-            )
+            db = get_db()
+            
+            # Map Discord role names to database columns
+            role_mapping = {
+                'Diamond Club': 'role_diamond_club',
+                'Diamond Teams': 'role_diamond_teams', 
+                'Entropy Member': 'role_entropy_member',
+                'Management': 'role_management',
+                'Developer': 'role_developer',
+                'Head Management': 'role_head_management',
+                'Projektleitung': 'role_projektleitung'
+            }
+            
+            # Reset all roles first
+            update_data = {col: False for col in role_mapping.values()}
+            
+            # Set roles based on Discord roles
+            for role_name in guild_roles:
+                if role_name in role_mapping:
+                    update_data[role_mapping[role_name]] = True
+            
+            # Build UPDATE query
+            set_clause = ', '.join([f"{col} = ?" for col in update_data.keys()])
+            values = list(update_data.values()) + [self.id]
+            
+            db.execute(f'UPDATE users SET {set_clause} WHERE id = ?', values)
             db.commit()
             
-            log_activity(
-                user_id=assigned_by or self.id,
-                action='role_assigned',
-                resource_type='user',
-                resource_id=str(self.id),
-                details=f"Role '{role}' assigned to {self.username}"
-            )
+            logging.info(f"Updated roles for user {self.discord_id}: {guild_roles}")
             
         except Exception as e:
-            logging.error(f"Error adding role {role} to user {self.id}: {e}")
-            raise
-    
-    def remove_role(self, role, removed_by=None):
-        """Remove role from user"""
-        db = get_db()
-        try:
-            db.execute(
-                'DELETE FROM web_user_roles WHERE user_id = ? AND role = ?',
-                (self.id, role)
-            )
-            db.commit()
-            
-            log_activity(
-                user_id=removed_by or self.id,
-                action='role_removed',
-                resource_type='user',
-                resource_id=str(self.id),
-                details=f"Role '{role}' removed from {self.username}"
-            )
-            
-        except Exception as e:
-            logging.error(f"Error removing role {role} from user {self.id}: {e}")
-            raise
-    
+            logging.error(f"Error updating roles for user {self.id}: {e}")
+
+    @property
+    def display_name_or_username(self):
+        """Get display name or fallback to username"""
+        return self.display_name or self.username
+
+    @property
+    def effective_name(self):
+        """Get effective name (nickname > display_name > username)"""
+        return self.nickname or self.display_name or self.username
+
     def to_dict(self):
         """Convert user to dictionary"""
         return {
             'id': self.id,
-            'username': self.username,
-            'email': self.email,
-            'full_name': self.full_name,
-            'phone': self.phone,
-            'description': self.description,
-            'profile_image': self.profile_image,
             'discord_id': self.discord_id,
-            'is_active': self.is_active,
-            'last_login': self.last_login.isoformat() if self.last_login else None,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at,
-            'roles': self.get_roles()
+            'username': self.username,
+            'display_name': self.display_name,
+            'nickname': self.nickname,
+            'avatar_url': self.avatar_url,
+            'effective_name': self.effective_name,
+            'roles': self.get_roles(),
+            'is_management': self.has_management_role(),
+            'last_seen': self.last_seen
         }

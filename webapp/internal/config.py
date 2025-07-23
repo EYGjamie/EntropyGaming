@@ -6,7 +6,7 @@ load_dotenv()
 class Config:
     """Base configuration"""
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
-    DATABASE_PATH = os.getenv('DATABASE_PATH', '../../db/data/entropy.db')
+    DATABASE_PATH = os.getenv('DATABASE_PATH', 'db/data/entropy.db')
     TRANSCRIPTS_DIR = os.getenv('TRANSCRIPTS_DIR', '../../bot/transcripts')
     BOT_CONFIG_DIR = os.getenv('BOT_CONFIG_DIR', '../../bot/config')
     ORGCHART_DATA_FILE = os.getenv('ORGCHART_DATA_FILE', 'data/orgchart.json')
@@ -36,6 +36,13 @@ class Config:
     # Discord configuration
     DISCORD_GUILD_ID = os.getenv('DISCORD_GUILD_ID')
     DISCORD_GUILD_NAME = os.getenv('DISCORD_GUILD_NAME', 'Entropy Gaming')
+    
+    # Discord OAuth configuration
+    DISCORD_CLIENT_ID = os.getenv('DISCORD_CLIENT_ID')
+    DISCORD_CLIENT_SECRET = os.getenv('DISCORD_CLIENT_SECRET')
+    DISCORD_REDIRECT_URI = os.getenv('DISCORD_REDIRECT_URI', 'http://localhost:5000/auth/discord/callback')
+    DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
+    DISCORD_REQUIRED_ROLES = os.getenv('DISCORD_REQUIRED_ROLES', 'role_management,role_head_management,role_developer').split(',')
     
     # Security
     WTF_CSRF_ENABLED = True
