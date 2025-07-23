@@ -159,7 +159,7 @@ def get_dashboard_stats():
         # Get total teams count
         try:
             total_teams = db.execute(
-                'SELECT COUNT(*) as count FROM team_areas WHERE is_active = "true"'
+                'SELECT COUNT(*) as count FROM team_areas WHERE is_active = 1'
             ).fetchone()['count']
         except:
             total_teams = 0
@@ -175,7 +175,7 @@ def get_dashboard_stats():
         # Get open tickets count
         try:
             open_tickets = db.execute(
-                'SELECT COUNT(*) as count FROM tickets WHERE ticket_status = "open"'
+                'SELECT COUNT(*) as count FROM tickets WHERE ticket_status IN ("open", "claimed")'
             ).fetchone()['count']
         except:
             open_tickets = 0
@@ -191,7 +191,7 @@ def get_dashboard_stats():
         # Get games count
         try:
             games = db.execute(
-                'SELECT COUNT(DISTINCT game) as count FROM team_areas WHERE is_active = "true"'
+                'SELECT COUNT(DISTINCT game) as count FROM team_areas WHERE is_active = "1"'
             ).fetchone()['count']
         except:
             games = 0

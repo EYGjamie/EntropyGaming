@@ -3,18 +3,11 @@
 
 /* ===== WELCOME HEADER ===== */
 .welcome-header {
-    background: linear-gradient(135deg, 
-        rgba(220, 38, 38, 0.15) 0%, 
-        rgba(153, 27, 27, 0.1) 30%,
-        rgba(15, 15, 15, 0.9) 100%);
-    border-radius: var(--entropy-border-radius);
     padding: 3rem;
     margin-bottom: 2.5rem;
-    border: 1px solid var(--entropy-red-primary);
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(20px);
-    box-shadow: var(--entropy-box-shadow-red-lg);
+    color: #ffffff;
 }
 
 .welcome-header::before {
@@ -39,8 +32,6 @@
     left: 0;
     width: 100%;
     height: 4px;
-    background: var(--entropy-gradient-main);
-    box-shadow: 0 0 20px var(--entropy-red-primary);
     z-index: 2;
 }
 
@@ -222,14 +213,7 @@
     right: -2px;
     bottom: -2px;
     border-radius: 50%;
-    background: conic-gradient(
-        from 0deg,
-        transparent 0deg,
-        var(--entropy-red-primary) 90deg,
-        transparent 180deg,
-        var(--entropy-red-primary) 270deg,
-        transparent 360deg
-    );
+    background: transparent;
     z-index: -1;
     opacity: 0;
     transition: opacity 0.3s ease;
