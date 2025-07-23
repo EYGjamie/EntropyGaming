@@ -68,10 +68,6 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url_for('admin.index') }}">
                                 <i class="bi bi-speedometer2"></i> Admin Dashboard</a></li>
-                            {% if 'Projektleitung' in g.user_roles %}
-                            <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">
-                                <i class="bi bi-people"></i> Benutzerverwaltung</a></li>
-                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" onclick="showBotConfigModal()">
                                 <i class="bi bi-robot"></i> Bot Configs</a></li>

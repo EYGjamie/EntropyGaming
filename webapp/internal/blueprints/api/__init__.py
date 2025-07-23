@@ -175,7 +175,7 @@ def health_check():
         
         return jsonify({
             'status': 'healthy',
-            'timestamp': json.dumps(datetime.now(), default=str),
+            'timestamp': json.dumps(datetime.time(), default=str),
             'version': '1.0.0'
         })
         
