@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, g, jsonify, current_app
-from utils.decorators import login_required
+from utils.decorators import login_required, role_required
 from database.db_manager import get_db
 import json
 import os
@@ -11,6 +11,7 @@ tickets_bp = Blueprint('tickets', __name__, url_prefix='/tickets')
 
 @tickets_bp.route('/')
 @login_required
+@role_required('Management')
 def index():
     """Tickets overview page"""
     try:
@@ -43,6 +44,7 @@ def index():
 
 @tickets_bp.route('/<int:ticket_id>')
 @login_required
+@role_required('Management')
 def detail(ticket_id):
     """Ticket detail page with transcript"""
     try:
@@ -76,6 +78,7 @@ def detail(ticket_id):
 
 @tickets_bp.route('/api/search')
 @login_required
+@role_required('Management')
 def api_search():
     """API endpoint for ticket search"""
     try:
@@ -204,29 +207,60 @@ def load_ticket_transcript(ticket_id):
     try:
         transcripts_dir = current_app.config.get('TRANSCRIPTS_DIR', '../../bot/transcripts')
         
-        # Try different possible file patterns
+        # Get ticket details to construct the filename
+        ticket = get_ticket_by_id(ticket_id)
+        if not ticket:
+            return None
+        
+        ticket_ersteller = ticket.get('ticket_ersteller_name', '')
+        
+        # Try different possible file patterns based on the format {ticket_id}_{ticket_ersteller}.json
         possible_files = [
-            f'ticket-{ticket_id}.json',
-            f'transcript-{ticket_id}.json'
+            f'{ticket_id}_{ticket_ersteller}.json',
+            f'{ticket_id}_*.json'  # Fallback pattern
         ]
         
+        # First try the exact filename format
         for filename in possible_files:
-            filepath = os.path.join(transcripts_dir, filename)
-            if os.path.exists(filepath):
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+            if '*' in filename:
+                # Use glob for wildcard patterns
+                pattern = os.path.join(transcripts_dir, filename)
+                matching_files = glob.glob(pattern)
+                for filepath in matching_files:
+                    if os.path.exists(filepath):
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            # Sort messages by timestamp (newest first)
+                            if isinstance(data, list):
+                                data.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+                            return data
+            else:
+                # Direct file check
+                filepath = os.path.join(transcripts_dir, filename)
+                if os.path.exists(filepath):
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        # Sort messages by timestamp (newest first)
+                        if isinstance(data, list):
+                            data.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+                        return data
         
         # If no direct file found, search for files containing the ticket ID
         pattern = os.path.join(transcripts_dir, '*.json')
         for filepath in glob.glob(pattern):
             try:
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    # Check if this transcript belongs to our ticket
-                    if (data.get('ticket_id') == ticket_id or 
-                        str(ticket_id) in os.path.basename(filepath)):
-                        return data
-            except:
+                filename = os.path.basename(filepath)
+                # Check if filename starts with the ticket_id followed by underscore
+                if filename.startswith(f'{ticket_id}_'):
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        # The transcript is an array of messages, not an object with ticket_id
+                        if isinstance(data, list) and len(data) > 0:
+                            # Sort messages by timestamp (newest first)
+                            data.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+                            return data
+            except Exception as e:
+                logging.error(f"Error reading transcript file {filepath}: {e}")
                 continue
         
         return None

@@ -12,6 +12,7 @@
     
     <!-- Global CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket-search-modal.css') }}">
     
     <!-- Page-specific CSS -->
     {% block page_css %}{% endblock %}
@@ -102,10 +103,8 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ url_for('profile.index') }}">
                                 <i class="bi bi-person"></i> Mein Profil</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('profile.settings') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('profile.edit') }}">
                                 <i class="bi bi-gear"></i> Einstellungen</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('profile.activity') }}">
-                                <i class="bi bi-clock-history"></i> Aktivitäten</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                 <i class="bi bi-box-arrow-right"></i> Abmelden</a></li>
@@ -141,22 +140,28 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Ticket suchen</h5>
+                    <h5 class="modal-title">
+                        <i class="bi bi-search"></i> Ticket suchen
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="ticketIdSearch" class="form-label">Ticket ID</label>
-                        <input type="text" class="form-control" id="ticketIdSearch" placeholder="Z.B. 12345">
+                        <label for="ticketSearchInput" class="form-label">Ticket-ID oder Suchbegriff</label>
+                        <input type="text" class="form-control" id="ticketSearchInput" 
+                               placeholder="z.B. 123 oder 'Login Problem'" autofocus>
+                        <div class="form-text">Geben Sie eine Ticket-ID oder einen Suchbegriff ein.</div>
                     </div>
-                    <div class="mb-3">
-                        <label for="ticketUserSearch" class="form-label">Benutzername</label>
-                        <input type="text" class="form-control" id="ticketUserSearch" placeholder="Z.B. MaxMustermann">
+                    <div id="ticketSearchResults" class="d-none">
+                        <h6>Suchergebnisse:</h6>
+                        <div id="ticketSearchResultsList" class="list-group"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
-                    <button type="button" class="btn btn-entropy" onclick="searchTicket()">Suchen</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-entropy" onclick="performTicketSearch()">
+                        <i class="bi bi-search"></i> Suchen
+                    </button>
                 </div>
             </div>
         </div>

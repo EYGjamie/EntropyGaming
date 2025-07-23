@@ -46,10 +46,10 @@ def developer_required(f):
     """Decorator to require developer role"""
     return role_required('Developer', 'Head Management')(f)
 
-def head_management_required(f):
+def projektleitung_required(f):
     """Decorator to require head management role"""
-    return role_required('Head Management')(f)
+    return role_required('Projektleitung')(f)
 
 # Backward compatibility aliases
-admin_required = head_management_required
+admin_required = projektleitung_required
 dev_required = developer_required

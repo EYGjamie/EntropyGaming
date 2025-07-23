@@ -32,13 +32,6 @@
             <div class="orgchart-container" id="orgchart">
                 <!-- Content wird von JavaScript generiert -->
             </div>
-            {% else %}
-            <div class="text-center py-5">
-                <p class="text-muted">Organigramm konnte nicht geladen werden.</p>
-                {% if 'Admin' in (g.user_roles or []) %}
-                <button class="btn btn-primary" onclick="createDefaultOrgchart()">Standard-Organigramm erstellen</button>
-                {% endif %}
-            </div>
             {% endif %}
         </div>
     </div>

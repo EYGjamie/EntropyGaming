@@ -1,0 +1,446 @@
+/* ===== TICKET SEARCH MODAL ===== */
+#ticketSearchModal .modal-content {
+    background: var(--entropy-black-light);
+    border: 1px solid var(--entropy-red-primary);
+    border-radius: var(--entropy-border-radius);
+    box-shadow: var(--entropy-box-shadow-lg);
+}
+
+#ticketSearchModal .modal-header {
+    background: linear-gradient(135deg, 
+        rgba(220, 38, 38, 0.15) 0%, 
+        rgba(153, 27, 27, 0.1) 50%,
+        rgba(15, 15, 15, 0.9) 100%);
+    border-bottom: 1px solid var(--entropy-red-primary);
+    border-radius: var(--entropy-border-radius) var(--entropy-border-radius) 0 0;
+    padding: 1.5rem;
+}
+
+#ticketSearchModal .modal-title {
+    color: var(--entropy-white-primary);
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#ticketSearchModal .modal-title i {
+    color: var(--entropy-red-primary);
+    font-size: 1.3rem;
+}
+
+#ticketSearchModal .btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+    transition: var(--entropy-transition);
+}
+
+#ticketSearchModal .btn-close:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+/* ===== SEARCH INPUT STYLING ===== */
+#ticketSearchModal .modal-body {
+    background: var(--entropy-black-medium);
+    padding: 2rem;
+}
+
+.ticket-search-input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+#ticketSearchInput {
+    background: var(--entropy-black-light);
+    border: 2px solid var(--entropy-gray-dark);
+    color: var(--entropy-white-primary);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: var(--entropy-border-radius);
+    transition: var(--entropy-transition);
+    width: 100%;
+}
+
+#ticketSearchInput:focus {
+    background: var(--entropy-black-light);
+    border-color: var(--entropy-red-primary);
+    box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.15);
+    color: var(--entropy-white-primary);
+    outline: none;
+}
+
+#ticketSearchInput::placeholder {
+    color: var(--entropy-white-muted);
+    opacity: 0.7;
+}
+
+.ticket-search-label {
+    color: var(--entropy-white-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ticket-search-help-text {
+    color: var(--entropy-white-muted);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ticket-search-help-text i {
+    color: var(--entropy-red-primary);
+    font-size: 0.9rem;
+}
+
+/* ===== SEARCH RESULTS STYLING ===== */
+#ticketSearchResults {
+    background: var(--entropy-black-light);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    box-shadow: var(--entropy-box-shadow);
+}
+
+#ticketSearchResults.d-none {
+    display: none !important;
+}
+
+#ticketSearchResults h6 {
+    color: var(--entropy-white-primary);
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#ticketSearchResults h6::before {
+    content: "";
+    width: 3px;
+    height: 1.2rem;
+    background: var(--entropy-red-primary);
+    border-radius: 2px;
+}
+
+/* ===== SEARCH RESULTS LIST ===== */
+#ticketSearchResultsList {
+    max-height: 400px;
+    overflow-y: auto;
+    border: none;
+    background: transparent !important;
+}
+
+#ticketSearchResultsList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#ticketSearchResultsList::-webkit-scrollbar-track {
+    background: var(--entropy-black-medium);
+    border-radius: 3px;
+}
+
+#ticketSearchResultsList::-webkit-scrollbar-thumb {
+    background: var(--entropy-red-primary);
+    border-radius: 3px;
+}
+
+#ticketSearchResultsList::-webkit-scrollbar-thumb:hover {
+    background: var(--entropy-red-dark);
+}
+
+/* Override Bootstrap list-group styles */
+#ticketSearchResultsList .list-group-item,
+.ticket-search-result-item {
+    background: var(--entropy-black-medium) !important;
+    border: 1px solid var(--entropy-gray-dark) !important;
+    border-radius: var(--entropy-border-radius-small) !important;
+    margin-bottom: 1rem;
+    transition: var(--entropy-transition);
+    text-decoration: none;
+    display: block;
+    padding: 1.5rem !important;
+    position: relative;
+    overflow: visible;
+    color: var(--entropy-white-primary) !important;
+    min-height: auto;
+}
+
+#ticketSearchResultsList .list-group-item:last-child,
+.ticket-search-result-item:last-child {
+    margin-bottom: 0;
+}
+
+#ticketSearchResultsList .list-group-item:hover,
+.ticket-search-result-item:hover {
+    background: rgba(220, 38, 38, 0.2) !important;
+    border-color: var(--entropy-red-primary) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+    text-decoration: none !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+/* Additional overrides for Bootstrap list-group */
+#ticketSearchResultsList .list-group-item.active {
+    background: rgba(220, 38, 38, 0.3) !important;
+    border-color: var(--entropy-red-primary) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+#ticketSearchResultsList .list-group-item:focus {
+    background: var(--entropy-black-medium) !important;
+    border-color: var(--entropy-red-primary) !important;
+    color: var(--entropy-white-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.15) !important;
+}
+
+#ticketSearchResultsList .list-group-item::before,
+.ticket-search-result-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--entropy-red-primary);
+    opacity: 0;
+    transition: var(--entropy-transition);
+}
+
+#ticketSearchResultsList .list-group-item:hover::before,
+.ticket-search-result-item:hover::before {
+    opacity: 1;
+}
+
+/* ===== RESULT ITEM CONTENT ===== */
+.ticket-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.ticket-result-id {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--entropy-red-primary);
+    font-size: 1rem;
+    background: rgba(220, 38, 38, 0.1);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    flex-shrink: 0;
+    min-width: fit-content;
+}
+
+.ticket-result-status {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    min-width: fit-content;
+}
+
+.ticket-result-title {
+    color: var(--entropy-white-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.ticket-result-meta {
+    color: var(--entropy-white-muted);
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: center;
+    margin-top: 0.75rem;
+}
+
+.ticket-result-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: fit-content;
+}
+
+.ticket-result-meta-item i {
+    color: var(--entropy-red-primary);
+    font-size: 0.9rem;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.ticket-result-meta-item strong {
+    color: var(--entropy-white-primary);
+}
+
+/* ===== NO RESULTS STATE ===== */
+.ticket-search-no-results {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--entropy-white-muted);
+}
+
+.ticket-search-no-results i {
+    font-size: 3rem;
+    color: var(--entropy-gray-dark);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.ticket-search-no-results h6 {
+    color: var(--entropy-white-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.ticket-search-no-results p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* ===== LOADING STATE ===== */
+.ticket-search-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--entropy-white-muted);
+}
+
+.ticket-search-loading .spinner-border {
+    color: var(--entropy-red-primary);
+    margin-bottom: 1rem;
+}
+
+/* ===== MODAL FOOTER ===== */
+#ticketSearchModal .modal-footer {
+    background: var(--entropy-black-medium);
+    border-top: 1px solid var(--entropy-gray-dark);
+    border-radius: 0 0 var(--entropy-border-radius) var(--entropy-border-radius);
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+#ticketSearchModal .btn-entropy {
+    background: var(--entropy-gradient-main);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--entropy-border-radius-small);
+    transition: var(--entropy-transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#ticketSearchModal .btn-entropy:hover {
+    background: var(--entropy-gradient-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+#ticketSearchModal .btn-entropy:focus {
+    box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.25);
+}
+
+#ticketSearchModal .btn-entropy i {
+    font-size: 0.9rem;
+}
+
+#ticketSearchModal .btn-secondary {
+    background: var(--entropy-gray-dark);
+    border: 1px solid var(--entropy-gray-dark);
+    color: var(--entropy-white-muted);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--entropy-border-radius-small);
+    transition: var(--entropy-transition);
+}
+
+#ticketSearchModal .btn-secondary:hover {
+    background: var(--entropy-gray-light);
+    border-color: var(--entropy-gray-light);
+    color: var(--entropy-white-primary);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    #ticketSearchModal .modal-dialog {
+        margin: 1rem;
+        max-width: calc(100vw - 2rem);
+    }
+    
+    #ticketSearchModal .modal-header,
+    #ticketSearchModal .modal-body,
+    #ticketSearchModal .modal-footer {
+        padding: 1rem;
+    }
+    
+    .ticket-result-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .ticket-result-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    #ticketSearchModal .modal-footer {
+        flex-direction: column;
+    }
+    
+    #ticketSearchModal .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    #ticketSearchModal .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100vw - 1rem);
+    }
+    
+    #ticketSearchModal .modal-title {
+        font-size: 1.1rem;
+    }
+    
+    .ticket-result-title {
+        font-size: 0.9rem;
+    }
+    
+    .ticket-result-meta {
+        font-size: 0.8rem;
+    }
+    
+    #ticketSearchResults {
+        padding: 1rem;
+    }
+}

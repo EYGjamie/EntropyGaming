@@ -112,6 +112,29 @@ class User:
             logging.error(f"Error creating/updating user from Discord: {e}")
             return None
 
+    @classmethod
+    def get_management_users(cls):
+        """Get all users with management roles"""
+        try:
+            db = get_db()
+            rows = db.execute('''
+                SELECT * FROM users 
+                WHERE role_management = 1 
+                OR role_head_management = 1 
+                OR role_developer = 1
+                ORDER BY 
+                    role_head_management DESC,
+                    role_management DESC,
+                    role_developer DESC,
+                    username ASC
+            ''').fetchall()
+            
+            return [cls(**dict(row)) for row in rows]
+            
+        except Exception as e:
+            logging.error(f"Error getting management users: {e}")
+            return []
+
     def update_last_seen(self):
         """Update last seen timestamp"""
         try:
@@ -191,6 +214,87 @@ class User:
         except Exception as e:
             logging.error(f"Error updating roles for user {self.id}: {e}")
 
+    def update_profile(self, full_name=None, phone=None, description=None):
+        try:
+            db = get_db()
+            
+            # Build update data
+            update_data = {}
+            if full_name is not None:
+                update_data['full_name'] = full_name
+            if phone is not None:
+                update_data['phone'] = phone  
+            if description is not None:
+                update_data['description'] = description
+            
+            if not update_data:
+                return True
+            
+            # Build UPDATE query
+            set_clause = ', '.join([f"{col} = ?" for col in update_data.keys()])
+            values = list(update_data.values()) + [self.id]
+            
+            db.execute(f'UPDATE users SET {set_clause} WHERE id = ?', values)
+            db.commit()
+            
+            # Update instance attributes
+            for key, value in update_data.items():
+                setattr(self, key, value)
+        
+            
+            logging.info(f"Updated profile for user {self.discord_id}")
+            return True
+            
+        except Exception as e:
+            logging.error(f"Error updating profile for user {self.id}: {e}")
+            return False
+
+    def get_profile_image_url(self):
+        """Get profile image URL - prioritize Discord avatar"""
+        if self.avatar_url:
+            # Discord avatar URLs können verschiedene Größen haben
+            # Wir können ?size=128 anhängen für optimale Größe
+            if '?' in self.avatar_url:
+                return self.avatar_url
+            else:
+                return f"{self.avatar_url}?size=128"
+        else:
+            # Fallback auf Default Avatar oder Initialen
+            return None
+        
+    def can_view_profile(self, target_user_id):
+        """Check if user can view another user's profile"""
+        # Users can always view their own profile
+        if self.id == target_user_id:
+            return True
+        
+        # Management users can view other profiles
+        if self.has_management_role():
+            return True
+        
+        return False
+
+    def get_highest_role(self):
+        """Get the highest priority role for this user"""
+        role_hierarchy = [
+            ('role_projektleitung', 'Projektleitung'),
+            ('role_head_management', 'Head Management'),
+            ('role_developer', 'Developer'),
+            ('role_management', 'Management'),
+            ('role_entropy_member', 'Entropy Member'),
+            ('role_diamond_teams', 'Diamond Teams'),
+            ('role_diamond_club', 'Diamond Club'),
+
+
+        ]
+        
+        for role_attr, role_name in role_hierarchy:
+            if getattr(self, role_attr, False):
+                return role_name
+        
+        return None
+
+
     @property
     def display_name_or_username(self):
         """Get display name or fallback to username"""
@@ -200,6 +304,12 @@ class User:
     def effective_name(self):
         """Get effective name (nickname > display_name > username)"""
         return self.nickname or self.display_name or self.username
+    
+    @property
+    def profile_url(self):
+        """Get public profile URL for this user"""
+        from flask import url_for
+        return url_for('profile.view_profile', user_id=self.id, _external=True)
 
     def to_dict(self):
         """Convert user to dictionary"""
@@ -215,3 +325,31 @@ class User:
             'is_management': self.has_management_role(),
             'last_seen': self.last_seen
         }
+    
+    def to_public_dict(self):
+        """Convert user to dictionary for public view (limited info)"""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'display_name': self.display_name,
+            'nickname': self.nickname,
+            'effective_name': self.effective_name,
+            'avatar_url': self.get_profile_image_url(),
+            'highest_role': self.get_highest_role(),
+            'roles': self.get_roles(),
+            'joined_server_at': self.joined_server_at,
+            'last_seen': self.last_seen,
+            'is_management': self.has_management_role()
+        }
+
+    def to_management_dict(self):
+        """Convert user to dictionary for management view (with contact info)"""
+        data = self.to_public_dict()
+        data.update({
+            'email': getattr(self, 'email', None),
+            'phone': getattr(self, 'phone', None),
+            'description': getattr(self, 'description', None),
+            'discord_id': self.discord_id,
+            'first_seen': self.first_seen
+        })
+        return data

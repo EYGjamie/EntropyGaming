@@ -10,7 +10,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.route('/')
 @login_required
-@role_required('Admin', 'Dev')
+@role_required('Projektleitung', 'Developer')  
 def index():
     """Admin dashboard"""
     try:
@@ -46,7 +46,7 @@ def index():
 
 @admin_bp.route('/users')
 @login_required
-@role_required('Admin')
+@role_required('Projektleitung', 'Developer')
 def users():
     """User management page"""
     try:
@@ -80,7 +80,7 @@ def users():
 
 @admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
-@role_required('Admin')
+@role_required('Projektleitung', 'Developer')
 def edit_user(user_id):
     """Edit user page"""
     try:
@@ -168,7 +168,7 @@ def edit_user(user_id):
 
 @admin_bp.route('/users/create', methods=['GET', 'POST'])
 @login_required
-@role_required('Admin')
+@role_required('Projektleitung', 'Developer')
 def create_user():
     """Create new user"""
     if request.method == 'POST':

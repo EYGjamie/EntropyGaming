@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "name": "CEO",
+    "position": "Chief Executive Officer",
+    "parentIds": []
+  },
+  {
+    "id": 2,
+    "name": "CTO",
+    "position": "Chief Technology Officer",
+    "parentIds": [
+      1
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Team Lead",
+    "position": "Development Team Lead",
+    "parentIds": [
+      2
+    ]
+  }
+]

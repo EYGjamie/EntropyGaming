@@ -43,7 +43,7 @@
                     <span class="badge bg-secondary me-2">{{ ticket.ticket_bereich }}</span>
                     {% endif %}
                     <span class="text-muted">
-                        Erstellt: {{ ticket.ticket_erstellungszeit | datetime_format if ticket.ticket_erstellungszeit else 'Unbekannt' }}
+                        Erstellt: {{ ticket.ticket_erstellungszeit   if ticket.ticket_erstellungszeit else 'Unbekannt' }}
                     </span>
                 </div>
             </div>
@@ -67,35 +67,30 @@
                     <div class="ticket-fields">
                         {% if ticket.ticket_modal_field_one %}
                         <div class="field-group mb-3">
-                            <label class="field-label">Titel/Betreff:</label>
                             <div class="field-value">{{ ticket.ticket_modal_field_one }}</div>
                         </div>
                         {% endif %}
                         
                         {% if ticket.ticket_modal_field_two %}
                         <div class="field-group mb-3">
-                            <label class="field-label">Beschreibung:</label>
                             <div class="field-value">{{ ticket.ticket_modal_field_two }}</div>
                         </div>
                         {% endif %}
                         
                         {% if ticket.ticket_modal_field_three %}
                         <div class="field-group mb-3">
-                            <label class="field-label">Zusätzliche Informationen:</label>
                             <div class="field-value">{{ ticket.ticket_modal_field_three }}</div>
                         </div>
                         {% endif %}
                         
                         {% if ticket.ticket_modal_field_four %}
                         <div class="field-group mb-3">
-                            <label class="field-label">Weitere Details:</label>
                             <div class="field-value">{{ ticket.ticket_modal_field_four }}</div>
                         </div>
                         {% endif %}
                         
                         {% if ticket.ticket_modal_field_five %}
                         <div class="field-group mb-3">
-                            <label class="field-label">Anmerkungen:</label>
                             <div class="field-value">{{ ticket.ticket_modal_field_five }}</div>
                         </div>
                         {% endif %}
@@ -129,7 +124,7 @@
                                         <strong>{{ message.author or 'Unbekannt' }}</strong>
                                     </div>
                                     <div class="message-time">
-                                        {{ message.timestamp | datetime_format if message.timestamp else 'Unbekannt' }}
+                                        {{ message.timestamp   if message.timestamp else 'Unbekannt' }}
                                     </div>
                                 </div>
                                 <div class="message-content">
@@ -196,7 +191,7 @@
                         </div>
                         <div class="info-item">
                             <label>Erstellt am:</label>
-                            <span>{{ ticket.ticket_erstellungszeit | datetime_format if ticket.ticket_erstellungszeit else 'Unbekannt' }}</span>
+                            <span>{{ ticket.ticket_erstellungszeit   if ticket.ticket_erstellungszeit else 'Unbekannt' }}</span>
                         </div>
                         {% if ticket.ticket_bearbeiter_name %}
                         <div class="info-item">
@@ -205,7 +200,7 @@
                         </div>
                         <div class="info-item">
                             <label>Bearbeitet am:</label>
-                            <span>{{ ticket.ticket_bearbeitungszeit | datetime_format if ticket.ticket_bearbeitungszeit else 'Unbekannt' }}</span>
+                            <span>{{ ticket.ticket_bearbeitungszeit   if ticket.ticket_bearbeitungszeit else 'Unbekannt' }}</span>
                         </div>
                         {% endif %}
                         {% if ticket.ticket_schliesser_name %}
@@ -215,7 +210,7 @@
                         </div>
                         <div class="info-item">
                             <label>Geschlossen am:</label>
-                            <span>{{ ticket.ticket_schliesszeit | datetime_format if ticket.ticket_schliesszeit else 'Unbekannt' }}</span>
+                            <span>{{ ticket.ticket_schliesszeit   if ticket.ticket_schliesszeit else 'Unbekannt' }}</span>
                         </div>
                         {% endif %}
                     </div>
@@ -229,9 +224,6 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('tickets.index') }}" class="btn btn-outline-entropy">
-                            <i class="bi bi-list"></i> Alle Tickets
-                        </a>
                         <button class="btn btn-outline-secondary" onclick="copyTicketUrl()">
                             <i class="bi bi-link"></i> Link kopieren
                         </button>

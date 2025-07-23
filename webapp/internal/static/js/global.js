@@ -186,10 +186,10 @@ function displayTicketSearchResults(tickets) {
         <a href="/tickets/${ticket.ticket_id}" class="list-group-item list-group-item-action">
             <div class="d-flex w-100 justify-content-between">
                 <h6 class="mb-1">Ticket #${ticket.ticket_id}</h6>
-                <small class="text-muted">${ticket.ticket_status || 'Unbekannt'}</small>
+                <small class="text">${ticket.ticket_status || 'Unbekannt'}</small>
             </div>
             <p class="mb-1">${ticket.ticket_modal_field_one || 'Kein Titel'}</p>
-            <small class="text-muted">
+            <small class="text">
                 Ersteller: ${ticket.ticket_ersteller_name || 'Unbekannt'}
                 ${ticket.ticket_bereich ? ' | Bereich: ' + ticket.ticket_bereich : ''}
             </small>

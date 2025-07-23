@@ -1,11 +1,8 @@
-"""
-webapp/internal/blueprints/profile/__init__.py
-Profile Blueprint für MVP
-"""
-from flask import Blueprint, render_template, request, redirect, url_for, flash, g, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, g, current_app, abort
 from werkzeug.utils import secure_filename
 from utils.decorators import login_required
-from database.db_manager import log_activity
+from database.db_manager import log_activity, get_db
+from models.user import User
 import os
 import uuid
 import logging
@@ -15,7 +12,7 @@ profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
 @profile_bp.route('/')
 @login_required
 def index():
-    """User profile page"""
+    """User profile page (own profile)"""
     try:
         # Get user activity log
         user_activity = get_user_activity(g.user.id)
@@ -24,7 +21,8 @@ def index():
             'profile/index.html',
             user=g.user,
             roles=g.user_roles,
-            user_activity=user_activity
+            user_activity=user_activity,
+            is_own_profile=True
         )
         
     except Exception as e:
@@ -34,8 +32,45 @@ def index():
             user=g.user,
             roles=g.user_roles,
             user_activity=[],
-            error="Fehler beim Laden des Profils"
+            error="Fehler beim Laden des Profils",
+            is_own_profile=True,
+            top_role = get_top_role(),
         )
+
+@profile_bp.route('/view/<int:user_id>')
+@login_required
+def view_profile(user_id):
+    """View profile of another user (only for management)"""
+    try:
+        # Check if current user has management role
+        if not g.user.has_management_role():
+            flash('Sie haben keine Berechtigung, andere Profile anzusehen.', 'error')
+            return redirect(url_for('profile.index'))
+        
+        # Get target user
+        target_user = User.get_by_id(user_id)
+        if not target_user:
+            flash('Benutzer nicht gefunden.', 'error')
+            return redirect(url_for('dashboard.index'))
+        
+        # Get target user's roles
+        target_user_roles = target_user.get_roles()
+        
+        # Get user activity log (limited for privacy)
+        user_activity = get_user_activity(user_id, limit=10)
+        
+        return render_template(
+            'profile/index.html',
+            user=target_user,
+            roles=target_user_roles,
+            user_activity=user_activity,
+            is_own_profile=False
+        )
+        
+    except Exception as e:
+        logging.error(f"Error loading profile for user {user_id}: {e}")
+        flash('Fehler beim Laden des Profils.', 'error')
+        return redirect(url_for('dashboard.index'))
 
 @profile_bp.route('/edit', methods=['GET', 'POST'])
 @login_required
@@ -48,19 +83,11 @@ def edit():
             phone = request.form.get('phone', '').strip()
             description = request.form.get('description', '').strip()
             
-            # Handle profile image upload
-            profile_image = None
-            if 'profile_image' in request.files:
-                file = request.files['profile_image']
-                if file and file.filename and allowed_file(file.filename):
-                    profile_image = save_profile_image(file)
-            
-            # Update user profile
+            # Update user profile (no image upload needed anymore)
             g.user.update_profile(
                 full_name=full_name or None,
                 phone=phone or None,
-                description=description or None,
-                profile_image=profile_image
+                description=description or None
             )
             
             flash('Profil erfolgreich aktualisiert.', 'success')
@@ -69,80 +96,14 @@ def edit():
         except Exception as e:
             logging.error(f"Error updating profile: {e}")
             flash('Fehler beim Aktualisieren des Profils.', 'error')
-    
-    return render_template(
-        'profile/edit.html',
-        user=g.user,
-        roles=g.user_roles
-    )
+            
+    return render_template('profile/edit.html', user=g.user)
 
-@profile_bp.route('/settings')
-@login_required
-def settings():
-    """Profile settings page"""
-    return render_template(
-        'profile/settings.html',
-        user=g.user,
-        roles=g.user_roles
-    )
-
-@profile_bp.route('/activity')
-@login_required
-def activity():
-    """User activity log page"""
+def get_user_activity(user_id, limit=50, page=1):
+    """Get user activity with pagination"""
     try:
-        page = request.args.get('page', 1, type=int)
-        activity_data = get_user_activity_paginated(g.user.id, page)
-        
-        return render_template(
-            'profile/activity.html',
-            user=g.user,
-            roles=g.user_roles,
-            activity_data=activity_data
-        )
-        
-    except Exception as e:
-        logging.error(f"Error loading user activity: {e}")
-        return render_template(
-            'profile/activity.html',
-            user=g.user,
-            roles=g.user_roles,
-            activity_data={'activities': [], 'total': 0, 'pages': 0}
-        )
-
-def get_user_activity(user_id, limit=10):
-    """Get recent user activity"""
-    try:
-        from database.db_manager import get_db
         db = get_db()
-        
-        activities = db.execute('''
-            SELECT 
-                action,
-                resource_type,
-                resource_id,
-                details,
-                ip_address,
-                created_at
-            FROM web_activity_log
-            WHERE user_id = ?
-            ORDER BY created_at DESC
-            LIMIT ?
-        ''', (user_id, limit)).fetchall()
-        
-        return [dict(activity) for activity in activities]
-        
-    except Exception as e:
-        logging.error(f"Error fetching user activity: {e}")
-        return []
-
-def get_user_activity_paginated(user_id, page=1):
-    """Get paginated user activity"""
-    try:
-        from database.db_manager import get_db
-        db = get_db()
-        
-        items_per_page = current_app.config.get('ITEMS_PER_PAGE', 20)
+        items_per_page = limit
         offset = (page - 1) * items_per_page
         
         # Get total count
@@ -193,45 +154,43 @@ def get_user_activity_paginated(user_id, page=1):
             'next_num': None
         }
 
-def allowed_file(filename):
-    """Check if file extension is allowed"""
-    allowed_extensions = current_app.config.get('ALLOWED_EXTENSIONS', {'png', 'jpg', 'jpeg', 'gif'})
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+def get_top_role(user_roles):
+    """Get the highest priority role for display"""
+    # Role hierarchy (highest to lowest priority)
+    role_hierarchy = [
+        'Projektleitung',
+        'Head Management',
+        'Developer',
+        'Management', 
+        'Entropy Member',
+        'Diamond Teams',
+        'Diamond Club'    
+    ]
+    
+    for role in role_hierarchy:
+        if role in user_roles:
+            return role
+    
+    return None
 
-def save_profile_image(file):
-    """Save uploaded profile image"""
-    try:
-        # Generate unique filename
-        filename = secure_filename(file.filename)
-        name, ext = os.path.splitext(filename)
-        unique_filename = f"{g.user.id}_{uuid.uuid4().hex[:8]}{ext}"
-        
-        # Ensure upload directory exists
-        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'profiles')
-        os.makedirs(upload_dir, exist_ok=True)
-        
-        # Save file
-        filepath = os.path.join(upload_dir, unique_filename)
-        file.save(filepath)
-        
-        # Delete old profile image if it exists and is not the default
-        if (g.user.profile_image and 
-            g.user.profile_image != 'default-avatar.png' and
-            g.user.profile_image.startswith(f"{g.user.id}_")):
-            
-            old_filepath = os.path.join(upload_dir, g.user.profile_image)
-            if os.path.exists(old_filepath):
-                os.remove(old_filepath)
-        
-        # Log activity
-        log_activity(
-            user_id=g.user.id,
-            action='profile_image_updated',
-            details=f"Updated profile image to {unique_filename}"
-        )
-        
-        return unique_filename
-        
-    except Exception as e:
-        logging.error(f"Error saving profile image: {e}")
-        raise
+def get_role_badge_class(role):
+    """Get CSS class for role badge"""
+    role_classes = {
+        'Head Management': 'badge-danger',
+        'Management': 'badge-warning',
+        'Developer': 'badge-info',
+        'Projektleitung': 'badge-success',
+        'Diamond Club': 'badge-purple',
+        'Diamond Teams': 'badge-purple',
+        'Entropy Member': 'badge-secondary'
+    }
+    return role_classes.get(role, 'badge-secondary')
+
+# Register template functions
+@profile_bp.app_template_filter('top_role')
+def top_role_filter(roles):
+    return get_top_role(roles)
+
+@profile_bp.app_template_filter('role_badge_class')
+def role_badge_class_filter(role):
+    return get_role_badge_class(role)

@@ -17,15 +17,6 @@
                     <i class="bi bi-house"></i> 
                     Willkommen, {{ g.user.effective_name }}!
                 </h1>
-                <p class="text">
-                    {% if g.user_roles %}
-                        <span class="ms-3">
-                            {% for role in g.user_roles %}
-                                <span class="badge {{ role | role_badge_class }} me-1">{{ role }}</span>
-                            {% endfor %}
-                        </span>
-                    {% endif %}
-                </p>
             </div>
         </div>
     </div>
