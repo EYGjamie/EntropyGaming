@@ -10,7 +10,7 @@
     "id": 2, 
     "name": "Jamie Rohner", 
     "position": "Projektleitung", 
-    "specific": "Team Akquise & Rekrutierung",
+    "specific": "CIO/CTO & Team Akquise",
     "parentIds": [1] 
   },
   { 
@@ -45,21 +45,21 @@
     "id": 10, 
     "name": "Eric", 
     "position": "Club Leitung", 
-    "specific": "Operative Clubführung",
+    "specific": "Community Management & Operative Clubführung",
     "parentIds": [6] 
   },
   { 
     "id": 11, 
     "name": "Mini", 
     "position": "Club Leitung", 
-    "specific": "Community Management",
+    "specific": "Community Management & Operative Clubführung",
     "parentIds": [6] 
   },
   { 
     "id": 12, 
     "name": "Mella", 
     "position": "Club Leitung", 
-    "specific": "Event Koordination",
+    "specific": "Community Management & Operative Clubführung",
     "parentIds": [6] 
   },
   { 
@@ -73,63 +73,56 @@
     "id": 8, 
     "name": "Paul", 
     "position": "Social Media Manager", 
-    "specific": "Social Media Strategie",
+    "specific": "Match-Coverage",
     "parentIds": [5] 
   },
   { 
     "id": 9, 
     "name": "Marcel", 
     "position": "Social Media Manager", 
-    "specific": "Content Creation & Posting",
-    "parentIds": [5] 
-  },
-  { 
-    "id": 17, 
-    "name": "Ferrit", 
-    "position": "Social Media Manager", 
-    "specific": "Community Engagement",
+    "specific": "n.A.",
     "parentIds": [5] 
   },
   { 
     "id": 20, 
     "name": "Lunarell", 
     "position": "Head of Content Creation", 
-    "specific": "Content Strategie & Produktion",
+    "specific": "Koordination und Management der Content Creator",
     "parentIds": [5] 
   },
   { 
     "id": 13, 
     "name": "Phyn", 
     "position": "Team Akquise", 
-    "specific": "Talentscouting & Rekrutierung",
+    "specific": "Mitgliedergewinnung (Discord & Club)",
     "parentIds": [2] 
   },
   { 
     "id": 14, 
     "name": "Sechseck", 
     "position": "Team Akquise", 
-    "specific": "Player Relations",
+    "specific": "Mitgliedergewinnung (Discord & Club)",
     "parentIds": [2] 
   },
   { 
     "id": 24, 
     "name": "Salva", 
     "position": "Head of eSports", 
-    "specific": "eSports Strategie & Management",
+    "specific": "eSports Management",
     "parentIds": [3] 
   },
   { 
     "id": 16, 
     "name": "Felix", 
-    "position": "Bereichsleitung R6", 
-    "specific": "Rainbow Six Siege Team Management",
+    "position": "Head of Rainbow Six Siege", 
+    "specific": "Rainbow Six Siege Management",
     "parentIds": [10, 11, 12] 
   },
   { 
     "id": 18, 
     "name": "Luca", 
-    "position": "Bereichsleitung Rocket League", 
-    "specific": "Rocket League Team Koordination",
+    "position": "Head of Rocket League", 
+    "specific": "Rocket League Management",
     "parentIds": [10, 11, 12] 
   },
   { 
@@ -149,29 +142,29 @@
   { 
     "id": 15, 
     "name": "Dominik", 
-    "position": "Bereichsleitung R6", 
-    "specific": "R6 Team Koordination",
+    "position": "Bereichsleitung Rainbow Six Siege", 
+    "specific": "Rainbow Six Siege Management",
     "parentIds": [16] 
   },
   { 
     "id": 22, 
     "name": "OsirisGCC", 
-    "position": "Bereichsleitung R6", 
-    "specific": "R6 Competitive Strategy",
+    "position": "Bereichsleitung Rainbow Six Siege", 
+    "specific": "Rainbow Six Siege Management",
     "parentIds": [16] 
   },
   { 
     "id": 23, 
     "name": "RagzyEntropy", 
-    "position": "Bereichsleitung R6", 
-    "specific": "R6 Player Development",
+    "position": "Bereichsleitung Rainbow Six Siege", 
+    "specific": "Rainbow Six Siege Management",
     "parentIds": [16] 
   },
   { 
     "id": 19, 
     "name": "Mario", 
     "position": "Bereichsleitung Rocket League", 
-    "specific": "RL Team Coaching",
+    "specific": "Rocket League Management",
     "parentIds": [18] 
   }
 ]
