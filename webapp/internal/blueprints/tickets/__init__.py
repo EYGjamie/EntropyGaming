@@ -106,7 +106,7 @@ def api_search():
         }), 500
 
 def get_tickets_data(page=1, search='', status_filter='', bereich_filter=''):
-    """Get paginated tickets data with filtering"""
+    """Get paginated tickets data with filtering and formatted timestamps"""
     try:
         db = get_db()
         items_per_page = current_app.config.get('ITEMS_PER_PAGE', 20)
@@ -157,11 +157,35 @@ def get_tickets_data(page=1, search='', status_filter='', bereich_filter=''):
         params.extend([items_per_page, offset])
         tickets = db.execute(tickets_sql, params).fetchall()
         
+        # Format timestamps for each ticket
+        formatted_tickets = []
+        for ticket in tickets:
+            ticket_dict = dict(ticket)
+            
+            # Format timestamps
+            timestamp_fields = [
+                'ticket_erstellungszeit',
+                'ticket_bearbeitungszeit', 
+                'ticket_schliesszeit'
+            ]
+            
+            for field in timestamp_fields:
+                if field in ticket_dict and ticket_dict[field]:
+                    # Keep original timestamp for sorting/calculations
+                    original_field = f"{field}_raw"
+                    ticket_dict[original_field] = ticket_dict[field]
+                    
+                    # Format for display
+                    formatted = format_timestamp(ticket_dict[field])
+                    ticket_dict[field] = formatted
+            
+            formatted_tickets.append(ticket_dict)
+        
         # Calculate pagination info
         pages = (total + items_per_page - 1) // items_per_page
         
         return {
-            'tickets': [dict(ticket) for ticket in tickets],
+            'tickets': formatted_tickets,
             'total': total,
             'page': page,
             'pages': pages,
@@ -185,7 +209,7 @@ def get_tickets_data(page=1, search='', status_filter='', bereich_filter=''):
         }
 
 def get_ticket_by_id(ticket_id):
-    """Get ticket by ID"""
+    """Get ticket by ID with formatted timestamps"""
     try:
         db = get_db()
         
@@ -194,9 +218,31 @@ def get_ticket_by_id(ticket_id):
             (ticket_id,)
         ).fetchone()
         
-        if ticket:
-            return dict(ticket)
-        return None
+        if not ticket:
+            return None
+            
+        # Convert to dict
+        ticket_dict = dict(ticket)
+        
+        # Format timestamps
+        timestamp_fields = [
+            'ticket_erstellungszeit',
+            'ticket_bearbeitungszeit', 
+            'ticket_schliesszeit',
+            'ticket_loeschzeit'
+        ]
+        
+        for field in timestamp_fields:
+            if field in ticket_dict and ticket_dict[field]:
+                # Keep original timestamp for calculations
+                original_field = f"{field}_raw"
+                ticket_dict[original_field] = ticket_dict[field]
+                
+                # Format for display
+                formatted = format_timestamp(ticket_dict[field])
+                ticket_dict[field] = formatted
+        
+        return ticket_dict
         
     except Exception as e:
         logging.error(f"Error fetching ticket {ticket_id}: {e}")
@@ -373,3 +419,23 @@ def search_tickets(query, limit=10):
     except Exception as e:
         logging.error(f"Error searching tickets: {e}")
         return []
+    
+def format_timestamp(timestamp):
+    """Format Unix timestamp to readable German date string"""
+    try:
+        if timestamp is None or timestamp == 0 or timestamp == "0":
+            return None
+        
+        # Convert to int if it's a string
+        if isinstance(timestamp, str):
+            timestamp = int(timestamp)
+        
+        # Convert Unix timestamp to datetime
+        dt = datetime.fromtimestamp(timestamp)
+        
+        # Format to German date string: "DD.MM.YYYY HH:MM"
+        return dt.strftime('%d.%m.%Y %H:%M')
+        
+    except (ValueError, TypeError, OSError) as e:
+        logging.error(f"Error formatting timestamp {timestamp}: {e}")
+        return None

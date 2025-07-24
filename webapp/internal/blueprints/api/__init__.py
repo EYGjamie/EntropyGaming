@@ -31,7 +31,7 @@ def dashboard_stats():
 
 @api_bp.route('/bot-config')
 @login_required
-@role_required('Admin', 'Dev')
+@role_required('Projektleitung', 'Developer')
 def bot_config():
     """API endpoint for bot configuration (read-only)"""
     try:
@@ -122,7 +122,7 @@ def user_activity():
 
 @api_bp.route('/system-info')
 @login_required
-@role_required('Admin', 'Dev')
+@role_required('Projektleitung', 'Developer')
 def system_info():
     """API endpoint for system information"""
     try:

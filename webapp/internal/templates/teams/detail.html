@@ -124,7 +124,7 @@
                             <span class="badge bg-success">Aktiv</span>
                         </div>
                         
-                        {% if 'Admin' in g.user_roles or 'Dev' in g.user_roles %}
+                        {% if 'Projektleitung' in g.user_roles or 'Developer' in g.user_roles %}
                         <hr>
                         <h6>Technische Details:</h6>
                         <div class="info-item">
@@ -169,7 +169,7 @@
                            class="btn btn-outline-entropy">
                             <i class="bi bi-joystick"></i> {{ team.game }} Teams
                         </a>
-                        {% if 'Admin' in g.user_roles %}
+                        {% if 'Projektleitung' in g.user_roles %}
                         <button class="btn btn-outline-secondary" disabled>
                             <i class="bi bi-gear"></i> Team bearbeiten
                             <small class="d-block">(Bald verfügbar)</small>
