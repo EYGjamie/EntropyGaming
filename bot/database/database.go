@@ -101,6 +101,11 @@ func createTables() {
 			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 			UNIQUE(team_id, user_id)
 		);
+
+		CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON team_members(team_id);
+		CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id);
+		CREATE INDEX IF NOT EXISTS idx_team_members_joined_at ON team_members(joined_at);
+		CREATE INDEX IF NOT EXISTS idx_users_last_seen ON users(last_seen);
 		`
 
 	_, err = DB.Exec(team_membersTable)
