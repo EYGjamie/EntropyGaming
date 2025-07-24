@@ -88,6 +88,27 @@ func createTables() {
 	}
 
 	/*==============================================*/
+	// TEAM MEMBERS TABLE
+	/*==============================================*/
+
+	team_membersTable := `
+		CREATE TABLE IF NOT EXISTS team_members (
+			id       INTEGER PRIMARY KEY AUTOINCREMENT,
+			team_id  INTEGER NOT NULL,
+			user_id  INTEGER NOT NULL,
+			joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY(team_id) REFERENCES team_areas(id) ON DELETE CASCADE,
+			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+			UNIQUE(team_id, user_id)
+		);
+		`
+
+	_, err = DB.Exec(team_membersTable)
+	if err != nil {
+		log.Fatalf("Fehler beim Erstellen der team_members-Tabelle: %v", err)
+	}
+
+	/*==============================================*/
 	// LOG TABLES
 	/*==============================================*/
 

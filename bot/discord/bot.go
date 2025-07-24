@@ -9,6 +9,9 @@ import (
 	"bot/handlers/tracking"
 	"bot/handlers/weekly_updates"
 	"bot/utils"
+	"bot/handlers/discord_administration/utils"
+	"bot/handlers/discord_administration/team_areas"
+
 	"log"
 	"os"
 
@@ -56,6 +59,10 @@ func StartBot() error {
 	bot.AddHandler(leaveTracker.OnGuildMemberRemove)
 	bot.AddHandler(voiceTracker.OnVoiceStateUpdate)
 	bot.AddHandler(msgTracker.OnMessageCreate)
+
+	// team member sync
+	discord_administration_utils.SetupRoleChangeHandler(bot)
+	discord_administration_team_areas.StartWeeklySync(bot)
 	
 	// TimedPurger (Regelmäßiges Löschen von alten Nachrichten in bestimmten Kanälen)
 	discord_administration_channel_text.StartChannelPurger(bot)

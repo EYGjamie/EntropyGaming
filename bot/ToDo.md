@@ -1,6 +1,2 @@
-## bot/handlers/tickets/ticket_utils.go
--> "getRoleIDForTicket" umbauen auf die DB Abfrage
-    Dafür müssen die BL Rollen sauber in der DB angelegt werden
-
-## bot/discord/interactionHandler.go
--> Berechtigungsüberprüfung einbauen
+## bot/handlers/discord_administration/team_areas/sync_team_members.go
+cron in db integrieren
