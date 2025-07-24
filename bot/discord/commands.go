@@ -185,6 +185,16 @@ func RegisterCommands(bot *discordgo.Session) {
 		},
 
 		/*----------------------------------------------------------*/
+
+		// Sync Team Members
+		{
+			Name: "sync_team_members",
+			Description: "Synchronisiert Team-Mitglieder mit der Datenbank",
+			DefaultMemberPermissions: &adminPermission,
+		},
+
+		/*----------------------------------------------------------*/
+
 	}
 
 	// Register commands on specific guild

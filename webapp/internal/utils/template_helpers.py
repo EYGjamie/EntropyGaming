@@ -3,6 +3,9 @@ from utils.helpers import (
     format_datetime, format_timestamp, get_role_badge_class, 
     get_status_badge_class, truncate_text, get_file_size_human
 )
+from datetime import datetime
+import re
+from markupsafe import Markup
 
 def register_template_helpers(app):
     """Register template filters and global functions"""
@@ -170,3 +173,223 @@ def register_template_helpers(app):
             return f'vor {minutes} Minute{"n" if minutes > 1 else ""}'
         else:
             return 'gerade eben'
+        
+    @app.template_filter('strftime')
+    def strftime_filter(datetime_obj, format='%Y-%m-%d %H:%M'):
+        """Format datetime object"""
+        if not datetime_obj:
+            return ''
+        if isinstance(datetime_obj, str):
+            try:
+                datetime_obj = datetime.fromisoformat(datetime_obj.replace('Z', '+00:00'))
+            except:
+                return datetime_obj
+        return datetime_obj.strftime(format)
+    
+    @app.template_filter('nl2br')
+    def nl2br_filter(text):
+        """Convert newlines to HTML line breaks"""
+        if not text:
+            return ''
+        # Escape HTML first, then convert newlines
+        text = str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        text = re.sub(r'\r?\n', '<br>', text)
+        return Markup(text)
+    
+    @app.template_filter('truncate_words')
+    def truncate_words_filter(text, length=50, suffix='...'):
+        """Truncate text to specified number of words"""
+        if not text:
+            return ''
+        words = str(text).split()
+        if len(words) <= length:
+            return text
+        return ' '.join(words[:length]) + suffix
+    
+    @app.template_filter('file_size')
+    def file_size_filter(size_bytes):
+        """Format file size in human readable format"""
+        if not size_bytes:
+            return '0 B'
+        
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size_bytes < 1024.0:
+                return f"{size_bytes:.1f} {unit}"
+            size_bytes /= 1024.0
+        return f"{size_bytes:.1f} TB"
+    
+    @app.template_filter('time_ago')
+    def time_ago_filter(datetime_obj):
+        """Display time in 'X ago' format"""
+        if not datetime_obj:
+            return ''
+        
+        if isinstance(datetime_obj, str):
+            try:
+                datetime_obj = datetime.fromisoformat(datetime_obj.replace('Z', '+00:00'))
+            except:
+                return datetime_obj
+        
+        now = datetime.now()
+        diff = now - datetime_obj
+        
+        if diff.days > 0:
+            if diff.days == 1:
+                return "vor 1 Tag"
+            elif diff.days < 7:
+                return f"vor {diff.days} Tagen"
+            elif diff.days < 30:
+                weeks = diff.days // 7
+                return f"vor {weeks} Woche{'n' if weeks > 1 else ''}"
+            elif diff.days < 365:
+                months = diff.days // 30
+                return f"vor {months} Monat{'en' if months > 1 else ''}"
+            else:
+                years = diff.days // 365
+                return f"vor {years} Jahr{'en' if years > 1 else ''}"
+        
+        hours = diff.seconds // 3600
+        if hours > 0:
+            return f"vor {hours} Stunde{'n' if hours > 1 else ''}"
+        
+        minutes = diff.seconds // 60
+        if minutes > 0:
+            return f"vor {minutes} Minute{'n' if minutes > 1 else ''}"
+        
+        return "gerade eben"
+    
+    @app.template_filter('highlight_search')
+    def highlight_search_filter(text, search_term):
+        """Highlight search terms in text"""
+        if not text or not search_term:
+            return text
+        
+        # Escape special regex characters in search term
+        escaped_term = re.escape(str(search_term))
+        pattern = re.compile(f'({escaped_term})', re.IGNORECASE)
+        highlighted = pattern.sub(r'<mark>\1</mark>', str(text))
+        return Markup(highlighted)
+    
+    @app.template_filter('first_paragraph')
+    def first_paragraph_filter(text, max_length=200):
+        """Extract first paragraph or sentence for preview"""
+        if not text:
+            return ''
+        
+        text = str(text).strip()
+        
+        # Try to find first paragraph (double newline)
+        paragraphs = re.split(r'\n\s*\n', text)
+        first_para = paragraphs[0].strip()
+        
+        # If first paragraph is too long, try to find first sentence
+        if len(first_para) > max_length:
+            sentences = re.split(r'[.!?]+', first_para)
+            if sentences and len(sentences[0]) <= max_length:
+                first_para = sentences[0].strip() + '.'
+            else:
+                # Fallback to character truncation
+                first_para = first_para[:max_length].rsplit(' ', 1)[0] + '...'
+        
+        return first_para
+    
+    @app.template_global()
+    def get_file_icon(filename):
+        """Get appropriate icon class for file type"""
+        if not filename:
+            return 'fas fa-file'
+        
+        ext = filename.lower().split('.')[-1] if '.' in filename else ''
+        
+        icon_map = {
+            'pdf': 'fas fa-file-pdf',
+            'doc': 'fas fa-file-word',
+            'docx': 'fas fa-file-word',
+            'xls': 'fas fa-file-excel',
+            'xlsx': 'fas fa-file-excel',
+            'ppt': 'fas fa-file-powerpoint',
+            'pptx': 'fas fa-file-powerpoint',
+            'jpg': 'fas fa-file-image',
+            'jpeg': 'fas fa-file-image',
+            'png': 'fas fa-file-image',
+            'gif': 'fas fa-file-image',
+            'txt': 'fas fa-file-alt',
+            'zip': 'fas fa-file-archive',
+            'rar': 'fas fa-file-archive',
+            '7z': 'fas fa-file-archive',
+        }
+        
+        return icon_map.get(ext, 'fas fa-file')
+    
+    @app.template_global()
+    def is_image_file(filename):
+        """Check if file is an image"""
+        if not filename:
+            return False
+        
+        ext = filename.lower().split('.')[-1] if '.' in filename else ''
+        return ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
+    
+    @app.template_global()
+    def format_file_size(size_bytes):
+        """Template global version of file_size filter"""
+        return file_size_filter(size_bytes)
+    
+    @app.template_global()
+    def get_unread_posts_count():
+        """Get count of unread forum posts for current user"""
+        if not hasattr(g, 'user') or not g.user:
+            return 0
+        
+        try:
+            from database.db_manager import get_db
+            db = get_db()
+            
+            count = db.execute('''
+                SELECT COUNT(*) as unread_count
+                FROM forum_posts fp
+                LEFT JOIN forum_post_reads fpr ON fp.id = fpr.post_id AND fpr.user_id = ?
+                WHERE fpr.user_id IS NULL
+            ''', (g.user.id,)).fetchone()
+            
+            return count['unread_count'] if count else 0
+            
+        except:
+            return 0
+    
+    @app.template_global()
+    def get_forum_stats():
+        """Get basic forum statistics"""
+        try:
+            from database.db_manager import get_db
+            db = get_db()
+            
+            stats = db.execute('''
+                SELECT 
+                    (SELECT COUNT(*) FROM forum_posts) as total_posts,
+                    (SELECT COUNT(*) FROM forum_categories) as total_categories,
+                    (SELECT COUNT(DISTINCT author_id) FROM forum_posts) as active_users
+            ''').fetchone()
+            
+            return dict(stats) if stats else {}
+            
+        except:
+            return {}
+    
+    # Add more template globals as needed for navigation, etc.
+    @app.template_global()
+    def get_navigation_items():
+        """Get navigation items for the main menu"""
+        nav_items = [
+            {'name': 'Dashboard', 'url': 'dashboard.index', 'icon': 'fas fa-tachometer-alt'},
+            {'name': 'Forum', 'url': 'forum.index', 'icon': 'fas fa-comments'},
+            {'name': 'Teams', 'url': 'teams.index', 'icon': 'fas fa-users'},
+            {'name': 'Tickets', 'url': 'tickets.index', 'icon': 'fas fa-ticket-alt'},
+        ]
+        
+        # Add admin items for users with appropriate roles
+        if hasattr(g, 'user') and g.user and hasattr(g.user, 'has_management_role'):
+            if g.user.has_management_role():
+                nav_items.append({'name': 'Admin', 'url': 'admin.index', 'icon': 'fas fa-cog'})
+        
+        return nav_items

@@ -5,4 +5,7 @@ cron in db integrieren
 -> Bilder im Ticket werden noch nicht im Transcript angezeigt
 
 ## Webapp
--> "Formum" bzw mini FAQ Seite für die generellen Strukturen, Abläufe, interne News etc
+-> "Forum" bzw mini FAQ Seite für die generellen Strukturen, Abläufe, interne News etc
+
+## webapp/internal/templates/base.html
+favicon

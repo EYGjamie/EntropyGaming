@@ -1,0 +1,365 @@
+<!-- webapp/internal/templates/forum/view_post.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - Forum{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-view.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-comments.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="forum-container">
+        <div class="post-navigation">
+            <a href="{{ url_for('forum.index') }}" class="nav-btn">
+                <i class="bi bi-arrow-left"></i> Zurück zum Forum
+            </a>
+            <div class="post-actions">
+                {% if post.author_id == user.id %}
+                <button class="btn btn-secondary" title="Bearbeiten (coming soon)" disabled>
+                    <i class="bi bi-pencil"></i> Bearbeiten (coming soon)
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <article class="post-detail">
+            <header class="post-detail-header">
+                <div class="post-title-section">
+                    <h1 class="post-detail-title">{{ post.title }}</h1>
+                    {% if post.category_name %}
+                    <span class="post-category">{{ post.category_name }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="post-meta-section">
+                    <div class="author-info">
+                        <div class="author-avatar">
+                            {% if post.author_avatar %}
+                                <img src="{{ post.author_avatar }}" alt="Profilbild" class="profile-image">
+                            {% else %}
+                                <div class="profile-avatar-placeholder">
+                                    {{ (post.author_display_name or post.author_name)[0].upper() }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="author-details">
+                            <div class="author-name">{{ post.author_display_name or post.author_name }}</div>
+                            <div class="post-date">
+                                <i class="bi bi-clock"></i>
+                                Erstellt am {{ post.created_at | strftime('%d.%m.%Y um %H:%M') }}
+                                {% if post.updated_at and post.updated_at != post.created_at %}
+                                <br><i class="bi bi-pencil"></i>
+                                Bearbeitet am {{ post.updated_at | strftime('%d.%m.%Y um %H:%M') }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="post-content">
+                {{ post.content | nl2br }}
+            </div>
+
+            {% if attachments %}
+            <div class="post-attachments">
+                <h3 class="attachments-title">
+                    <i class="bi bi-paperclip"></i>
+                    Anhänge ({{ attachments|length }})
+                </h3>
+                <div class="attachments-list">
+                    {% for attachment in attachments %}
+                    <div class="attachment-item">
+                        <div class="attachment-info">
+                            <div class="attachment-icon">
+                                {% set ext = attachment.original_filename.split('.')[-1].lower() %}
+                                {% if ext in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                    <i class="bi bi-image"></i>
+                                {% elif ext == 'pdf' %}
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                {% elif ext in ['doc', 'docx'] %}
+                                    <i class="bi bi-file-earmark-word"></i>
+                                {% elif ext in ['xls', 'xlsx'] %}
+                                    <i class="bi bi-file-earmark-excel"></i>
+                                {% elif ext in ['ppt', 'pptx'] %}
+                                    <i class="bi bi-file-earmark-ppt"></i>
+                                {% else %}
+                                    <i class="bi bi-file-earmark"></i>
+                                {% endif %}
+                            </div>
+                            <div class="attachment-details">
+                                <div class="attachment-name">{{ attachment.original_filename }}</div>
+                                <div class="attachment-meta">
+                                    {% if attachment.file_size %}
+                                    <span class="file-size">{{ (attachment.file_size / 1024) | round(1) }} KB</span>
+                                    {% endif %}
+                                    <span class="upload-date">{{ attachment.created_at | strftime('%d.%m.%Y') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="attachment-actions">
+                            <a href="{{ url_for('forum.download_attachment', attachment_id=attachment.id) }}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                            {% if attachment.original_filename.split('.')[-1].lower() in ['jpg', 'jpeg', 'png', 'gif'] %}
+                            <button class="btn btn-outline btn-sm" onclick="previewImage('{{ attachment.id }}', '{{ attachment.original_filename }}')">
+                                <i class="bi bi-eye"></i> Vorschau
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <footer class="post-footer">
+                <div class="post-stats">
+                    <span class="stat-item">
+                        <i class="bi bi-eye"></i>
+                        Post angesehen
+                    </span>
+                    {% if attachments %}
+                    <span class="stat-item">
+                        <i class="bi bi-paperclip"></i>
+                        {{ attachments|length }} Datei(en)
+                    </span>
+                    {% endif %}
+                    <span class="stat-item">
+                        <i class="bi bi-chat"></i>
+                        {{ comments|length }} Kommentar{{ 'e' if comments|length != 1 else '' }}
+                    </span>
+                </div>
+            </footer>
+        </article>
+
+        <!-- Comments Section -->
+        <section class="comments-section">
+            <div class="comments-header">
+                <h3><i class="bi bi-chat-dots"></i> Kommentare ({{ comments|length }})</h3>
+            </div>
+
+            <!-- Comment Form -->
+            <div class="comment-form-container">
+                <form class="comment-form" id="mainCommentForm">
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <div class="comment-form-header">
+                        <div class="comment-author-avatar">
+                            {% if user.avatar_url %}
+                                <img src="{{ user.avatar_url }}" alt="Profilbild" class="profile-image">
+                            {% else %}
+                                <div class="profile-avatar-placeholder">
+                                    {{ (user.display_name or user.username)[0].upper() }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="comment-author-name">{{ user.display_name or user.username }}</div>
+                    </div>
+                    <div class="comment-form-body">
+                        <textarea name="content" 
+                                  placeholder="Schreibe einen Kommentar..." 
+                                  maxlength="2000" 
+                                  required></textarea>
+                        <div class="comment-form-actions">
+                            <div class="char-counter">
+                                <span class="char-count">0</span> / 2000
+                            </div>
+                            <button type="submit" class="btn btn-primary" onclick="handleCommentSubmit(event)">
+                                <i class="bi bi-send"></i> Kommentieren
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Comments List -->
+            <div class="comments-list" id="commentsList">
+                {% if comments %}
+                    {% for comment in comments %}
+                        {% include 'forum/comment_item.html' %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-comments">
+                        <i class="bi bi-chat"></i>
+                        <p>Noch keine Kommentare vorhanden. Schreibe den ersten Kommentar!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="imageModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalImageTitle">Bildvorschau</h3>
+            <button class="modal-close" onclick="closeImageModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <img id="modalImage" src="" alt="Bildvorschau" style="max-width: 100%; height: auto;">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="downloadCurrentImage()">
+                <i class="bi bi-download"></i> Download
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div id="shareModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Post teilen</h3>
+            <button class="modal-close" onclick="closeShareModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="share-option">
+                <label>Link kopieren:</label>
+                <div class="copy-link-container">
+                    <input type="text" id="shareLink" value="{{ request.url }}" readonly>
+                    <button class="btn btn-secondary" onclick="copyShareLink()">
+                        <i class="bi bi-clipboard"></i> Kopieren
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Comment Modal -->
+<div id="editCommentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Kommentar bearbeiten</h3>
+            <button class="modal-close" onclick="closeEditCommentModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <form id="editCommentForm">
+            <div class="modal-body">
+                <textarea name="content" 
+                          id="editCommentContent" 
+                          maxlength="2000" 
+                          required
+                          rows="4"></textarea>
+                <div class="char-counter">
+                    <span class="char-count">0</span> / 2000
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditCommentModal()">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Speichern
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/forum-comments.js') }}"></script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/forum.js') }}"></script>
+
+<script>
+// Global variables for comment functionality
+let currentPostId = {{ post.id }};
+let currentEditCommentId = null;
+
+// Set global user info for comments
+window.currentUserId = {{ user.id }};
+window.currentUserName = "{{ user.display_name or user.username }}";
+{% if user.avatar_url %}
+window.currentUserAvatar = '<img src="{{ user.avatar_url }}" alt="Profilbild" class="profile-image">';
+{% else %}
+window.currentUserAvatar = '<div class="profile-avatar-placeholder">{{ (user.display_name or user.username)[0].upper() }}</div>';
+{% endif %}
+
+// Image preview functionality
+function previewImage(attachmentId, filename) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('modalImageTitle');
+    
+    modalTitle.textContent = filename;
+    modalImage.src = `/static/uploads/forum/${attachmentId}_${filename}`;
+    modalImage.setAttribute('data-attachment-id', attachmentId);
+    modal.style.display = 'flex';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').style.display = 'none';
+}
+
+function downloadCurrentImage() {
+    const attachmentId = document.getElementById('modalImage').getAttribute('data-attachment-id');
+    window.location.href = `/forum/download/${attachmentId}`;
+}
+
+// Close modals when clicking outside
+window.addEventListener('click', function(event) {
+    const imageModal = document.getElementById('imageModal');
+    const shareModal = document.getElementById('shareModal');
+    const editModal = document.getElementById('editCommentModal');
+    
+    if (event.target === imageModal) {
+        closeImageModal();
+    }
+    if (event.target === shareModal) {
+        closeShareModal();
+    }
+    if (event.target === editModal) {
+        closeEditCommentModal();
+    }
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeImageModal();
+        closeShareModal();
+        closeEditCommentModal();
+    }
+});
+
+// Auto-expand long content with "Read more" functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const content = document.querySelector('.post-content');
+    if (content && content.scrollHeight > 600) {
+        content.style.maxHeight = '600px';
+        content.style.overflow = 'hidden';
+        content.style.position = 'relative';
+        
+        // Add gradient overlay
+        const gradient = document.createElement('div');
+        gradient.className = 'content-gradient';
+        content.appendChild(gradient);
+        
+        // Add expand button
+        const expandBtn = document.createElement('button');
+        expandBtn.className = 'btn btn-outline expand-btn';
+        expandBtn.innerHTML = '<i class="bi bi-chevron-down"></i> Vollständig anzeigen';
+        expandBtn.onclick = function() {
+            content.style.maxHeight = 'none';
+            content.style.overflow = 'visible';
+            gradient.remove();
+            expandBtn.remove();
+        };
+        
+        content.parentNode.insertBefore(expandBtn, content.nextSibling);
+    }
+});
+</script>
+{% endblock %}

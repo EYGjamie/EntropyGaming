@@ -48,6 +48,28 @@ class Config:
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600
 
+    # Forum-specific configuration
+    FORUM_UPLOAD_FOLDER = os.path.join('static', 'uploads', 'forum')
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    FORUM_ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xlsx', 'pptx'}
+    
+    # Forum pagination
+    FORUM_POSTS_PER_PAGE = 20
+    FORUM_SEARCH_MIN_LENGTH = 3
+    
+    # Forum file handling
+    FORUM_MAX_FILES_PER_POST = 10
+    FORUM_MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB per file
+    
+    @staticmethod
+    def init_app(app):
+        # Create upload directories if they don't exist
+        upload_dir = os.path.join(app.static_folder, 'uploads', 'forum')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Set up other forum-related initialization
+        pass
+
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True

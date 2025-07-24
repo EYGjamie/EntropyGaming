@@ -150,7 +150,7 @@
                                 <div class="flex-grow-1">
                                     <div class="activity-description">
                                         <strong>{{ activity.username or 'System' }}</strong>
-                                        {% if activity.action == 'login' %}
+                                        {% if activity.action == 'discord_login' %}
                                             hat sich angemeldet
                                         {% elif activity.action == 'logout' %}
                                             hat sich abgemeldet

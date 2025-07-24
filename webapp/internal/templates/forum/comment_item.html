@@ -1,0 +1,128 @@
+<!-- webapp/internal/templates/forum/comment_item.html -->
+<div class="comment-item" data-comment-id="{{ comment.id }}">
+    <div class="comment-header">
+        <div class="comment-author">
+            <div class="comment-author-avatar">
+                {% if comment.avatar_url %}
+                    <img src="{{ comment.avatar_url }}" alt="Profilbild" class="profile-image">
+                {% else %}
+                    <div class="profile-avatar-placeholder">
+                        {{ (comment.display_name or comment.username)[0].upper() }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="comment-author-info">
+                <div class="comment-author-name">{{ comment.display_name or comment.username }}</div>
+                <div class="comment-date">{{ comment.created_at | time_ago }}</div>
+                {% if comment.updated_at and comment.updated_at != comment.created_at %}
+                <div class="comment-edited">(bearbeitet)</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if comment.author_id == user.id %}
+        <div class="comment-actions">
+            <button class="comment-action-btn" onclick="editComment({{ comment.id }})" title="Bearbeiten">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="comment-action-btn delete-btn" onclick="deleteComment({{ comment.id }})" title="Löschen">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="comment-content" id="commentContent{{ comment.id }}">
+        {{ comment.content | nl2br }}
+    </div>
+    
+    <div class="comment-footer">
+        <button class="comment-reply-btn" onclick="showReplyForm({{ comment.id }})">
+            <i class="bi bi-reply"></i> Antworten
+        </button>
+    </div>
+    
+    <!-- Reply Form (initially hidden) -->
+    <div class="reply-form-container" id="replyForm{{ comment.id }}" style="display: none;">
+        <form class="comment-form reply-form" data-parent-id="{{ comment.id }}">
+            <input type="hidden" name="post_id" value="{{ post.id }}">
+            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+            <div class="comment-form-header">
+                <div class="comment-author-avatar">
+                    {% if user.avatar_url %}
+                        <img src="{{ user.avatar_url }}" alt="Profilbild" class="profile-image">
+                    {% else %}
+                        <div class="profile-avatar-placeholder">
+                            {{ (user.display_name or user.username)[0].upper() }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="comment-author-name">{{ user.display_name or user.username }}</div>
+            </div>
+            <div class="comment-form-body">
+                <textarea name="content" 
+                          placeholder="Antwort auf {{ comment.display_name or comment.username }}..." 
+                          maxlength="2000" 
+                          required></textarea>
+                <div class="comment-form-actions">
+                    <div class="char-counter">
+                        <span class="char-count">0</span> / 2000
+                    </div>
+                    <div class="reply-actions">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="hideReplyForm({{ comment.id }})">
+                            Abbrechen
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-send"></i> Antworten
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Replies -->
+    {% if comment.replies %}
+    <div class="comment-replies">
+        {% for reply in comment.replies %}
+            <div class="comment-item reply-comment" data-comment-id="{{ reply.id }}">
+                <div class="comment-header">
+                    <div class="comment-author">
+                        <div class="comment-author-avatar">
+                            {% if reply.avatar_url %}
+                                <img src="{{ reply.avatar_url }}" alt="Profilbild" class="profile-image">
+                            {% else %}
+                                <div class="profile-avatar-placeholder">
+                                    {{ (reply.display_name or reply.username)[0].upper() }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="comment-author-info">
+                            <div class="comment-author-name">{{ reply.display_name or reply.username }}</div>
+                            <div class="comment-date">{{ reply.created_at | time_ago }}</div>
+                            {% if reply.updated_at and reply.updated_at != reply.created_at %}
+                            <div class="comment-edited">(bearbeitet)</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if reply.author_id == user.id %}
+                    <div class="comment-actions">
+                        <button class="comment-action-btn" onclick="editComment({{ reply.id }})" title="Bearbeiten">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="comment-action-btn delete-btn" onclick="deleteComment({{ reply.id }})" title="Löschen">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="comment-content" id="commentContent{{ reply.id }}">
+                    {{ reply.content | nl2br }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

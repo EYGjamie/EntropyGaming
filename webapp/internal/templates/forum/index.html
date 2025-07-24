@@ -1,0 +1,229 @@
+<!-- webapp/internal/templates/forum/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Forum{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="forum-container">
+        <div class="forum-header">
+            <h1><i class="bi bi-chat-dots"></i> Forum</h1>
+            <div class="forum-actions">
+                <a href="{{ url_for('forum.create_post') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Neuer Post
+                </a>
+                <a href="{{ url_for('forum.manage_categories') }}" class="btn btn-secondary">
+                    <i class="bi bi-tags"></i> Kategorien
+                </a>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="forum-search-section">
+            <form method="GET" class="search-form">
+                <div class="search-row">
+                    <div class="search-input-group">
+                        <input type="text" 
+                               name="search" 
+                               value="{{ current_search }}" 
+                               placeholder="Durchsuche Posts nach Stichworten..."
+                               class="search-input">
+                        <button type="submit" class="search-btn">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <select name="category" class="category-filter">
+                            <option value="">Alle Kategorien</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" 
+                                    {% if current_category_filter == category.id|string %}selected{% endif %}>
+                                {{ category.name }} ({{ category.post_count }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        
+                        {% if current_search or current_category_filter %}
+                        <a href="{{ url_for('forum.index') }}" class="clear-filter">
+                            <i class="bi bi-x-lg"></i> Filter löschen
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Posts List -->
+        <div class="forum-posts">
+            {% if posts_data.posts %}
+                {% for post in posts_data.posts %}
+                <div class="post-card {% if post.is_unread %}unread{% endif %}">
+                    <div class="post-header">
+                        <div class="post-title-section">
+                            <h3 class="post-title">
+                                <a href="{{ url_for('forum.view_post', post_id=post.id) }}">
+                                    {{ post.title }}
+                                    {% if post.is_unread %}
+                                    <span class="unread-indicator" title="Ungelesen">●</span>
+                                    {% endif %}
+                                </a>
+                            </h3>
+                            {% if post.category_name %}
+                            <span class="post-category">{{ post.category_name }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="post-meta">
+                            <span class="post-author">
+                                {% if post.author_avatar %}
+                                    <img src="{{ post.author_avatar }}" 
+                                         alt="Profilbild" class="post-author-avatar">
+                                {% else %}
+                                    <div class="post-author-placeholder">
+                                        {{ (post.author_display_name or post.author_name)[0].upper() }}
+                                    </div>
+                                {% endif %}
+                                {{ post.author_display_name or post.author_name }}
+                            </span>
+                            <span class="post-date">
+                                <i class="bi bi-clock"></i>
+                                {{ post.created_at | strftime('%d.%m.%Y %H:%M') }}
+                            </span>
+                            {% if post.attachment_count > 0 %}
+                            <span class="post-attachments">
+                                <i class="bi bi-paperclip"></i>
+                                {{ post.attachment_count }} Datei(en)
+                            </span>
+                            {% endif %}
+                            {% if post.comment_count > 0 %}
+                            <span class="post-comments">
+                                <i class="bi bi-chat"></i>
+                                {{ post.comment_count }} Kommentar{{ 'e' if post.comment_count != 1 else '' }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="post-preview">
+                        {{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}
+                    </div>
+                    
+                    <div class="post-actions">
+                        <a href="{{ url_for('forum.view_post', post_id=post.id) }}" class="btn btn-outline">
+                            Weiterlesen
+                        </a>
+                        {% if post.is_unread %}
+                        <button class="btn btn-link mark-read-btn" data-post-id="{{ post.id }}">
+                            Als gelesen markieren
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if posts_data.pages > 1 %}
+                <div class="pagination">
+                    {% if posts_data.current_page > 1 %}
+                    <a href="{{ url_for('forum.index', page=posts_data.current_page-1, search=current_search, category=current_category_filter) }}" 
+                       class="pagination-btn">
+                        <i class="bi bi-chevron-left"></i> Zurück
+                    </a>
+                    {% endif %}
+                    
+                    <span class="pagination-info">
+                        Seite {{ posts_data.current_page }} von {{ posts_data.pages }}
+                    </span>
+                    
+                    {% if posts_data.current_page < posts_data.pages %}
+                    <a href="{{ url_for('forum.index', page=posts_data.current_page+1, search=current_search, category=current_category_filter) }}" 
+                       class="pagination-btn">
+                        Weiter <i class="bi bi-chevron-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="no-posts">
+                    <div class="no-posts-icon">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <h3>Keine Posts gefunden</h3>
+                    {% if current_search or current_category_filter %}
+                    <p>Keine Posts entsprechen den aktuellen Suchkriterien.</p>
+                    <a href="{{ url_for('forum.index') }}" class="btn btn-secondary">
+                        Alle Posts anzeigen
+                    </a>
+                    {% else %}
+                    <p>Noch keine Posts im Forum vorhanden.</p>
+                    <a href="{{ url_for('forum.create_post') }}" class="btn btn-primary">
+                        Ersten Post erstellen
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-error">
+    {{ error }}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/forum.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark as read functionality
+    const markReadButtons = document.querySelectorAll('.mark-read-btn');
+    markReadButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const postCard = this.closest('.post-card');
+            
+            fetch(`/forum/api/mark-read/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    postCard.classList.remove('unread');
+                    this.remove();
+                    
+                    // Remove unread indicator
+                    const unreadIndicator = postCard.querySelector('.unread-indicator');
+                    if (unreadIndicator) {
+                        unreadIndicator.remove();
+                    }
+                    
+                    ForumUtils.showNotification('Post als gelesen markiert', 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking post as read:', error);
+                ForumUtils.showNotification('Fehler beim Markieren des Posts', 'error');
+            });
+        });
+    });
+
+    // Auto-submit search form on category change
+    const categoryFilter = document.querySelector('.category-filter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    }
+});
+</script>
+{% endblock %}

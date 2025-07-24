@@ -1,0 +1,349 @@
+<!-- webapp/internal/templates/forum/create_post.html -->
+{% extends "base.html" %}
+
+{% block title %}Neuer Post - Forum{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-create.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="forum-container">
+        <div class="create-post-header">
+            <h1>Neuer Post</h1>
+            <a href="{{ url_for('forum.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück zum Forum
+            </a>
+        </div>
+
+        <div class="create-post-form">
+            <form method="POST" enctype="multipart/form-data" id="createPostForm">
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="bi bi-pencil"></i>
+                        Post-Details
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="title" class="form-label">
+                            <i class="bi bi-type"></i> Titel *
+                        </label>
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               class="form-input" 
+                               placeholder="Gib deinem Post einen aussagekräftigen Titel..."
+                               maxlength="255"
+                               required>
+                        <div class="form-hint">Bis zu 255 Zeichen</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category_id" class="form-label">
+                            <i class="bi bi-tag"></i> Kategorie
+                        </label>
+                        <select id="category_id" name="category_id" class="form-select">
+                            <option value="">-- Keine Kategorie --</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-hint">Optional: Ordne deinen Post einer Kategorie zu</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content" class="form-label">
+                            <i class="bi bi-file-text"></i> Inhalt *
+                        </label>
+                        <textarea id="content" 
+                                  name="content" 
+                                  class="form-textarea" 
+                                  placeholder="Schreibe hier den Inhalt deines Posts..."
+                                  rows="12"
+                                  required></textarea>
+                        <div class="form-hint">Beschreibe dein Anliegen ausführlich</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="bi bi-paperclip"></i>
+                        Dateien anhängen
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <div class="file-upload-placeholder">
+                                <i class="bi bi-cloud-upload"></i>
+                                <p>Dateien hier ablegen oder <span class="file-upload-btn">durchsuchen</span></p>
+                                <input type="file" 
+                                       id="attachments" 
+                                       name="attachments" 
+                                       multiple 
+                                       class="file-input"
+                                       accept=".txt,.pdf,.png,.jpg,.jpeg,.gif,.doc,.docx,.xlsx,.pptx">
+                            </div>
+                            <div class="file-list" id="fileList"></div>
+                        </div>
+                        <div class="form-hint">
+                            Erlaubte Dateitypen: TXT, PDF, PNG, JPG, GIF, DOC, DOCX, XLSX, PPTX (max. 10MB pro Datei)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="bi bi-send"></i> Post veröffentlichen
+                    </button>
+                    <a href="{{ url_for('forum.index') }}" class="btn btn-outline btn-large">
+                        <i class="bi bi-x-lg"></i> Abbrechen
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="post-preview-section" id="previewSection" style="display: none;">
+            <h3><i class="bi bi-eye"></i> Vorschau</h3>
+            <div class="post-card preview-card">
+                <div class="post-header">
+                    <div class="post-title-section">
+                        <h3 class="post-title" id="previewTitle">Post Titel</h3>
+                        <span class="post-category" id="previewCategory" style="display: none;"></span>
+                    </div>
+                    <div class="post-meta">
+                        <span class="post-author">
+                            {% if user.avatar_url %}
+                                <img src="{{ user.avatar_url }}" alt="Profilbild" class="post-author-avatar">
+                            {% else %}
+                                <div class="post-author-placeholder">
+                                    {{ (user.display_name or user.username)[0].upper() }}
+                                </div>
+                            {% endif %}
+                            {{ user.display_name or user.username }}
+                        </span>
+                        <span class="post-date">
+                            <i class="bi bi-clock"></i>
+                            Jetzt
+                        </span>
+                    </div>
+                </div>
+                <div class="post-preview" id="previewContent">Post Inhalt</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/forum.js') }}"></script>
+<script>
+// Set global user info for comments
+window.currentUserId = {{ user.id }};
+window.currentUserName = "{{ user.display_name or user.username }}";
+{% if user.avatar_url %}
+window.currentUserAvatar = '<img src="{{ user.avatar_url }}" alt="Profilbild" class="profile-image">';
+{% else %}
+window.currentUserAvatar = '<div class="profile-avatar-placeholder">{{ (user.display_name or user.username)[0].upper() }}</div>';
+{% endif %}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('createPostForm');
+    const fileInput = document.getElementById('attachments');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileList = document.getElementById('fileList');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    const categorySelect = document.getElementById('category_id');
+    const previewSection = document.getElementById('previewSection');
+    
+    // File upload handling
+    let selectedFiles = new DataTransfer();
+
+    fileUploadArea.addEventListener('click', function(e) {
+        if (e.target.classList.contains('file-upload-btn') || e.target.closest('.file-upload-placeholder')) {
+            fileInput.click();
+        }
+    });
+
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', function(e) {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            if (validateFile(file)) {
+                selectedFiles.items.add(file);
+                addFileToList(file);
+            }
+        });
+        updateFileInput();
+    }
+
+    function validateFile(file) {
+        const allowedTypes = ['text/plain', 'application/pdf', 'image/png', 'image/jpeg', 'image/gif', 
+                             'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                             'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                             'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+        
+        const maxSize = 10 * 1024 * 1024; // 10MB
+
+        if (!allowedTypes.includes(file.type)) {
+            ForumUtils.showNotification(`Dateityp nicht erlaubt: ${file.name}`, 'error');
+            return false;
+        }
+
+        if (file.size > maxSize) {
+            ForumUtils.showNotification(`Datei zu groß: ${file.name} (max. 10MB)`, 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    function addFileToList(file) {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.innerHTML = `
+            <div class="file-info">
+                <i class="bi bi-file-earmark"></i>
+                <span class="file-name">${file.name}</span>
+                <span class="file-size">(${ForumUtils.formatFileSize(file.size)})</span>
+            </div>
+            <button type="button" class="file-remove" onclick="removeFile('${file.name}')">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        fileList.appendChild(fileItem);
+        
+        // Show file list
+        fileList.style.display = 'block';
+    }
+
+    function removeFile(fileName) {
+        // Remove from selectedFiles
+        for (let i = selectedFiles.items.length - 1; i >= 0; i--) {
+            if (selectedFiles.items[i].getAsFile().name === fileName) {
+                selectedFiles.items.remove(i);
+                break;
+            }
+        }
+        
+        // Remove from display
+        const fileItems = fileList.querySelectorAll('.file-item');
+        fileItems.forEach(item => {
+            if (item.querySelector('.file-name').textContent === fileName) {
+                item.remove();
+            }
+        });
+        
+        // Hide file list if empty
+        if (selectedFiles.items.length === 0) {
+            fileList.style.display = 'none';
+        }
+        
+        updateFileInput();
+    }
+
+    function updateFileInput() {
+        fileInput.files = selectedFiles.files;
+    }
+
+    // Make removeFile globally accessible
+    window.removeFile = removeFile;
+
+    // Live preview
+    function updatePreview() {
+        const title = titleInput.value || 'Post Titel';
+        const content = contentInput.value || 'Post Inhalt';
+        const categoryId = categorySelect.value;
+        const categoryName = categoryId ? categorySelect.options[categorySelect.selectedIndex].text : '';
+
+        document.getElementById('previewTitle').textContent = title;
+        document.getElementById('previewContent').textContent = content.substring(0, 200) + (content.length > 200 ? '...' : '');
+        
+        const categorySpan = document.getElementById('previewCategory');
+        if (categoryName) {
+            categorySpan.textContent = categoryName;
+            categorySpan.style.display = 'inline-block';
+        } else {
+            categorySpan.style.display = 'none';
+        }
+
+        // Show preview if there's content
+        if (title.trim() || content.trim()) {
+            previewSection.style.display = 'block';
+        } else {
+            previewSection.style.display = 'none';
+        }
+    }
+
+    titleInput.addEventListener('input', updatePreview);
+    contentInput.addEventListener('input', updatePreview);
+    categorySelect.addEventListener('change', updatePreview);
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+
+        if (!title || !content) {
+            e.preventDefault();
+            ForumUtils.showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
+            return;
+        }
+
+        if (title.length > 255) {
+            e.preventDefault();
+            ForumUtils.showNotification('Der Titel darf maximal 255 Zeichen lang sein.', 'error');
+            return;
+        }
+
+        // Show loading state
+        form.classList.add('form-submitting');
+    });
+
+    // Character counter for title
+    titleInput.addEventListener('input', function() {
+        const length = this.value.length;
+        const maxLength = 255;
+        
+        // Create or update counter
+        let counter = this.parentNode.querySelector('.char-counter-display');
+        if (!counter) {
+            counter = document.createElement('div');
+            counter.className = 'char-counter-display';
+            this.parentNode.appendChild(counter);
+        }
+        
+        counter.textContent = `${length}/${maxLength}`;
+        
+        if (length > maxLength * 0.9) {
+            counter.className = 'char-counter-display danger';
+        } else if (length > maxLength * 0.8) {
+            counter.className = 'char-counter-display warning';
+        } else {
+            counter.className = 'char-counter-display';
+        }
+    });
+});
+</script>
+{% endblock %}
