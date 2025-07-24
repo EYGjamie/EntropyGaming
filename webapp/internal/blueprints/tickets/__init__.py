@@ -21,12 +21,14 @@ def index():
         bereich_filter = request.args.get('bereich', '')
         
         tickets_data = get_tickets_data(page, search, status_filter, bereich_filter)
+        bereiche_list = get_all_bereiche()
         
         return render_template(
             'tickets/index.html',
             user=g.user,
             roles=g.user_roles,
             tickets_data=tickets_data,
+            bereiche=bereiche_list,
             current_search=search,
             current_status_filter=status_filter,
             current_bereich_filter=bereich_filter
@@ -39,6 +41,7 @@ def index():
             user=g.user,
             roles=g.user_roles,
             tickets_data={'tickets': [], 'total': 0, 'pages': 0},
+            bereiche=[],
             error="Fehler beim Laden der Tickets"
         )
 
@@ -418,6 +421,24 @@ def search_tickets(query, limit=10):
         
     except Exception as e:
         logging.error(f"Error searching tickets: {e}")
+        return []
+
+def get_all_bereiche():
+    """Get all distinct ticket departments"""
+    try:
+        db = get_db()
+        
+        bereiche = db.execute('''
+            SELECT DISTINCT ticket_bereich
+            FROM tickets
+            WHERE ticket_bereich IS NOT NULL AND ticket_bereich != ''
+            ORDER BY ticket_bereich
+        ''').fetchall()
+        
+        return [bereich['ticket_bereich'] for bereich in bereiche]
+        
+    except Exception as e:
+        logging.error(f"Error fetching bereiche: {e}")
         return []
     
 def format_timestamp(timestamp):

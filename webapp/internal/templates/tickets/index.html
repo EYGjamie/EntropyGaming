@@ -39,48 +39,15 @@
             <div class="card-body">
                 <form method="GET" class="row g-3">
                     <div class="col-md-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status" onchange="this.form.submit()">
-                            <option value="">Alle Status</option>
-                            <option value="open" {% if current_status_filter == 'open' %}selected{% endif %}>
-                                Offen
-                            </option>
-                            <option value="closed" {% if current_status_filter == 'closed' %}selected{% endif %}>
-                                Geschlossen
-                            </option>
-                            <option value="in_progress" {% if current_status_filter == 'in_progress' %}selected{% endif %}>
-                                In Bearbeitung
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
                         <label for="bereich" class="form-label">Bereich</label>
                         <select class="form-select" id="bereich" name="bereich" onchange="this.form.submit()">
                             <option value="">Alle Bereiche</option>
-                            <option value="technical" {% if current_bereich_filter == 'technical' %}selected{% endif %}>
-                                Technisch
+                            {% for bereich in bereiche %}
+                            <option value="{{ bereich }}" {% if current_bereich_filter == bereich %}selected{% endif %}>
+                                {{ bereich }}
                             </option>
-                            <option value="general" {% if current_bereich_filter == 'general' %}selected{% endif %}>
-                                Allgemein
-                            </option>
-                            <option value="gaming" {% if current_bereich_filter == 'gaming' %}selected{% endif %}>
-                                Gaming
-                            </option>
+                            {% endfor %}
                         </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="search" class="form-label">Suchen</label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="search" 
-                               name="search" 
-                               value="{{ current_search }}"
-                               placeholder="Ticket-ID, Ersteller oder Titel...">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-entropy w-100">
-                            <i class="bi bi-search"></i> Filtern
-                        </button>
                     </div>
                 </form>
             </div>
@@ -102,8 +69,8 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Titel</th>
-                            <th>Ersteller</th>
+                            <th>Vorname</th>
+                            <th>Ersteller Discord Username</th>
                             <th>Status</th>
                             <th>Bereich</th>
                             <th>Erstellt</th>
@@ -119,13 +86,8 @@
                             </td>
                             <td>
                                 <div class="ticket-title">
-                                    {{ ticket.ticket_modal_field_one or 'Kein Titel' }}
+                                    {{ ticket.ticket_modal_field_one or 'Vorname' }}
                                 </div>
-                                {% if ticket.ticket_modal_field_two %}
-                                <small class="text-muted">
-                                    {{ ticket.ticket_modal_field_two or 'Keine Beschreibung' }}
-                                </small>
-                                {% endif %}
                             </td>
                             <td>
                                 <div class="user-info">
@@ -149,14 +111,14 @@
                                 {% if ticket.ticket_bereich %}
                                     <span class="badge bg-secondary">{{ ticket.ticket_bereich }}</span>
                                 {% else %}
-                                    <span class="text-muted">-</span>
+                                    <span class="text">-</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if ticket.ticket_erstellungszeit %}
-                                    {{ ticket.ticket_erstellungszeit }}
+                                    <span class="text-info"> {{ ticket.ticket_erstellungszeit }} </span>
                                 {% else %}
-                                    <span class="text-muted">Unbekannt</span>
+                                    <span class="text">Unbekannt</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -164,13 +126,13 @@
                                     <div class="user-info">
                                         <strong>{{ ticket.ticket_bearbeiter_name }}</strong>
                                         {% if ticket.ticket_bearbeitungszeit %}
-                                        <br><small class="text-muted">
+                                        <br><small class="text-primary">
                                             {{ ticket.ticket_bearbeitungszeit }}
                                         </small>
                                         {% endif %}
                                     </div>
                                 {% else %}
-                                    <span class="text-muted">Nicht bearbeitet</span>
+                                    <span class="text-danger">Nicht bearbeitet</span>
                                 {% endif %}
                             </td>
                             <td>

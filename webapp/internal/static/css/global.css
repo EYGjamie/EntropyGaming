@@ -364,37 +364,63 @@ a:hover {
 }
 
 /* ===== TABLES ===== */
+/* Haupttabelle Hintergrund */
 .table {
-    color: var(--entropy-white-muted);
-    background: transparent;
+    background-color: var(--entropy-black-light) !important;
+    color: var(--entropy-white-muted) !important;
 }
 
-.table th {
-    background: var(--entropy-black-medium);
-    color: var(--entropy-white-primary);
-    font-weight: 700;
-    border-color: var(--entropy-gray-dark);
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
-    padding: 1rem;
+/* Tabellenzeilen explizit dunkel setzen */
+.table tbody tr {
+    background-color: var(--entropy-black-light) !important;
+    border-color: var(--entropy-gray-dark) !important;
 }
 
+/* Alternating rows für bessere Lesbarkeit */
+.table tbody tr:nth-child(odd) {
+    background-color: var(--entropy-black-medium) !important;
+}
+
+/* Hover-Effekt für Zeilen */
+.table tbody tr:hover {
+    background-color: rgba(220, 38, 38, 0.1) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+/* Table Header sicherstellen */
+.table thead th {
+    background-color: var(--entropy-black-medium) !important;
+    color: var(--entropy-white-primary) !important;
+    border-bottom-color: var(--entropy-gray-dark) !important;
+}
+
+/* Table cells */
 .table td {
-    border-color: var(--entropy-gray-dark);
-    padding: 1rem;
-    vertical-align: middle;
+    background-color: inherit !important;
+    border-color: var(--entropy-gray-dark) !important;
 }
 
-.table-hover tbody tr:hover {
-    background: rgba(220, 38, 38, 0.05);
-    color: var(--entropy-white-primary);
-}
-
+/* Bootstrap table-dark Klasse überschreiben falls verwendet */
 .table-dark {
-    --bs-table-bg: var(--entropy-black-light);
-    --bs-table-striped-bg: var(--entropy-black-medium);
-    --bs-table-hover-bg: rgba(220, 38, 38, 0.1);
+    --bs-table-bg: var(--entropy-black-light) !important;
+    --bs-table-striped-bg: var(--entropy-black-medium) !important;
+    --bs-table-hover-bg: rgba(220, 38, 38, 0.1) !important;
+    --bs-table-color: var(--entropy-white-muted) !important;
+    --bs-table-border-color: var(--entropy-gray-dark) !important;
+}
+
+/* Spezifisch für die Tickets-Tabelle */
+.tickets-table-container .table {
+    background-color: transparent !important;
+}
+
+.tickets-table-container {
+    background-color: var(--entropy-black-light) !important;
+}
+
+/* Falls du Bootstrap's table-responsive wrapper verwendest */
+.table-responsive {
+    background-color: var(--entropy-black-light) !important;
 }
 
 /* ===== BADGES ===== */

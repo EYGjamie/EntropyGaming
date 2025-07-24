@@ -50,26 +50,6 @@
                 <p class="profile-description">{{ user.description }}</p>
                 {% endif %}
                 
-                {% if not is_own_profile %}
-                <div class="profile-contact-info mt-3">
-                    <div class="row">
-                        {% if user.email %}
-                        <div class="col-md-6">
-                            <strong>E-Mail:</strong>
-                            <a href="mailto:{{ user.email }}" class="text-entropy-red">
-                                {{ user.email }}
-                            </a>
-                        </div>
-                        {% endif %}
-                        {% if user.phone %}
-                        <div class="col-md-6">
-                            <strong>Telefon:</strong>
-                            <span class="text-white">{{ user.phone }}</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -163,6 +143,7 @@
                 </div>
             </div>
 
+            <!-- Aktionen 
             {% if is_own_profile %}
             <div class="card entropy-card mt-4">
                 <div class="card-header">
@@ -179,7 +160,7 @@
                     </div>
                 </div>
             </div>
-            {% endif %}
+            {% endif %}-->
         </div>
     </div>
 
