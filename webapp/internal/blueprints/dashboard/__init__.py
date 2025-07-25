@@ -246,9 +246,9 @@ def get_recent_activity():
                 wal.details,
                 wal.created_at,
                 wu.username,
-                wu.full_name
+                wu.display_name
             FROM web_activity_log wal
-            LEFT JOIN web_users wu ON wal.user_id = wu.id
+            LEFT JOIN users wu ON wal.user_id = wu.id
             ORDER BY wal.created_at DESC
             LIMIT 10
         ''').fetchall()
