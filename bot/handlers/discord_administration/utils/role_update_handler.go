@@ -31,7 +31,7 @@ func onRoleChange(bot *discordgo.Session, update *discordgo.GuildMemberUpdate) {
 	// User sicherstellen (wird in DB aufgenommen falls nicht vorhanden)
 	userID, err := utils.EnsureUser(bot, update.User.ID)
 	if err != nil {
-		utils.LogAndNotifyAdmins(bot, "high", "Error", "role_update_handler.go", true, err,
+		utils.LogAndNotifyAdmins(bot, "high", "Error", "role_update_handler.go", false, err,
 			"Error ensuring user for role update: " + update.User.ID)
 		return
 	}
