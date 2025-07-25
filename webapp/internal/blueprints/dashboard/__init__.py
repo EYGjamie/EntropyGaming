@@ -5,6 +5,7 @@ import json
 import os
 import logging
 from datetime import datetime, timedelta
+import requests
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/')
 
@@ -150,8 +151,16 @@ def get_dashboard_stats():
         
         # Get total members count from Discord bot database
         try:
-            total_members = db.execute(
-                'SELECT COUNT(*) as count FROM users WHERE is_bot = 0'
+            response = requests.get("http://localhost:321/api/stats")
+            data = response.json()
+            total_members = data.get("discord_members", 0)
+        except Exception:
+            total_members = 0
+
+        # Get total dia club members count from Discord bot database
+        try:
+            total_club_members = db.execute(
+                'SELECT COUNT(*) as count FROM users WHERE is_bot = 0 AND role_diamond_club = 1'
             ).fetchone()['count']
         except:
             total_members = 0
@@ -198,6 +207,7 @@ def get_dashboard_stats():
         
         stats = {
             'total_members': total_members,
+            'total_club_members': total_club_members,
             'total_teams': total_teams,
             'total_tickets': total_tickets + 42,
             'open_tickets': open_tickets,
