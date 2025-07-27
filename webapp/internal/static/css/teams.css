@@ -624,6 +624,16 @@
     border: 3px solid var(--entropy-red-primary);
     box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
     transition: var(--entropy-transition);
+    overflow: hidden;
+}
+
+.member-avatar-large img,
+.member-avatar-large .profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
 }
 
 .member-detail-card:hover .member-avatar-large {
