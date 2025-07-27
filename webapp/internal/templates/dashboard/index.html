@@ -40,6 +40,22 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card card-stats hover-lift fade-in-up" style="--animation-delay: 0.1s">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="bi bi-gem"></i>
+                    </div>
+                    <div>
+                        <h3 class="stats-number mb-0" data-stat-key="total_club_members">
+                            {{ stats.total_club_members if stats else 0 }}
+                        </h3>
+                        <p class="stats-label mb-0">Diamond Club Member</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="card card-stats hover-lift fade-in-up" style="--animation-delay: 0.2s">
                 <div class="card-body d-flex align-items-center">
                     <div class="stats-icon me-3">
@@ -71,7 +87,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-3">
+        <!-- <div class="col-lg-3 col-md-6 mb-3">
             <div class="card card-stats hover-lift fade-in-up" style="--animation-delay: 0.4s">
                 <div class="card-body d-flex align-items-center">
                     <div class="stats-icon me-3">
@@ -85,7 +101,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 
     <!-- Main Content Row -->
@@ -156,6 +172,14 @@
                                             hat sich abgemeldet
                                         {% elif activity.action == 'profile_update' %}
                                             hat das Profil aktualisiert
+                                        {% elif activity.action == 'view_forum_post' %}
+                                            hat sich einen Forenbeitrag angesehen
+                                        {% elif activity.action == 'create_forum_comment' %}
+                                            hat einen neuen Forenkommentar erstellt
+                                        {% elif activity.action == 'edit_forum_comment' %}
+                                            hat einen Forenkommentar bearbeitet
+                                        {% elif activity.action == 'create_forum_post' %}
+                                            hat einen neuen Forenbeitrag erstellt
                                         {% else %}
                                             {{ activity.action }}
                                         {% endif %}

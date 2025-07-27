@@ -2,6 +2,10 @@ from flask import Flask
 from config import Config
 from database.db_manager import init_db
 from utils.helpers import setup_logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def create_app(config_class=Config):
     """Application factory pattern"""
@@ -45,4 +49,4 @@ def create_app(config_class=Config):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    app.run(debug=os.getenv(""), host='0.0.0.0', port=5000)

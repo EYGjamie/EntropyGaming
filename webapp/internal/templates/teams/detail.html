@@ -82,9 +82,11 @@
                                         "{{ member.nickname }}"
                                     </p>
                                     {% endif %}
+                                    {% if 'Developer' in g.user_roles %}
                                     <p class="member-id text-muted small">
                                         ID: {{ member.discord_id }}
                                     </p>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endfor %}
@@ -124,7 +126,7 @@
                             <span class="badge bg-success">Aktiv</span>
                         </div>
                         
-                        {% if 'Projektleitung' in g.user_roles or 'Developer' in g.user_roles %}
+                        {% if 'Developer' in g.user_roles %}
                         <hr>
                         <h6>Technische Details:</h6>
                         <div class="info-item">

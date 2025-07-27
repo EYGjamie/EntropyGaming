@@ -163,7 +163,7 @@ def get_dashboard_stats():
                 'SELECT COUNT(*) as count FROM users WHERE is_bot = 0 AND role_diamond_club = 1'
             ).fetchone()['count']
         except:
-            total_members = 0
+            total_club_members = 0
         
         # Get total teams count
         try:
