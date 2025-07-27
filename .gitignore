@@ -42,3 +42,4 @@ db/data/test.db-shm
 db/data/test.db-wal
 
 __pycache__/
+/logs
