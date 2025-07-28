@@ -77,11 +77,10 @@
                                     <h6 class="member-name">
                                         {{ member.display_name or member.username }}
                                     </h6>
-                                    {% if member.nickname %}
-                                    <p class="member-nickname text">
-                                        "{{ member.nickname }}"
+                                    <p class="member-role">
+                                        Rolle: 
+                                        <span class="text">{{ member.role }}</span>
                                     </p>
-                                    {% endif %}
                                     {% if 'Developer' in g.user_roles %}
                                     <p class="member-id text-muted small">
                                         ID: {{ member.discord_id }}

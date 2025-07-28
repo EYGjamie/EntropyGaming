@@ -113,6 +113,9 @@
                                         <span class="member-name">
                                             {{ member.display_name or member.username }}
                                         </span>
+                                        <p class="member-role text">
+                                            {{ member.role or 'Spieler' }}
+                                        </p>
                                     </div>
                                     {% endfor %}
                                     

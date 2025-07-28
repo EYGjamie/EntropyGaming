@@ -86,27 +86,11 @@ def detail(team_id):
             flash("Team nicht gefunden", "error")
             return redirect(url_for('teams.index'))
         
-        # Get additional team statistics
-        active_members = team.get_active_members_count(days=30)
-        management_members = team.get_members_with_role('management')
-        
-        # Get member activity stats
-        member_activity = {}
-        for member in team.members:
-            member_activity[member['id']] = {
-                'is_recently_active': Team._is_user_recently_active(member.get('last_seen')),
-                'join_date': member.get('joined_at'),
-                'has_management_role': member.get('has_management_role', False)
-            }
-        
         return render_template(
             'teams/detail.html',
             user=g.user,
             roles=g.user_roles,
-            team=team,
-            active_members=active_members,
-            management_members=management_members,
-            member_activity=member_activity
+            team=team
         )
         
     except Exception as e:
@@ -127,8 +111,8 @@ def api_team_members(team_id):
         # Pagination parameters
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
-        sort_by = request.args.get('sort', 'joined_at')  # joined_at, name, last_seen
-        order = request.args.get('order', 'asc')  # asc, desc
+        sort_by = request.args.get('sort', 'joined_at')
+        order = request.args.get('order', 'asc')
         
         # Get all members
         all_members = team._get_members(include_stats=True)
@@ -137,8 +121,8 @@ def api_team_members(team_id):
         reverse = (order == 'desc')
         if sort_by == 'name':
             all_members.sort(key=lambda x: x['effective_name'].lower(), reverse=reverse)
-        elif sort_by == 'last_seen':
-            all_members.sort(key=lambda x: x.get('last_seen', ''), reverse=reverse)
+        elif sort_by == 'role':
+            all_members.sort(key=lambda x: x.get('role', 'Spieler').lower(), reverse=reverse)
         else:  # joined_at
             all_members.sort(key=lambda x: x.get('joined_at', ''), reverse=reverse)
         
@@ -161,6 +145,136 @@ def api_team_members(team_id):
     except Exception as e:
         logging.error(f"Error fetching team members API for team {team_id}: {e}")
         return jsonify({'error': 'Fehler beim Laden der Teammitglieder'}), 500
+
+@teams_bp.route('/manage/<int:team_id>')
+@login_required
+def manage(team_id):
+    """Team management page"""
+    try:
+        team = Team.get_by_id(team_id)
+        
+        if not team:
+            flash("Team nicht gefunden", "error")
+            return redirect(url_for('teams.index'))
+        
+        # Get users not in this team
+        db = get_db()
+        available_users = db.execute('''
+            SELECT u.id, u.username, u.display_name, u.nickname
+            FROM users u
+            WHERE u.is_bot = 0
+            AND u.id NOT IN (
+                SELECT tm.user_id 
+                FROM team_members tm 
+                WHERE tm.team_id = ?
+            )
+            ORDER BY u.display_name
+        ''', (team_id,)).fetchall()
+        
+        return render_template(
+            'teams/manage.html',
+            user=g.user,
+            roles=g.user_roles,
+            team=team,
+            available_users=[dict(user) for user in available_users]
+        )
+        
+    except Exception as e:
+        logging.error(f"Error loading team management for team {team_id}: {e}")
+        flash("Fehler beim Laden der Team-Verwaltung", "error")
+        return redirect(url_for('teams.detail', team_id=team_id))
+
+@teams_bp.route('/api/manage/<int:team_id>/add_member', methods=['POST'])
+@login_required
+def api_add_member(team_id):
+    """API endpoint to add a member to a team"""
+    # Check permissions
+    if not (g.user_roles.get('role_management') or 
+            g.user_roles.get('role_head_management') or 
+            g.user_roles.get('role_projektleitung')):
+        return jsonify({'error': 'Keine Berechtigung'}), 403
+    
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        role = data.get('role', 'Spieler')
+        
+        if not user_id:
+            return jsonify({'error': 'User ID fehlt'}), 400
+        
+        team = Team.get_by_id(team_id)
+        if not team:
+            return jsonify({'error': 'Team nicht gefunden'}), 404
+        
+        if team.add_member(user_id, role):
+            return jsonify({'success': True, 'message': 'Mitglied hinzugefügt'})
+        else:
+            return jsonify({'error': 'Fehler beim Hinzufügen des Mitglieds'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error adding member to team {team_id}: {e}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500
+
+@teams_bp.route('/api/manage/<int:team_id>/remove_member', methods=['POST'])
+@login_required
+def api_remove_member(team_id):
+    """API endpoint to remove a member from a team"""
+    # Check permissions
+    if not (g.user_roles.get('role_management') or 
+            g.user_roles.get('role_head_management') or 
+            g.user_roles.get('role_projektleitung')):
+        return jsonify({'error': 'Keine Berechtigung'}), 403
+    
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User ID fehlt'}), 400
+        
+        team = Team.get_by_id(team_id)
+        if not team:
+            return jsonify({'error': 'Team nicht gefunden'}), 404
+        
+        if team.remove_member(user_id):
+            return jsonify({'success': True, 'message': 'Mitglied entfernt'})
+        else:
+            return jsonify({'error': 'Fehler beim Entfernen des Mitglieds'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error removing member from team {team_id}: {e}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500
+
+@teams_bp.route('/api/manage/<int:team_id>/update_role', methods=['POST'])
+@login_required
+def api_update_member_role(team_id):
+    """API endpoint to update a member's role"""
+    # Check permissions
+    if not (g.user_roles.get('role_management') or 
+            g.user_roles.get('role_head_management') or 
+            g.user_roles.get('role_projektleitung')):
+        return jsonify({'error': 'Keine Berechtigung'}), 403
+    
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        new_role = data.get('role', 'Spieler')
+        
+        if not user_id:
+            return jsonify({'error': 'User ID fehlt'}), 400
+        
+        team = Team.get_by_id(team_id)
+        if not team:
+            return jsonify({'error': 'Team nicht gefunden'}), 404
+        
+        if team.update_member_role(user_id, new_role):
+            return jsonify({'success': True, 'message': 'Rolle aktualisiert'})
+        else:
+            return jsonify({'error': 'Fehler beim Aktualisieren der Rolle'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error updating member role in team {team_id}: {e}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500
 
 @teams_bp.route('/api/stats')
 @login_required
@@ -200,159 +314,33 @@ def api_team_stats():
             LEFT JOIN team_members tm ON t.id = tm.team_id
             LEFT JOIN users u ON tm.user_id = u.id AND u.is_bot = 0
             WHERE t.is_active = 1
-            GROUP BY t.id
+            GROUP BY t.id, t.team_name, t.game
             ORDER BY member_count DESC
             LIMIT 10
         ''').fetchall()
         
-        # Recent joiners (last 30 days)
-        recent_joiners = db.execute('''
-            SELECT COUNT(*) as count
+        # Role distribution
+        role_distribution = db.execute('''
+            SELECT 
+                COALESCE(tm.role, 'Spieler') as role,
+                COUNT(*) as count
             FROM team_members tm
-            WHERE datetime(tm.joined_at) > datetime('now', '-30 days')
-        ''').fetchone()['count']
+            JOIN users u ON tm.user_id = u.id
+            WHERE u.is_bot = 0
+            GROUP BY tm.role
+            ORDER BY count DESC
+        ''').fetchall()
         
         return jsonify({
-            'total_teams': total_teams,
-            'total_members': total_members,
+            'basic_stats': {
+                'total_teams': total_teams,
+                'total_members': total_members
+            },
             'teams_per_game': [dict(row) for row in teams_per_game],
-            'top_teams_by_members': [dict(row) for row in members_per_team],
-            'recent_joiners': recent_joiners
+            'members_per_team': [dict(row) for row in members_per_team],
+            'role_distribution': [dict(row) for row in role_distribution]
         })
         
     except Exception as e:
         logging.error(f"Error fetching team stats: {e}")
         return jsonify({'error': 'Fehler beim Laden der Statistiken'}), 500
-
-@teams_bp.route('/manage/<int:team_id>')
-@login_required
-def manage(team_id):
-    """Team management page (for authorized users)"""
-    # Check if user has management permissions
-    if not (g.user_roles.get('role_management') or 
-            g.user_roles.get('role_head_management') or 
-            g.user_roles.get('role_projektleitung')):
-        flash("Keine Berechtigung für Team-Management", "error")
-        return redirect(url_for('teams.detail', team_id=team_id))
-    
-    try:
-        team = Team.get_by_id(team_id)
-        
-        if not team:
-            flash("Team nicht gefunden", "error")
-            return redirect(url_for('teams.index'))
-        
-        # Get all users that could be added to the team
-        db = get_db()
-        available_users = db.execute('''
-            SELECT u.id, u.discord_id, u.username, u.display_name, u.nickname
-            FROM users u
-            WHERE u.is_bot = 0
-            AND u.id NOT IN (
-                SELECT tm.user_id FROM team_members tm WHERE tm.team_id = ?
-            )
-            ORDER BY u.display_name
-        ''', (team_id,)).fetchall()
-        
-        return render_template(
-            'teams/manage.html',
-            user=g.user,
-            roles=g.user_roles,
-            team=team,
-            available_users=[dict(user) for user in available_users]
-        )
-        
-    except Exception as e:
-        logging.error(f"Error loading team management for team {team_id}: {e}")
-        flash("Fehler beim Laden der Team-Verwaltung", "error")
-        return redirect(url_for('teams.detail', team_id=team_id))
-
-@teams_bp.route('/api/manage/<int:team_id>/add_member', methods=['POST'])
-@login_required
-def api_add_member(team_id):
-    """API endpoint to add a member to a team"""
-    # Check permissions
-    if not (g.user_roles.get('role_management') or 
-            g.user_roles.get('role_head_management') or 
-            g.user_roles.get('role_projektleitung')):
-        return jsonify({'error': 'Keine Berechtigung'}), 403
-    
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User ID fehlt'}), 400
-        
-        team = Team.get_by_id(team_id)
-        if not team:
-            return jsonify({'error': 'Team nicht gefunden'}), 404
-        
-        if team.add_member(user_id):
-            return jsonify({'success': True, 'message': 'Mitglied hinzugefügt'})
-        else:
-            return jsonify({'error': 'Fehler beim Hinzufügen des Mitglieds'}), 500
-            
-    except Exception as e:
-        logging.error(f"Error adding member to team {team_id}: {e}")
-        return jsonify({'error': 'Interner Serverfehler'}), 500
-
-@teams_bp.route('/api/manage/<int:team_id>/remove_member', methods=['POST'])
-@login_required
-def api_remove_member(team_id):
-    """API endpoint to remove a member from a team"""
-    # Check permissions
-    if not (g.user_roles.get('role_management') or 
-            g.user_roles.get('role_head_management') or 
-            g.user_roles.get('role_projektleitung')):
-        return jsonify({'error': 'Keine Berechtigung'}), 403
-    
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User ID fehlt'}), 400
-        
-        team = Team.get_by_id(team_id)
-        if not team:
-            return jsonify({'error': 'Team nicht gefunden'}), 404
-        
-        if team.remove_member(user_id):
-            return jsonify({'success': True, 'message': 'Mitglied entfernt'})
-        else:
-            return jsonify({'error': 'Fehler beim Entfernen des Mitglieds'}), 500
-            
-    except Exception as e:
-        logging.error(f"Error removing member from team {team_id}: {e}")
-        return jsonify({'error': 'Interner Serverfehler'}), 500
-
-@teams_bp.route('/search')
-@login_required
-def search():
-    """Search teams and members"""
-    try:
-        query = request.args.get('q', '').strip()
-        
-        if not query or len(query) < 2:
-            return jsonify({'teams': [], 'message': 'Suchbegriff zu kurz'})
-        
-        teams = Team.search_teams_with_members(query)
-        
-        # Format results for JSON response
-        results = []
-        for team in teams:
-            team_dict = team.to_dict()
-            # Limit members in search results
-            team_dict['members'] = team_dict['members'][:5]
-            results.append(team_dict)
-        
-        return jsonify({
-            'teams': results,
-            'total': len(results),
-            'query': query
-        })
-        
-    except Exception as e:
-        logging.error(f"Error searching teams: {e}")
-        return jsonify({'error': 'Fehler bei der Suche'}), 500
