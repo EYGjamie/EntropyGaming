@@ -528,4 +528,194 @@
         min-width: auto;
         width: 100%;
     }
+
+    .category-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .category-stats {
+        align-self: flex-start;
+    }
+    
+    .category-actions {
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        max-width: 95vw;
+        margin: 20px;
+    }
+}
+
+.categories-list {
+    margin-bottom: 40px;
+}
+
+.category-card {
+    background: var(--entropy-black-light);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius);
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: var(--entropy-box-shadow);
+    transition: var(--entropy-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: var(--entropy-gradient-main);
+    transition: width 0.3s ease;
+    border-radius: var(--entropy-border-radius) 0 0 var(--entropy-border-radius);
+}
+
+.category-card:hover {
+    box-shadow: var(--entropy-box-shadow-lg);
+    transform: translateY(-3px);
+    border-color: var(--entropy-red-primary);
+}
+
+.category-card:hover::before {
+    width: 4px;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.category-info {
+    flex: 1;
+}
+
+.category-name {
+    color: var(--entropy-white-primary);
+    margin: 0 0 10px 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.category-description {
+    color: var(--entropy-white-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.category-stats {
+    text-align: center;
+    padding: 15px 20px;
+    background: var(--entropy-black-medium);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius-small);
+    min-width: 80px;
+}
+
+.category-stats .stat-number {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--entropy-red-primary);
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.category-stats .stat-label {
+    color: var(--entropy-gray-light);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-actions {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.no-categories {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--entropy-gray-light);
+    background: var(--entropy-black-light);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius);
+}
+
+.no-categories-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: var(--entropy-red-primary);
+    opacity: 0.5;
+}
+
+.no-categories h3 {
+    margin: 0 0 10px 0;
+    color: var(--entropy-white-primary);
+    font-weight: 700;
+}
+
+.modal .form-group {
+    margin-bottom: 20px;
+}
+
+.modal .form-label {
+    display: block;
+    font-weight: 700;
+    color: var(--entropy-white-primary);
+    margin-bottom: 8px;
+}
+
+.modal .form-label i {
+    color: var(--entropy-red-primary);
+    margin-right: 8px;
+    width: 16px;
+}
+
+.modal .form-input,
+.modal .form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius-small);
+    font-size: 16px;
+    transition: var(--entropy-transition);
+    font-family: inherit;
+    box-sizing: border-box;
+    background: var(--entropy-black-medium);
+    color: var(--entropy-white-primary);
+}
+
+.modal .form-input:focus,
+.modal .form-textarea:focus {
+    outline: none;
+    border-color: var(--entropy-red-primary);
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+
+.modal .form-input::placeholder,
+.modal .form-textarea::placeholder {
+    color: var(--entropy-gray-light);
+}
+
+.modal .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal .form-hint {
+    color: var(--entropy-gray-light);
+    font-size: 0.9rem;
+    margin-top: 5px;
+    font-weight: 500;
 }

@@ -420,3 +420,86 @@ window.ForumUtils = {
     formatFileSize,
     debounce
 };
+
+function showCreateCategoryModal() {
+    document.getElementById('createCategoryModal').style.display = 'flex';
+    document.getElementById('categoryName').focus();
+}
+
+function hideCreateCategoryModal() {
+    document.getElementById('createCategoryModal').style.display = 'none';
+    document.getElementById('createCategoryForm').reset();
+    
+    // Reset character counters
+    updateCharCounters();
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('createCategoryModal');
+    if (event.target === modal) {
+        hideCreateCategoryModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideCreateCategoryModal();
+    }
+});
+
+// Form validation
+document.getElementById('createCategoryForm').addEventListener('submit', function(e) {
+    const name = document.getElementById('categoryName').value.trim();
+    
+    if (!name) {
+        e.preventDefault();
+        ForumUtils.showNotification('Bitte geben Sie einen Kategorienamen ein.', 'error');
+        return;
+    }
+    
+    if (name.length > 100) {
+        e.preventDefault();
+        ForumUtils.showNotification('Der Kategoriename darf maximal 100 Zeichen lang sein.', 'error');
+        return;
+    }
+    
+    const description = document.getElementById('categoryDescription').value.trim();
+    if (description.length > 500) {
+        e.preventDefault();
+        ForumUtils.showNotification('Die Beschreibung darf maximal 500 Zeichen lang sein.', 'error');
+        return;
+    }
+});
+
+// Character counters
+function updateCharCounters() {
+    const nameInput = document.getElementById('categoryName');
+    const descInput = document.getElementById('categoryDescription');
+    
+    updateCharCounter(nameInput, 100, 'Eindeutiger Name für die Kategorie');
+    updateCharCounter(descInput, 500, 'Optionale Beschreibung');
+}
+
+function updateCharCounter(input, maxLength, defaultText) {
+    const currentLength = input.value.length;
+    const hint = input.nextElementSibling;
+    
+    if (currentLength > maxLength * 0.8) {
+        hint.innerHTML = `Noch ${maxLength - currentLength} Zeichen übrig`;
+        hint.style.color = currentLength >= maxLength ? 'var(--entropy-danger)' : 'var(--entropy-warning)';
+    } else {
+        hint.innerHTML = `${defaultText} (max. ${maxLength} Zeichen)`;
+        hint.style.color = '';
+    }
+}
+
+// Initialize character counters
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('categoryName');
+    const descInput = document.getElementById('categoryDescription');
+    
+    nameInput.addEventListener('input', () => updateCharCounter(nameInput, 100, 'Eindeutiger Name für die Kategorie'));
+    descInput.addEventListener('input', () => updateCharCounter(descInput, 500, 'Optionale Beschreibung'));
+});
