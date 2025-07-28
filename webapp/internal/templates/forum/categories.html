@@ -5,6 +5,7 @@
 
 {% block page_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-category-create.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -128,12 +129,4 @@
 
 <script src="{{ url_for('static', filename='js/forum.js') }}"></script>
 
-{% endblock %}
-
-{% block scripts %}
-
-
-<style>
-
-</style>
 {% endblock %}

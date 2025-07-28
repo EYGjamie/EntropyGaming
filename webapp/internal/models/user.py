@@ -152,14 +152,14 @@ class User:
         """Get list of roles for this user"""
         roles = []
         
+        if self.role_projektleitung:
+            roles.append('Projektleitung')
         if self.role_head_management:
             roles.append('Head Management')
         if self.role_management:
             roles.append('Management')
         if self.role_developer:
             roles.append('Developer')
-        if self.role_projektleitung:
-            roles.append('Projektleitung')
         if self.role_diamond_club:
             roles.append('Diamond Club')
         if self.role_diamond_teams:

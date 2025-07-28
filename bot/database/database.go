@@ -97,6 +97,7 @@ func createTables() {
 			team_id  INTEGER NOT NULL,
 			user_id  INTEGER NOT NULL,
 			joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			role     TEXT DEFAULT 'Player',
 			FOREIGN KEY(team_id) REFERENCES team_areas(id) ON DELETE CASCADE,
 			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 			UNIQUE(team_id, user_id)

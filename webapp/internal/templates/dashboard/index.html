@@ -180,6 +180,10 @@
                                             hat einen Forenkommentar bearbeitet
                                         {% elif activity.action == 'create_forum_post' %}
                                             hat einen neuen Forenbeitrag erstellt
+                                        {% elif activity.action == 'edit_forum_post' %}
+                                            hat einen Forenbeitrag bearbeitet
+                                        {% elif activity.action == 'create_forum_category' %}
+                                            hat eine neue Kategorie im Forum erstellt
                                         {% else %}
                                             {{ activity.action }}
                                         {% endif %}
