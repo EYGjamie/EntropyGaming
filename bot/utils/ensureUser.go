@@ -49,9 +49,10 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
             discord_id, username, display_name, nickname, avatar_url, 
             is_bot, joined_server_at,
             role_diamond_club, role_diamond_teams, role_entropy_member,
+            role_developer,
             role_management, role_head_management, role_projektleitung
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(discord_id) DO UPDATE
         SET 
             username = excluded.username,
@@ -64,6 +65,7 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
             role_diamond_teams = excluded.role_diamond_teams,
             role_entropy_member = excluded.role_entropy_member,
             role_management = excluded.role_management,
+            role_developer = excluded.role_developer,
             role_head_management = excluded.role_head_management,
             role_projektleitung = excluded.role_projektleitung,
             last_seen = CURRENT_TIMESTAMP
@@ -74,6 +76,7 @@ func EnsureUser(bot *discordgo.Session, discordID string) (int, error) {
         discordID, username, displayName, nickname, avatarURL,
         isBot, joinedAt,
         hasRoles.DiamondClub, hasRoles.DiamondTeams, hasRoles.EntropyMember,
+        hasRoles.Developer,
         hasRoles.Management, hasRoles.HeadManagement, hasRoles.Projektleitung,
     ).Scan(&id)
 
