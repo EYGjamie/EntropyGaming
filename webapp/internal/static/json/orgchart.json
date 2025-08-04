@@ -17,7 +17,7 @@
     "id": 3, 
     "name": "Fabian \"Evolution\"", 
     "position": "Projektleitung", 
-    "specific": "eSports Koordination",
+    "specific": "CGO",
     "parentIds": [1] 
   },
   { 
@@ -106,9 +106,9 @@
   },
   { 
     "id": 24, 
-    "name": "Salva", 
-    "position": "Head of eSports", 
-    "specific": "eSports Management",
+    "name": "Michi", 
+    "position": "E-Sports Support", 
+    "specific": "E-Sport Team Management",
     "parentIds": [3] 
   },
   { 
