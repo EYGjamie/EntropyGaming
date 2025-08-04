@@ -4,6 +4,7 @@ from utils.decorators import login_required
 from models.team import Team
 from models.user import User
 import logging
+import requests
 
 teams_bp = Blueprint('teams', __name__, url_prefix='/teams')
 
@@ -189,9 +190,7 @@ def manage(team_id):
 def api_add_member(team_id):
     """API endpoint to add a member to a team"""
     # Check permissions
-    if not (g.user_roles.get('role_management') or 
-            g.user_roles.get('role_head_management') or 
-            g.user_roles.get('role_projektleitung')):
+    if not User.has_management_role(g.user):
         return jsonify({'error': 'Keine Berechtigung'}), 403
     
     try:
@@ -219,10 +218,7 @@ def api_add_member(team_id):
 @login_required
 def api_remove_member(team_id):
     """API endpoint to remove a member from a team"""
-    # Check permissions
-    if not (g.user_roles.get('role_management') or 
-            g.user_roles.get('role_head_management') or 
-            g.user_roles.get('role_projektleitung')):
+    if not User.has_management_role(g.user):
         return jsonify({'error': 'Keine Berechtigung'}), 403
     
     try:
@@ -250,9 +246,7 @@ def api_remove_member(team_id):
 def api_update_member_role(team_id):
     """API endpoint to update a member's role"""
     # Check permissions
-    if not (g.user_roles.get('role_management') or 
-            g.user_roles.get('role_head_management') or 
-            g.user_roles.get('role_projektleitung')):
+    if not User.has_management_role(g.user):
         return jsonify({'error': 'Keine Berechtigung'}), 403
     
     try:
@@ -344,3 +338,165 @@ def api_team_stats():
     except Exception as e:
         logging.error(f"Error fetching team stats: {e}")
         return jsonify({'error': 'Fehler beim Laden der Statistiken'}), 500
+    
+@teams_bp.route('/edit/<int:team_id>')
+@login_required
+def edit(team_id):
+    """Team edit page"""
+    # Check permissions
+    if not User.has_management_role(g.user):
+        flash("Keine Berechtigung zum Bearbeiten von Teams", "error")
+        return redirect(url_for('teams.detail', team_id=team_id))
+    
+    try:
+        team = Team.get_by_id(team_id)
+        
+        if not team:
+            flash("Team nicht gefunden", "error")
+            return redirect(url_for('teams.index'))
+        
+        # Verfügbare Rollen definieren
+        available_roles = ['Captain', 'Player', 'Manager', 'Coach']
+        
+        return render_template(
+            'teams/edit.html',
+            user=g.user,
+            roles=g.user_roles,
+            team=team,
+            available_roles=available_roles
+        )
+        
+    except Exception as e:
+        logging.error(f"Error loading team edit for team {team_id}: {e}")
+        flash("Fehler beim Laden der Team-Bearbeitung", "error")
+        return redirect(url_for('teams.detail', team_id=team_id))
+
+# API Endpunkt für Rollenänderung von Mitgliedern
+@teams_bp.route('/api/edit/<int:team_id>/update_member_role', methods=['POST'])
+@login_required
+def api_update_member_role_edit(team_id):
+    """API endpoint to update a member's role in team edit"""
+    # Check permissions
+    if not User.has_management_role(g.user):
+        return jsonify({'error': 'Keine Berechtigung'}), 403
+    
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        new_role = data.get('role')
+        
+        if not user_id or not new_role:
+            return jsonify({'error': 'User ID und Rolle sind erforderlich'}), 400
+        
+        # Validiere Rolle
+        valid_roles = ['Captain', 'Player', 'Manager', 'Coach']
+        if new_role not in valid_roles:
+            return jsonify({'error': 'Ungültige Rolle'}), 400
+        
+        team = Team.get_by_id(team_id)
+        if not team:
+            return jsonify({'error': 'Team nicht gefunden'}), 404
+        
+        if team.update_member_role(user_id, new_role):
+            return jsonify({'success': True, 'message': f'Rolle zu {new_role} geändert'})
+        else:
+            return jsonify({'error': 'Fehler beim Aktualisieren der Rolle'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error updating member role in team {team_id}: {e}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500
+
+# API Endpunkt für Mitglieder entfernen mit Discord Bot API Call
+@teams_bp.route('/api/edit/<int:team_id>/remove_member', methods=['POST'])
+@login_required
+def api_remove_member_edit(team_id):
+    """API endpoint to remove a member from team via Discord bot"""
+    if not User.has_management_role(g.user):
+        return jsonify({'error': 'Keine Berechtigung'}), 403
+    
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User ID fehlt'}), 400
+        
+        team = Team.get_by_id(team_id)
+        if not team:
+            return jsonify({'error': 'Team nicht gefunden'}), 404
+        
+        # API Call zum Discord Bot
+        try:
+            bot_response = requests.delete(
+                f'http://localhost:321/api/teams/member/delete/{user_id}',
+                params={'team_id': team_id},
+                timeout=10
+            )
+            
+            if bot_response.status_code == 200:
+                # Auch aus lokaler DB entfernen
+                if team.remove_member(user_id):
+                    return jsonify({'success': True, 'message': 'Mitglied erfolgreich entfernt'})
+                else:
+                    return jsonify({'error': 'Mitglied vom Discord entfernt, aber DB-Fehler'}), 500
+            else:
+                return jsonify({'error': f'Discord Bot Fehler: {bot_response.status_code}'}), 500
+                
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error calling Discord bot API for member removal: {e}")
+            return jsonify({'error': 'Fehler beim Kommunizieren mit Discord Bot'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error removing member from team {team_id}: {e}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500
+
+# API Endpunkt für Team-Namen ändern mit Discord Bot API Call
+@teams_bp.route('/api/edit/<int:team_id>/change_name', methods=['POST'])
+@login_required
+def api_change_team_name(team_id):
+    """API endpoint to change team name via Discord bot"""
+    if not User.has_management_role(g.user_roles):
+        return jsonify({'error': 'Keine Berechtigung'}), 403
+    
+    try:
+        data = request.get_json()
+        new_name = data.get('name', '').strip()
+        
+        if not new_name:
+            return jsonify({'error': 'Team-Name ist erforderlich'}), 400
+        
+        if len(new_name) < 2 or len(new_name) > 50:
+            return jsonify({'error': 'Team-Name muss zwischen 2 und 50 Zeichen lang sein'}), 400
+        
+        team = Team.get_by_id(team_id)
+        if not team:
+            return jsonify({'error': 'Team nicht gefunden'}), 404
+        
+        # API Call zum Discord Bot
+        try:
+            bot_response = requests.post(
+                f'http://localhost:321/api/teams/name/change/{team_id}',
+                json={'name': new_name},
+                timeout=10
+            )
+            
+            if bot_response.status_code == 200:
+                # Auch in lokaler DB ändern
+                db = get_db()
+                db.execute(
+                    'UPDATE team_areas SET team_name = ? WHERE id = ?',
+                    (new_name, team_id)
+                )
+                db.commit()
+                
+                return jsonify({'success': True, 'message': 'Team-Name erfolgreich geändert'})
+            else:
+                return jsonify({'error': f'Discord Bot Fehler: {bot_response.status_code}'}), 500
+                
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error calling Discord bot API for name change: {e}")
+            return jsonify({'error': 'Fehler beim Kommunizieren mit Discord Bot'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error changing team name for team {team_id}: {e}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500

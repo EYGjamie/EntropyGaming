@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}{{ team.team_name }} bearbeiten - Teams{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/teams.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/teams-edit.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Laden...</span>
+            </div>
+            <p class="mt-3 mb-0">Änderungen werden verarbeitet...</p>
+        </div>
+    </div>
+
+    <!-- Breadcrumb
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('teams.index') }}">Teams</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('teams.detail', team_id=team.id) }}">{{ team.team_name }}</a>
+            </li>
+            <li class="breadcrumb-item active">Bearbeiten</li>
+        </ol>
+    </nav> -->
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="gradient-text">
+                    <i class="bi bi-pencil-square"></i> Team bearbeiten
+                </h1>
+                <p>Verwalte Team-Mitglieder, Rollen und Einstellungen für <strong>{{ team.team_name }}</strong></p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{{ url_for('teams.detail', team_id=team.id) }}" 
+                   class="btn btn-outline-entropy">
+                    <i class="bi bi-arrow-left"></i> Zurück zum Team
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Team Name Section -->
+        <div class="col-12">
+            <div class="edit-section-card">
+                <div class="edit-section-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-tag"></i> Team-Name
+                    </h4>
+                </div>
+                <div class="edit-section-body">
+                    <form id="teamNameForm">
+                        <div class="row align-items-end">
+                            <div class="col-md-8">
+                                <label for="teamName" class="form-label">Team-Name</label>
+                                <input type="text" 
+                                       class="form-control entropy-input" 
+                                       id="teamName" 
+                                       value="{{ team.team_name }}"
+                                       maxlength="50"
+                                       required>
+                                <div class="form-text">2-50 Zeichen</div>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-entropy w-100">
+                                    <i class="bi bi-check"></i> Name ändern
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Members Section -->
+        <div class="col-12">
+            <div class="edit-section-card">
+                <div class="edit-section-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-people"></i> Team-Mitglieder
+                    </h4>
+                </div>
+                <div class="edit-section-body">
+                    {% if team.members %}
+                        <div id="membersContainer">
+                            {% for member in team.members %}
+                            <div class="member-edit-card" data-user-id="{{ member.id }}">
+                                <div class="member-edit-info">
+                                    {% if member.avatar_url %}
+                                    <img src="{{ member.avatar_url }}" 
+                                         alt="{{ member.effective_name }}" 
+                                         class="member-edit-avatar">
+                                    {% else %}
+                                    <div class="member-edit-avatar member-edit-avatar-placeholder">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="member-edit-details">
+                                        <h6 class="member-edit-name">{{ member.effective_name }}</h6>
+                                        <small class="member-edit-joined">
+                                            Seit: {{ member.joined_at[:10] if member.joined_at else 'Unbekannt' }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="member-edit-actions">
+                                    <select class="form-select role-selector entropy-select" 
+                                            data-user-id="{{ member.id }}"
+                                            onchange="updateMemberRole({{ member.id }}, this.value)">
+                                        {% for role in available_roles %}
+                                        <option value="{{ role }}" 
+                                                {% if member.role == role %}selected{% endif %}>
+                                            {{ role }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-entropy-danger"
+                                            onclick="removeMember({{ member.id }}, '{{ member.effective_name }}')">
+                                        <i class="bi bi-trash"></i> Entfernen
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-members-state">
+                            <i class="bi bi-people empty-icon"></i>
+                            <h5 class="empty-title">Keine Mitglieder</h5>
+                            <p class="empty-description">Dieses Team hat derzeit keine Mitglieder.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content entropy-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Bestätigung erforderlich</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-entropy" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-entropy-danger" id="confirmBtn">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/teams-edit.js') }}"></script>
+{% endblock %}
