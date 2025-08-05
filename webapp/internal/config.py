@@ -23,7 +23,7 @@ class Config:
     SESSION_COOKIE_SAMESITE = 'Lax'
     
     # Upload configuration
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    MAX_CONTENT_LENGTH = 512 * 1024 * 1024  # 512MB max file size
     UPLOAD_FOLDER = 'static/uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'txt', 'doc', 'docx'}
     
@@ -51,7 +51,7 @@ class Config:
 
     # Forum-specific configuration
     FORUM_UPLOAD_FOLDER = os.path.join('static', 'uploads', 'forum')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    MAX_CONTENT_LENGTH = 512 * 1024 * 1024  # 16MB max file size
     FORUM_ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xlsx', 'pptx', 'zip', 'rar'}
     
     # Grok AI API configuration for Forum Summary Generation
@@ -72,8 +72,8 @@ class Config:
     FORUM_ROLE_PERMISSIONS_ENABLED = os.getenv('FORUM_ROLE_PERMISSIONS_ENABLED', 'True').lower() == 'true'
     
     # Rate Limiting Configuration
-    FORUM_POST_RATE_LIMIT = int(os.getenv('FORUM_POST_RATE_LIMIT', '5'))  # Posts per hour
-    FORUM_COMMENT_RATE_LIMIT = int(os.getenv('FORUM_COMMENT_RATE_LIMIT', '30'))  # Comments per hour
+    FORUM_POST_RATE_LIMIT = int(os.getenv('FORUM_POST_RATE_LIMIT', '100'))  # Posts per hour
+    FORUM_COMMENT_RATE_LIMIT = int(os.getenv('FORUM_COMMENT_RATE_LIMIT', '3000'))  # Comments per hour
     
     # Content Moderation
     FORUM_AUTO_MODERATION_ENABLED = os.getenv('FORUM_AUTO_MODERATION_ENABLED', 'False').lower() == 'true'
