@@ -1,89 +1,163 @@
 <!-- webapp/internal/templates/forum/categories.html -->
 {% extends "base.html" %}
 
-{% block title %}Kategorien - Forum{% endblock %}
+{% block title %}Kategorien verwalten - Forum{% endblock %}
 
 {% block page_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-category-create.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-categories.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="forum-container">
-        <div class="forum-header">
-            <h1><i class="bi bi-tags"></i> Forum Kategorien</h1>
-            <div class="forum-actions">
+    <div class="categories-container">
+        <div class="categories-header">
+            <h1><i class="bi bi-tags-fill"></i> Kategorien verwalten</h1>
+            <div class="header-actions">
+                <button type="button" class="btn btn-primary" onclick="openCreateModal()">
+                    <i class="bi bi-plus-lg"></i> Neue Kategorie
+                </button>
                 <a href="{{ url_for('forum.index') }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Zurück zum Forum
                 </a>
-                <button class="btn btn-primary" onclick="showCreateCategoryModal()">
-                    <i class="bi bi-plus-lg"></i> Neue Kategorie
-                </button>
             </div>
         </div>
 
-        <!-- Categories List -->
-        <div class="categories-list">
-            {% if categories %}
-                {% for category in categories %}
-                <div class="category-card">
-                    <div class="category-header">
-                        <div class="category-info">
-                            <h3 class="category-name">{{ category.name }}</h3>
-                            {% if category.description %}
-                            <p class="category-description">{{ category.description }}</p>
+        <div class="categories-content">
+            <!-- Categories Overview -->
+            <div class="categories-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-folder"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ categories|length }}</h3>
+                        <p>Kategorien</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-file-text"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ categories|sum(attribute='post_count') }}</h3>
+                        <p>Posts insgesamt</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ categories|selectattr('required_roles')|list|length }}</h3>
+                        <p>Geschützte Kategorien</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories List -->
+            <div class="categories-list">
+                {% if categories %}
+                    {% for category in categories %}
+                    <div class="category-card" data-category-id="{{ category.id }}">
+                        <div class="category-header">
+                            <div class="category-info">
+                                <h3 class="category-name">
+                                    <i class="bi bi-folder"></i>
+                                    {{ category.name }}
+                                    {% if category.required_roles %}
+                                    <span class="protected-badge" title="Geschützte Kategorie">
+                                        <i class="bi bi-shield-lock-fill"></i>
+                                    </span>
+                                    {% endif %}
+                                </h3>
+                                {% if category.description %}
+                                <p class="category-description">{{ category.description }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="category-stats">
+                                <span class="post-count">
+                                    <i class="bi bi-file-text"></i>
+                                    {{ category.post_count }} Posts
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="category-details">
+                            {% if category.required_roles %}
+                            <div class="permission-info">
+                                <h4><i class="bi bi-people"></i> Berechtigt für Rollen:</h4>
+                                <div class="role-badges">
+                                    {% for role in category.required_roles.split(',') %}
+                                    <span class="role-badge role-{{ role.strip().lower().replace(' ', '-') }}">
+                                        {{ role.strip() }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="permission-info">
+                                <span class="public-category">
+                                    <i class="bi bi-globe"></i> Öffentlich für alle Nutzer
+                                </span>
+                            </div>
                             {% endif %}
                         </div>
-                        <div class="category-stats">
-                            <div class="stat-number">{{ category.post_count }}</div>
-                            <div class="stat-label">Posts</div>
-                            <br>
+
+                        <div class="category-actions">
+                            <button type="button" class="btn btn-sm btn-outline" onclick="editCategory({{ category.id }})">
+                                <i class="bi bi-pencil"></i> Bearbeiten
+                            </button>
+                            
+                            <a href="{{ url_for('forum.index', category=category.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i> Posts ansehen
+                            </a>
+                            
+                            {% if category.post_count == 0 %}
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteCategory({{ category.id }})">
+                                <i class="bi bi-trash"></i> Löschen
+                            </button>
+                            {% endif %}
                         </div>
                     </div>
-                    
-                    <div class="category-actions">
-                        <a href="{{ url_for('forum.index', category=category.id) }}" class="btn btn-outline">
-                            <i class="bi bi-eye"></i> Posts anzeigen
-                        </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="bi bi-folder-x"></i>
+                        </div>
+                        <h3>Keine Kategorien vorhanden</h3>
+                        <p>Erstellen Sie die erste Kategorie, um Posts zu organisieren.</p>
+                        <button type="button" class="btn btn-primary" onclick="openCreateModal()">
+                            <i class="bi bi-plus-lg"></i> Erste Kategorie erstellen
+                        </button>
                     </div>
-                    <br>
-                    <hr class="category-divider">
-                    <br>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="no-categories">
-                    <div class="no-categories-icon">
-                        <i class="bi bi-tags"></i>
-                    </div>
-                    <h3>Keine Kategorien vorhanden</h3>
-                    <p>Erstelle die erste Kategorie für das Forum.</p>
-                    <button class="btn btn-primary" onclick="showCreateCategoryModal()">
-                        <i class="bi bi-plus-lg"></i> Erste Kategorie erstellen
-                    </button>
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
         </div>
-
     </div>
 </div>
 
-<!-- Create Category Modal -->
-<div id="createCategoryModal" class="modal" style="display: none;">
+<!-- Create/Edit Category Modal -->
+<div id="categoryModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="bi bi-plus-circle"></i> Neue Kategorie erstellen</h3>
-            <button class="modal-close" onclick="hideCreateCategoryModal()">
-                <i class="bi bi-x-lg"></i>
+            <h3 id="modalTitle">
+                <i class="bi bi-plus-circle"></i> Neue Kategorie erstellen
+            </h3>
+            <button type="button" class="modal-close" onclick="closeCategoryModal()">
+                <i class="bi bi-x"></i>
             </button>
         </div>
         
-        <form method="POST" action="{{ url_for('forum.create_category') }}" id="createCategoryForm">
+        <form id="categoryForm" method="POST">
             <div class="modal-body">
                 <div class="form-group">
                     <label for="categoryName" class="form-label">
-                        <i class="bi bi-tag"></i> Kategoriename *
+                        <i class="bi bi-tag"></i> Name *
                     </label>
                     <input type="text" 
                            id="categoryName" 
@@ -92,41 +166,321 @@
                            placeholder="z.B. Allgemein, Projekte, Support..."
                            maxlength="100"
                            required>
-                    <div class="form-hint">Eindeutiger Name für die Kategorie (max. 100 Zeichen)</div>
+                    <div class="form-hint">Eindeutiger Name für die Kategorie</div>
                 </div>
 
                 <div class="form-group">
                     <label for="categoryDescription" class="form-label">
-                        <i class="bi bi-file-text"></i> Beschreibung
+                        <i class="bi bi-info-circle"></i> Beschreibung
                     </label>
                     <textarea id="categoryDescription" 
                               name="description" 
                               class="form-textarea" 
-                              placeholder="Beschreibe wofür diese Kategorie verwendet wird..."
-                              rows="3"
-                              maxlength="500"></textarea>
-                    <div class="form-hint">Optionale Beschreibung (max. 500 Zeichen)</div>
+                              placeholder="Kurze Beschreibung der Kategorie..."
+                              maxlength="500"
+                              rows="3"></textarea>
+                    <div class="form-hint">Optional: Hilft Nutzern zu verstehen, wofür die Kategorie ist</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-shield-lock"></i> Berechtigungen
+                    </label>
+                    <div class="permissions-section">
+                        <div class="permission-option">
+                            <input type="radio" 
+                                   id="publicCategory" 
+                                   name="access_type" 
+                                   value="public" 
+                                   checked 
+                                   onchange="togglePermissions()">
+                            <label for="publicCategory" class="radio-label">
+                                <i class="bi bi-globe"></i>
+                                <div>
+                                    <strong>Öffentlich</strong>
+                                    <p>Alle Nutzer können diese Kategorie sehen und Posts erstellen</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="permission-option">
+                            <input type="radio" 
+                                   id="restrictedCategory" 
+                                   name="access_type" 
+                                   value="restricted" 
+                                   onchange="togglePermissions()">
+                            <label for="restrictedCategory" class="radio-label">
+                                <i class="bi bi-shield-lock"></i>
+                                <div>
+                                    <strong>Eingeschränkt</strong>
+                                    <p>Nur Nutzer mit bestimmten Rollen können diese Kategorie sehen</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="rolesSelection" class="roles-selection" style="display: none;">
+                        <h4>Berechtigt für folgende Rollen:</h4>
+                        <div class="roles-grid">
+                            {% for role in available_roles %}
+                            <div class="role-checkbox">
+                                <input type="checkbox" 
+                                       id="role_{{ loop.index }}" 
+                                       name="required_roles[]" 
+                                       value="{{ role }}">
+                                <label for="role_{{ loop.index }}" class="checkbox-label">
+                                    <span class="role-badge role-{{ role.lower().replace(' ', '-') }}">
+                                        {{ role }}
+                                    </span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-hint">
+                            <i class="bi bi-info-circle"></i>
+                            Wählen Sie mindestens eine Rolle aus. Nutzer mit diesen Rollen können die Kategorie sehen.
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="hideCreateCategoryModal()">
-                    <i class="bi bi-x-lg"></i> Abbrechen
-                </button>
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> Kategorie erstellen
+                    <i class="bi bi-save"></i> <span id="submitText">Kategorie erstellen</span>
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">
+                    <i class="bi bi-x"></i> Abbrechen
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-{% if error %}
-<div class="alert alert-error">
-    {{ error }}
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-exclamation-triangle"></i> Kategorie löschen</h3>
+            <button type="button" class="modal-close" onclick="closeDeleteModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Sind Sie sicher, dass Sie die Kategorie <strong id="deleteCategoryName"></strong> löschen möchten?</p>
+            <div class="warning-box">
+                <i class="bi bi-exclamation-triangle"></i>
+                <p>Diese Aktion kann nicht rückgängig gemacht werden. Posts in dieser Kategorie werden als "nicht kategorisiert" markiert.</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                <i class="bi bi-trash"></i> Endgültig löschen
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                <i class="bi bi-x"></i> Abbrechen
+            </button>
+        </div>
+    </div>
 </div>
-{% endif %}
+{% endblock %}
 
-<script src="{{ url_for('static', filename='js/forum.js') }}"></script>
+{% block page_js %}
+<script>
+let currentEditingCategoryId = null;
 
+// Modal Management
+function openCreateModal() {
+    currentEditingCategoryId = null;
+    document.getElementById('modalTitle').innerHTML = '<i class="bi bi-plus-circle"></i> Neue Kategorie erstellen';
+    document.getElementById('submitText').textContent = 'Kategorie erstellen';
+    document.getElementById('categoryForm').action = '{{ url_for("forum.create_category") }}';
+    
+    // Reset form
+    resetCategoryForm();
+    
+    document.getElementById('categoryModal').style.display = 'flex';
+    document.getElementById('categoryName').focus();
+}
+
+function editCategory(categoryId) {
+    currentEditingCategoryId = categoryId;
+    const categoryCard = document.querySelector(`[data-category-id="${categoryId}"]`);
+    
+    if (!categoryCard) return;
+    
+    // Get category data from the card
+    const name = categoryCard.querySelector('.category-name').textContent.trim();
+    const description = categoryCard.querySelector('.category-description')?.textContent.trim() || '';
+    const rolesBadges = categoryCard.querySelectorAll('.role-badge');
+    
+    // Set modal title and form action
+    document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil"></i> Kategorie bearbeiten';
+    document.getElementById('submitText').textContent = 'Änderungen speichern';
+    document.getElementById('categoryForm').action = `{{ url_for("forum.edit_category", category_id=0) }}`.replace('0', categoryId);
+    
+    // Fill form with current data
+    document.getElementById('categoryName').value = name;
+    document.getElementById('categoryDescription').value = description;
+    
+    // Set permission type and roles
+    if (rolesBadges.length > 0) {
+        document.getElementById('restrictedCategory').checked = true;
+        togglePermissions();
+        
+        // Check the appropriate role checkboxes
+        rolesBadges.forEach(badge => {
+            const roleName = badge.textContent.trim();
+            const checkbox = document.querySelector(`input[name="required_roles[]"][value="${roleName}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    } else {
+        document.getElementById('publicCategory').checked = true;
+        togglePermissions();
+    }
+    
+    document.getElementById('categoryModal').style.display = 'flex';
+    document.getElementById('categoryName').focus();
+}
+
+function closeCategoryModal() {
+    document.getElementById('categoryModal').style.display = 'none';
+    resetCategoryForm();
+}
+
+function resetCategoryForm() {
+    document.getElementById('categoryForm').reset();
+    document.getElementById('publicCategory').checked = true;
+    togglePermissions();
+    
+    // Uncheck all role checkboxes
+    document.querySelectorAll('input[name="required_roles[]"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+function togglePermissions() {
+    const rolesSelection = document.getElementById('rolesSelection');
+    const restrictedRadio = document.getElementById('restrictedCategory');
+    
+    if (restrictedRadio.checked) {
+        rolesSelection.style.display = 'block';
+    } else {
+        rolesSelection.style.display = 'none';
+    }
+}
+
+// Delete functionality
+function deleteCategory(categoryId) {
+    const categoryCard = document.querySelector(`[data-category-id="${categoryId}"]`);
+    const categoryName = categoryCard.querySelector('.category-name').textContent.trim();
+    
+    document.getElementById('deleteCategoryName').textContent = categoryName;
+    document.getElementById('deleteModal').style.display = 'flex';
+    
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+        performDelete(categoryId);
+    };
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+function performDelete(categoryId) {
+    fetch(`/forum/categories/${categoryId}/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove category card from UI
+            document.querySelector(`[data-category-id="${categoryId}"]`).remove();
+            closeDeleteModal();
+            
+            // Show success message
+            showNotification('Kategorie erfolgreich gelöscht', 'success');
+            
+            // Check if no categories left
+            if (document.querySelectorAll('.category-card').length === 0) {
+                location.reload(); // Reload to show empty state
+            }
+        } else {
+            alert('Fehler beim Löschen der Kategorie: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Fehler beim Löschen der Kategorie.');
+    });
+}
+
+// Form validation
+document.getElementById('categoryForm').addEventListener('submit', function(e) {
+    const restrictedRadio = document.getElementById('restrictedCategory');
+    
+    if (restrictedRadio.checked) {
+        const checkedRoles = document.querySelectorAll('input[name="required_roles[]"]:checked');
+        if (checkedRoles.length === 0) {
+            e.preventDefault();
+            alert('Bitte wählen Sie mindestens eine Rolle für die eingeschränkte Kategorie aus.');
+            return;
+        }
+    }
+});
+
+// Notification system
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+        <button type="button" onclick="this.parentElement.remove()">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Close modals when clicking outside
+window.addEventListener('click', function(event) {
+    const categoryModal = document.getElementById('categoryModal');
+    const deleteModal = document.getElementById('deleteModal');
+    
+    if (event.target === categoryModal) {
+        closeCategoryModal();
+    }
+    
+    if (event.target === deleteModal) {
+        closeDeleteModal();
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCategoryModal();
+        closeDeleteModal();
+    }
+});
+
+// Initialize tooltips if using Bootstrap
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any initialization code here
+    console.log('Categories management loaded');
+});
+</script>
 {% endblock %}

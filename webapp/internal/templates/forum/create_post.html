@@ -1,349 +1,762 @@
 <!-- webapp/internal/templates/forum/create_post.html -->
 {% extends "base.html" %}
 
-{% block title %}Neuer Post - Forum{% endblock %}
+{% block title %}{% if post %}Post bearbeiten{% else %}Neuer Post{% endif %} - Forum{% endblock %}
 
 {% block page_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-create.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-editor.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="forum-container">
-        <div class="create-post-header">
-            <h1>Neuer Post</h1>
-            <a href="{{ url_for('forum.index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Zurück zum Forum
+    <div class="forum-editor-container">
+        <div class="editor-header">
+            <h1>
+                <i class="bi bi-pencil"></i> 
+                {% if post %}Post bearbeiten{% else %}Neuer Post{% endif %}
+            </h1>
+            <a href="{% if post %}{{ url_for('forum.view_post', post_id=post.id) }}{% else %}{{ url_for('forum.index') }}{% endif %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück
             </a>
         </div>
 
-        <div class="create-post-form">
-            <form method="POST" enctype="multipart/form-data" id="createPostForm">
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="bi bi-pencil"></i>
-                        Post-Details
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="title" class="form-label">
-                            <i class="bi bi-type"></i> Titel *
-                        </label>
-                        <input type="text" 
-                               id="title" 
-                               name="title" 
-                               class="form-input" 
-                               placeholder="Gib deinem Post einen aussagekräftigen Titel..."
-                               maxlength="255"
-                               required>
-                        <div class="form-hint">Bis zu 255 Zeichen</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="category_id" class="form-label">
-                            <i class="bi bi-tag"></i> Kategorie
-                        </label>
-                        <select id="category_id" name="category_id" class="form-select">
-                            <option value="">-- Keine Kategorie --</option>
-                            {% for category in categories %}
-                            <option value="{{ category.id }}">{{ category.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <div class="form-hint">Optional: Ordne deinen Post einer Kategorie zu</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="content" class="form-label">
-                            <i class="bi bi-file-text"></i> Inhalt *
-                        </label>
-                        <textarea id="content" 
-                                  name="content" 
-                                  class="form-textarea" 
-                                  placeholder="Schreibe hier den Inhalt deines Posts..."
-                                  rows="12"
-                                  required></textarea>
-                        <div class="form-hint">Beschreibe dein Anliegen ausführlich</div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="bi bi-paperclip"></i>
-                        Dateien anhängen
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <div class="file-upload-placeholder">
-                                <i class="bi bi-cloud-upload"></i>
-                                <p>Dateien hier ablegen oder <span class="file-upload-btn">durchsuchen</span></p>
-                                <input type="file" 
-                                       id="attachments" 
-                                       name="attachments" 
-                                       multiple 
-                                       class="file-input"
-                                       accept=".txt,.pdf,.png,.jpg,.jpeg,.gif,.doc,.docx,.xlsx,.pptx">
-                            </div>
-                            <div class="file-list" id="fileList"></div>
+        <form method="POST" enctype="multipart/form-data" id="postForm" class="editor-form">
+            <div class="form-layout">
+                <!-- Left Column: Main Editor -->
+                <div class="editor-main">
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <h3><i class="bi bi-info-circle"></i> Grundinformationen</h3>
                         </div>
-                        <div class="form-hint">
-                            Erlaubte Dateitypen: TXT, PDF, PNG, JPG, GIF, DOC, DOCX, XLSX, PPTX (max. 10MB pro Datei)
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-large">
-                        <i class="bi bi-send"></i> Post veröffentlichen
-                    </button>
-                    <a href="{{ url_for('forum.index') }}" class="btn btn-outline btn-large">
-                        <i class="bi bi-x-lg"></i> Abbrechen
-                    </a>
-                </div>
-            </form>
-        </div>
-
-        <!-- Preview Section -->
-        <div class="post-preview-section" id="previewSection" style="display: none;">
-            <h3><i class="bi bi-eye"></i> Vorschau</h3>
-            <div class="post-card preview-card">
-                <div class="post-header">
-                    <div class="post-title-section">
-                        <h3 class="post-title" id="previewTitle">Post Titel</h3>
-                        <span class="post-category" id="previewCategory" style="display: none;"></span>
-                    </div>
-                    <div class="post-meta">
-                        <span class="post-author">
-                            {% if user.avatar_url %}
-                                <img src="{{ user.avatar_url }}" alt="Profilbild" class="post-author-avatar">
-                            {% else %}
-                                <div class="post-author-placeholder">
-                                    {{ (user.display_name or user.username)[0].upper() }}
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="title" class="form-label">
+                                    <i class="bi bi-type"></i> Titel *
+                                </label>
+                                <input type="text" 
+                                       id="title" 
+                                       name="title" 
+                                       class="form-input" 
+                                       placeholder="Gib deinem Post einen aussagekräftigen Titel..."
+                                       value="{% if post %}{{ post.title }}{% endif %}"
+                                       maxlength="255"
+                                       required>
+                                <div class="form-hint">
+                                    <span id="titleCounter">{% if post %}{{ post.title|length }}{% else %}0{% endif %}/255</span> Zeichen
                                 </div>
-                            {% endif %}
-                            {{ user.display_name or user.username }}
-                        </span>
-                        <span class="post-date">
-                            <i class="bi bi-clock"></i>
-                            Jetzt
-                        </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="category_id" class="form-label">
+                                    <i class="bi bi-tag"></i> Kategorie
+                                </label>
+                                <select id="category_id" name="category_id" class="form-select">
+                                    <option value="">-- Keine Kategorie --</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" 
+                                            {% if post and post.category_id == category.id %}selected{% endif %}>
+                                        {{ category.name }}
+                                        {% if category.required_roles %}
+                                        <span class="category-restricted">🔒</span>
+                                        {% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-hint">Optional: Ordne deinen Post einer Kategorie zu</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Section -->
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <h3><i class="bi bi-card-text"></i> Kurzzusammenfassung</h3>
+                            <button type="button" class="btn btn-ai" id="generateSummaryBtn">
+                                <i class="bi bi-magic"></i> AI generieren
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <textarea id="summary" 
+                                      name="summary" 
+                                      class="form-textarea summary-input" 
+                                      placeholder="Eine kurze Zusammenfassung deines Posts (max. 150 Zeichen)..."
+                                      maxlength="150"
+                                      rows="3">{% if post %}{{ post.summary }}{% endif %}</textarea>
+                            <div class="form-hint">
+                                <span id="summaryCounter">{% if post and post.summary %}{{ post.summary|length }}{% else %}0{% endif %}/150</span> Zeichen
+                                <div class="ai-status" id="aiStatus" style="display: none;">
+                                    <i class="bi bi-robot"></i> <span class="status-text">Wird generiert...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Editor -->
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <h3><i class="bi bi-file-text"></i> Inhalt *</h3>
+                            <div class="editor-mode-toggle">
+                                <button type="button" class="mode-btn active" data-mode="write">
+                                    <i class="bi bi-pencil"></i> Schreiben
+                                </button>
+                                <button type="button" class="mode-btn" data-mode="preview">
+                                    <i class="bi bi-eye"></i> Vorschau
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Formatting Toolbar -->
+                        <div class="markdown-toolbar">
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-action="bold" title="Fett (Ctrl+B)">
+                                    <i class="bi bi-type-bold"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="italic" title="Kursiv (Ctrl+I)">
+                                    <i class="bi bi-type-italic"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="strikethrough" title="Durchgestrichen">
+                                    <i class="bi bi-type-strikethrough"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-action="heading" title="Überschrift">
+                                    <i class="bi bi-type-h1"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="quote" title="Zitat">
+                                    <i class="bi bi-chat-square-quote"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="code" title="Code">
+                                    <i class="bi bi-code"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="codeblock" title="Codeblock">
+                                    <i class="bi bi-code-square"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-action="link" title="Link">
+                                    <i class="bi bi-link-45deg"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="image" title="Bild">
+                                    <i class="bi bi-image"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="list" title="Liste">
+                                    <i class="bi bi-list-ul"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="table" title="Tabelle">
+                                    <i class="bi bi-table"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-action="help" title="Markdown Hilfe">
+                                    <i class="bi bi-question-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Editor Area -->
+                        <div class="editor-area">
+                            <textarea id="content" 
+                                      name="content" 
+                                      class="form-textarea markdown-editor" 
+                                      placeholder="Schreibe hier den Inhalt deines Posts... Du kannst Markdown verwenden!"
+                                      rows="20"
+                                      required>{% if post %}{{ post.content }}{% endif %}</textarea>
+                            
+                            <div id="preview" class="markdown-preview" style="display: none;">
+                                <div class="preview-content">
+                                    <p class="text-muted"><i class="bi bi-eye"></i> Vorschau wird geladen...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="editor-footer">
+                            <div class="editor-stats">
+                                <span id="wordCount">0 Wörter</span>
+                                <span id="charCount">0 Zeichen</span>
+                            </div>
+                            <div class="markdown-hint">
+                                <i class="bi bi-info-circle"></i>
+                                <a href="#" onclick="showMarkdownHelp()">Markdown Syntax</a> wird unterstützt
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="post-preview" id="previewContent">Post Inhalt</div>
+
+                <!-- Right Column: Settings & Attachments -->
+                <div class="editor-sidebar">
+                    <!-- Attachments -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-header">
+                            <h4><i class="bi bi-paperclip"></i> Anhänge</h4>
+                        </div>
+                        
+                        <div class="attachments-area">
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <input type="file" 
+                                       name="attachments" 
+                                       id="attachments" 
+                                       multiple 
+                                       accept=".txt,.pdf,.png,.jpg,.jpeg,.gif,.doc,.docx,.xlsx,.pptx,.zip,.rar"
+                                       class="file-input">
+                                <label for="attachments" class="file-upload-label">
+                                    <i class="bi bi-cloud-upload"></i>
+                                    <span>Dateien hier hinziehen oder klicken</span>
+                                    <small>Max. 10MB pro Datei</small>
+                                </label>
+                            </div>
+                            
+                            <div id="fileList" class="file-list">
+                                <!-- Existing attachments (for edit mode) -->
+                                {% if post and attachments %}
+                                    {% for attachment in attachments %}
+                                    <div class="file-item existing-file" data-attachment-id="{{ attachment.id }}">
+                                        <div class="file-info">
+                                            <i class="bi bi-file-earmark"></i>
+                                            <span class="filename">{{ attachment.original_filename }}</span>
+                                            <span class="filesize">{{ (attachment.file_size / 1024)|round(1) }} KB</span>
+                                        </div>
+                                        <button type="button" class="remove-file-btn" onclick="removeExistingFile({{ attachment.id }})">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post Settings -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-header">
+                            <h4><i class="bi bi-gear"></i> Einstellungen</h4>
+                        </div>
+                        
+                        <div class="settings-options">
+                            <!-- Future: Pin post, comments enabled, etc. -->
+                            <div class="setting-item">
+                                <input type="checkbox" id="notifyFollowers" name="notify_followers" checked>
+                                <label for="notifyFollowers">Follower benachrichtigen</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="sidebar-section">
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="bi bi-send"></i> 
+                                {% if post %}Änderungen speichern{% else %}Post veröffentlichen{% endif %}
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline btn-block" onclick="saveDraft()">
+                                <i class="bi bi-save"></i> Als Entwurf speichern
+                            </button>
+                            
+                            <a href="{% if post %}{{ url_for('forum.view_post', post_id=post.id) }}{% else %}{{ url_for('forum.index') }}{% endif %}" 
+                               class="btn btn-secondary btn-block">
+                                <i class="bi bi-x-lg"></i> Abbrechen
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Markdown Help Modal -->
+<div id="markdownHelpModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-book"></i> Markdown Syntax Hilfe</h3>
+            <button type="button" class="modal-close" onclick="closeMarkdownHelp()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="markdown-help-content">
+                <div class="help-section">
+                    <h4>Text-Formatierung</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>**fett**</code> → <strong>fett</strong>
+                        </div>
+                        <div class="help-item">
+                            <code>*kursiv*</code> → <em>kursiv</em>
+                        </div>
+                        <div class="help-item">
+                            <code>~~durchgestrichen~~</code> → <del>durchgestrichen</del>
+                        </div>
+                        <div class="help-item">
+                            <code>`code`</code> → <code>code</code>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="help-section">
+                    <h4>Überschriften</h4>
+                    <div class="help-examples">
+                        <div class="help-item"><code># Überschrift 1</code></div>
+                        <div class="help-item"><code>## Überschrift 2</code></div>
+                        <div class="help-item"><code>### Überschrift 3</code></div>
+                    </div>
+                </div>
+                
+                <div class="help-section">
+                    <h4>Listen</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>- Punkt 1<br>- Punkt 2</code>
+                        </div>
+                        <div class="help-item">
+                            <code>1. Erster<br>2. Zweiter</code>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="help-section">
+                    <h4>Links & Bilder</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>[Link Text](http://example.com)</code>
+                        </div>
+                        <div class="help-item">
+                            <code>![Alt Text](image.jpg)</code>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="help-section">
+                    <h4>Code-Blöcke</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>```javascript<br>console.log('Hello');<br>```</code>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/forum.js') }}"></script>
+{% block page_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
 <script>
-// Set global user info for comments
-window.currentUserId = {{ user.id }};
-window.currentUserName = "{{ user.display_name or user.username }}";
-{% if user.avatar_url %}
-window.currentUserAvatar = '<img src="{{ user.avatar_url }}" alt="Profilbild" class="profile-image">';
-{% else %}
-window.currentUserAvatar = '<div class="profile-avatar-placeholder">{{ (user.display_name or user.username)[0].upper() }}</div>';
-{% endif %}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('createPostForm');
-    const fileInput = document.getElementById('attachments');
-    const fileUploadArea = document.getElementById('fileUploadArea');
-    const fileList = document.getElementById('fileList');
-    const titleInput = document.getElementById('title');
-    const contentInput = document.getElementById('content');
-    const categorySelect = document.getElementById('category_id');
-    const previewSection = document.getElementById('previewSection');
+// Editor functionality
+class ForumEditor {
+    constructor() {
+        this.contentEditor = document.getElementById('content');
+        this.previewArea = document.getElementById('preview');
+        this.currentMode = 'write';
+        this.initializeEditor();
+        this.initializeFileUpload();
+        this.initializeCounters();
+        this.setupAutoSave();
+    }
     
-    // File upload handling
-    let selectedFiles = new DataTransfer();
-
-    fileUploadArea.addEventListener('click', function(e) {
-        if (e.target.classList.contains('file-upload-btn') || e.target.closest('.file-upload-placeholder')) {
-            fileInput.click();
-        }
-    });
-
-    fileUploadArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.classList.add('dragover');
-    });
-
-    fileUploadArea.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-    });
-
-    fileUploadArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-        handleFiles(e.dataTransfer.files);
-    });
-
-    fileInput.addEventListener('change', function(e) {
-        handleFiles(e.target.files);
-    });
-
-    function handleFiles(files) {
-        Array.from(files).forEach(file => {
-            if (validateFile(file)) {
-                selectedFiles.items.add(file);
-                addFileToList(file);
+    initializeEditor() {
+        // Toolbar event listeners
+        document.querySelectorAll('.toolbar-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const action = btn.getAttribute('data-action');
+                this.handleToolbarAction(action);
+            });
+        });
+        
+        // Mode toggle
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const mode = btn.getAttribute('data-mode');
+                this.switchMode(mode);
+            });
+        });
+        
+        // Keyboard shortcuts
+        this.contentEditor.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'b':
+                        e.preventDefault();
+                        this.handleToolbarAction('bold');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        this.handleToolbarAction('italic');
+                        break;
+                }
             }
         });
-        updateFileInput();
-    }
-
-    function validateFile(file) {
-        const allowedTypes = ['text/plain', 'application/pdf', 'image/png', 'image/jpeg', 'image/gif', 
-                             'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                             'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                             'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
         
-        const maxSize = 10 * 1024 * 1024; // 10MB
-
-        if (!allowedTypes.includes(file.type)) {
-            ForumUtils.showNotification(`Dateityp nicht erlaubt: ${file.name}`, 'error');
-            return false;
-        }
-
-        if (file.size > maxSize) {
-            ForumUtils.showNotification(`Datei zu groß: ${file.name} (max. 10MB)`, 'error');
-            return false;
-        }
-
-        return true;
+        // Live preview update
+        this.contentEditor.addEventListener('input', () => {
+            this.updatePreview();
+            this.updateCounters();
+        });
     }
-
-    function addFileToList(file) {
-        const fileItem = document.createElement('div');
-        fileItem.className = 'file-item';
-        fileItem.innerHTML = `
-            <div class="file-info">
-                <i class="bi bi-file-earmark"></i>
-                <span class="file-name">${file.name}</span>
-                <span class="file-size">(${ForumUtils.formatFileSize(file.size)})</span>
-            </div>
-            <button type="button" class="file-remove" onclick="removeFile('${file.name}')">
-                <i class="bi bi-x"></i>
-            </button>
-        `;
-        fileList.appendChild(fileItem);
+    
+    switchMode(mode) {
+        const writeModeBtn = document.querySelector('.mode-btn[data-mode="write"]');
+        const previewModeBtn = document.querySelector('.mode-btn[data-mode="preview"]');
         
-        // Show file list
-        fileList.style.display = 'block';
+        if (mode === 'write') {
+            this.currentMode = 'write';
+            this.contentEditor.style.display = 'block';
+            this.previewArea.style.display = 'none';
+            writeModeBtn.classList.add('active');
+            previewModeBtn.classList.remove('active');
+        } else {
+            this.currentMode = 'preview';
+            this.contentEditor.style.display = 'none';
+            this.previewArea.style.display = 'block';
+            writeModeBtn.classList.remove('active');
+            previewModeBtn.classList.add('active');
+            this.updatePreview();
+        }
     }
-
-    function removeFile(fileName) {
-        // Remove from selectedFiles
-        for (let i = selectedFiles.items.length - 1; i >= 0; i--) {
-            if (selectedFiles.items[i].getAsFile().name === fileName) {
-                selectedFiles.items.remove(i);
+    
+    updatePreview() {
+        if (this.currentMode === 'preview') {
+            const content = this.contentEditor.value;
+            const html = marked.parse(content);
+            this.previewArea.querySelector('.preview-content').innerHTML = html;
+            
+            // Highlight code blocks
+            this.previewArea.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+    }
+    
+    handleToolbarAction(action) {
+        const start = this.contentEditor.selectionStart;
+        const end = this.contentEditor.selectionEnd;
+        const selectedText = this.contentEditor.value.substring(start, end);
+        let replacement = '';
+        
+        switch(action) {
+            case 'bold':
+                replacement = `**${selectedText || 'fetter Text'}**`;
                 break;
-            }
+            case 'italic':
+                replacement = `*${selectedText || 'kursiver Text'}*`;
+                break;
+            case 'strikethrough':
+                replacement = `~~${selectedText || 'durchgestrichener Text'}~~`;
+                break;
+            case 'heading':
+                replacement = `## ${selectedText || 'Überschrift'}`;
+                break;
+            case 'quote':
+                replacement = `> ${selectedText || 'Zitat'}`;
+                break;
+            case 'code':
+                replacement = `\`${selectedText || 'code'}\``;
+                break;
+            case 'codeblock':
+                replacement = `\`\`\`\n${selectedText || 'code hier'}\n\`\`\``;
+                break;
+            case 'link':
+                const url = prompt('URL eingeben:') || 'http://example.com';
+                replacement = `[${selectedText || 'Link Text'}](${url})`;
+                break;
+            case 'image':
+                const imgUrl = prompt('Bild URL eingeben:') || 'image.jpg';
+                replacement = `![${selectedText || 'Alt Text'}](${imgUrl})`;
+                break;
+            case 'list':
+                replacement = `- ${selectedText || 'Listenpunkt'}`;
+                break;
+            case 'table':
+                replacement = `| Spalte 1 | Spalte 2 |\n|----------|----------|\n| Zelle 1  | Zelle 2  |`;
+                break;
+            case 'help':
+                showMarkdownHelp();
+                return;
         }
         
-        // Remove from display
-        const fileItems = fileList.querySelectorAll('.file-item');
-        fileItems.forEach(item => {
-            if (item.querySelector('.file-name').textContent === fileName) {
-                item.remove();
-            }
+        if (replacement) {
+            this.insertAtCursor(replacement);
+        }
+    }
+    
+    insertAtCursor(text) {
+        const start = this.contentEditor.selectionStart;
+        const end = this.contentEditor.selectionEnd;
+        const value = this.contentEditor.value;
+        
+        this.contentEditor.value = value.substring(0, start) + text + value.substring(end);
+        this.contentEditor.focus();
+        
+        // Set cursor position
+        const newPosition = start + text.length;
+        this.contentEditor.setSelectionRange(newPosition, newPosition);
+        
+        this.updateCounters();
+    }
+    
+    initializeFileUpload() {
+        const fileInput = document.getElementById('attachments');
+        const uploadArea = document.getElementById('fileUploadArea');
+        const fileList = document.getElementById('fileList');
+        
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
         });
         
-        // Hide file list if empty
-        if (selectedFiles.items.length === 0) {
-            fileList.style.display = 'none';
-        }
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
         
-        updateFileInput();
-    }
-
-    function updateFileInput() {
-        fileInput.files = selectedFiles.files;
-    }
-
-    // Make removeFile globally accessible
-    window.removeFile = removeFile;
-
-    // Live preview
-    function updatePreview() {
-        const title = titleInput.value || 'Post Titel';
-        const content = contentInput.value || 'Post Inhalt';
-        const categoryId = categorySelect.value;
-        const categoryName = categoryId ? categorySelect.options[categorySelect.selectedIndex].text : '';
-
-        document.getElementById('previewTitle').textContent = title;
-        document.getElementById('previewContent').textContent = content.substring(0, 200) + (content.length > 200 ? '...' : '');
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const files = Array.from(e.dataTransfer.files);
+            this.handleFiles(files);
+        });
         
-        const categorySpan = document.getElementById('previewCategory');
-        if (categoryName) {
-            categorySpan.textContent = categoryName;
-            categorySpan.style.display = 'inline-block';
-        } else {
-            categorySpan.style.display = 'none';
-        }
-
-        // Show preview if there's content
-        if (title.trim() || content.trim()) {
-            previewSection.style.display = 'block';
-        } else {
-            previewSection.style.display = 'none';
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            this.handleFiles(files);
+        });
+    }
+    
+    handleFiles(files) {
+        const fileList = document.getElementById('fileList');
+        
+        files.forEach(file => {
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                alert(`Datei "${file.name}" ist zu groß (max. 10MB)`);
+                return;
+            }
+            
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <i class="bi bi-file-earmark"></i>
+                    <span class="filename">${file.name}</span>
+                    <span class="filesize">${(file.size / 1024).toFixed(1)} KB</span>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="this.parentElement.remove()">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+            fileList.appendChild(fileItem);
+        });
+    }
+    
+    initializeCounters() {
+        // Title counter
+        const titleInput = document.getElementById('title');
+        const titleCounter = document.getElementById('titleCounter');
+        
+        titleInput.addEventListener('input', () => {
+            const length = titleInput.value.length;
+            titleCounter.textContent = `${length}/255`;
+            titleCounter.className = length > 240 ? 'counter-warning' : '';
+        });
+        
+        // Summary counter
+        const summaryInput = document.getElementById('summary');
+        const summaryCounter = document.getElementById('summaryCounter');
+        
+        summaryInput.addEventListener('input', () => {
+            const length = summaryInput.value.length;
+            summaryCounter.textContent = `${length}/150`;
+            summaryCounter.className = length > 140 ? 'counter-warning' : '';
+        });
+        
+        // Initial count update
+        this.updateCounters();
+    }
+    
+    updateCounters() {
+        const content = this.contentEditor.value;
+        const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+        const charCount = content.length;
+        
+        document.getElementById('wordCount').textContent = `${wordCount} Wörter`;
+        document.getElementById('charCount').textContent = `${charCount} Zeichen`;
+    }
+    
+    setupAutoSave() {
+        let autoSaveTimer;
+        
+        this.contentEditor.addEventListener('input', () => {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                this.saveToLocalStorage();
+            }, 5000); // Auto-save after 5 seconds of inactivity
+        });
+        
+        // Load from localStorage on page load
+        this.loadFromLocalStorage();
+    }
+    
+    saveToLocalStorage() {
+        const data = {
+            title: document.getElementById('title').value,
+            content: this.contentEditor.value,
+            summary: document.getElementById('summary').value,
+            category: document.getElementById('category_id').value,
+            timestamp: Date.now()
+        };
+        
+        localStorage.setItem('forum_post_draft', JSON.stringify(data));
+    }
+    
+    loadFromLocalStorage() {
+        const saved = localStorage.getItem('forum_post_draft');
+        if (saved && !document.getElementById('title').value) { // Only load if form is empty
+            const data = JSON.parse(saved);
+            if (Date.now() - data.timestamp < 86400000) { // Only if less than 24 hours old
+                if (confirm('Es wurde ein gespeicherter Entwurf gefunden. Möchten Sie ihn laden?')) {
+                    document.getElementById('title').value = data.title || '';
+                    this.contentEditor.value = data.content || '';
+                    document.getElementById('summary').value = data.summary || '';
+                    document.getElementById('category_id').value = data.category || '';
+                    this.updateCounters();
+                }
+            }
         }
     }
+}
 
-    titleInput.addEventListener('input', updatePreview);
-    contentInput.addEventListener('input', updatePreview);
-    categorySelect.addEventListener('change', updatePreview);
+// AI Summary Generation
+async function generateSummary() {
+    const content = document.getElementById('content').value.trim();
+    const summaryInput = document.getElementById('summary');
+    const generateBtn = document.getElementById('generateSummaryBtn');
+    const aiStatus = document.getElementById('aiStatus');
+    
+    if (!content) {
+        alert('Bitte geben Sie zuerst den Inhalt des Posts ein.');
+        return;
+    }
+    
+    // Show loading state
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<i class="bi bi-hourglass"></i> Generiert...';
+    aiStatus.style.display = 'flex';
+    aiStatus.querySelector('.status-text').textContent = 'Zusammenfassung wird generiert...';
+    
+    try {
+        const response = await fetch('/forum/generate-summary', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: content })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            summaryInput.value = data.summary;
+            summaryInput.dispatchEvent(new Event('input')); // Trigger counter update
+            aiStatus.querySelector('.status-text').textContent = 'Zusammenfassung generiert!';
+            aiStatus.style.color = 'var(--success-color)';
+            
+            setTimeout(() => {
+                aiStatus.style.display = 'none';
+                aiStatus.style.color = '';
+            }, 3000);
+        } else {
+            throw new Error(data.error || 'Unbekannter Fehler');
+        }
+    } catch (error) {
+        console.error('Error generating summary:', error);
+        aiStatus.querySelector('.status-text').textContent = 'Fehler beim Generieren: ' + error.message;
+        aiStatus.style.color = 'var(--error-color)';
+        
+        setTimeout(() => {
+            aiStatus.style.display = 'none';
+            aiStatus.style.color = '';
+        }, 5000);
+    } finally {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="bi bi-magic"></i> AI generieren';
+    }
+}
 
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    new ForumEditor();
+    
+    // Generate summary button
+    document.getElementById('generateSummaryBtn').addEventListener('click', generateSummary);
+    
     // Form validation
-    form.addEventListener('submit', function(e) {
-        const title = titleInput.value.trim();
-        const content = contentInput.value.trim();
-
+    document.getElementById('postForm').addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const content = document.getElementById('content').value.trim();
+        
         if (!title || !content) {
             e.preventDefault();
-            ForumUtils.showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
+            alert('Bitte füllen Sie Titel und Inhalt aus.');
             return;
         }
-
-        if (title.length > 255) {
-            e.preventDefault();
-            ForumUtils.showNotification('Der Titel darf maximal 255 Zeichen lang sein.', 'error');
-            return;
-        }
-
-        // Show loading state
-        form.classList.add('form-submitting');
+        
+        // Clear localStorage on successful submit
+        localStorage.removeItem('forum_post_draft');
     });
+});
 
-    // Character counter for title
-    titleInput.addEventListener('input', function() {
-        const length = this.value.length;
-        const maxLength = 255;
-        
-        // Create or update counter
-        let counter = this.parentNode.querySelector('.char-counter-display');
-        if (!counter) {
-            counter = document.createElement('div');
-            counter.className = 'char-counter-display';
-            this.parentNode.appendChild(counter);
-        }
-        
-        counter.textContent = `${length}/${maxLength}`;
-        
-        if (length > maxLength * 0.9) {
-            counter.className = 'char-counter-display danger';
-        } else if (length > maxLength * 0.8) {
-            counter.className = 'char-counter-display warning';
-        } else {
-            counter.className = 'char-counter-display';
-        }
-    });
+// Helper functions
+function showMarkdownHelp() {
+    document.getElementById('markdownHelpModal').style.display = 'flex';
+}
+
+function closeMarkdownHelp() {
+    document.getElementById('markdownHelpModal').style.display = 'none';
+}
+
+function saveDraft() {
+    const editor = new ForumEditor();
+    editor.saveToLocalStorage();
+    alert('Entwurf gespeichert!');
+}
+
+function removeExistingFile(attachmentId) {
+    if (confirm('Datei wirklich entfernen?')) {
+        fetch(`/forum/delete-attachment/${attachmentId}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector(`[data-attachment-id="${attachmentId}"]`).remove();
+            } else {
+                alert('Fehler beim Entfernen der Datei: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Fehler beim Entfernen der Datei.');
+        });
+    }
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('markdownHelpModal');
+    if (event.target === modal) {
+        closeMarkdownHelp();
+    }
 });
 </script>
 {% endblock %}

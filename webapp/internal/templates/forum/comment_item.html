@@ -2,7 +2,7 @@
 <div class="comment-item" data-comment-id="{{ comment.id }}">
     <div class="comment-header">
         <div class="comment-author">
-            <div class="comment-author-avatar">
+            <div class="comment-avatar">
                 {% if comment.avatar_url %}
                     <img src="{{ comment.avatar_url }}" alt="Profilbild" class="profile-image">
                 {% else %}
@@ -13,82 +13,74 @@
             </div>
             <div class="comment-author-info">
                 <div class="comment-author-name">{{ comment.display_name or comment.username }}</div>
-                <div class="comment-date">{{ comment.created_at | time_ago }}</div>
-                {% if comment.updated_at and comment.updated_at != comment.created_at %}
-                <div class="comment-edited">(bearbeitet)</div>
-                {% endif %}
+                <div class="comment-timestamp">
+                    <i class="bi bi-clock"></i>
+                    {{ comment.created_at|datetime_format }}
+                    {% if comment.updated_at and comment.updated_at != comment.created_at %}
+                    <span class="comment-edited">
+                        <i class="bi bi-pencil"></i> bearbeitet
+                    </span>
+                    {% endif %}
+                </div>
             </div>
         </div>
         
-        {% if comment.author_id == user.id %}
         <div class="comment-actions">
-            <button class="comment-action-btn" onclick="editComment({{ comment.id }})" title="Bearbeiten">
+            <button type="button" class="comment-action-btn" 
+                    onclick="showCommentForm({{ comment.id }})"
+                    title="Antworten">
+                <i class="bi bi-reply"></i>
+            </button>
+            
+            {% if comment.author_id == user.id or user.has_management_role() %}
+            <button type="button" class="comment-action-btn" 
+                    onclick="editComment({{ comment.id }})"
+                    title="Bearbeiten">
                 <i class="bi bi-pencil"></i>
             </button>
-            <button class="comment-action-btn delete-btn" onclick="deleteComment({{ comment.id }})" title="Löschen">
+            <button type="button" class="comment-action-btn comment-delete" 
+                    onclick="deleteComment({{ comment.id }})"
+                    title="Löschen">
                 <i class="bi bi-trash"></i>
             </button>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
     
-    <div class="comment-content" id="commentContent{{ comment.id }}">
-        {{ comment.content | nl2br }}
-    </div>
-    
-    <div class="comment-footer">
-        <button class="comment-reply-btn" onclick="showReplyForm({{ comment.id }})">
-            <i class="bi bi-reply"></i> Antworten
-        </button>
-    </div>
-    
-    <!-- Reply Form (initially hidden) -->
-    <div class="reply-form-container" id="replyForm{{ comment.id }}" style="display: none;">
-        <form class="comment-form reply-form" data-parent-id="{{ comment.id }}">
-            <input type="hidden" name="post_id" value="{{ post.id }}">
-            <input type="hidden" name="parent_id" value="{{ comment.id }}">
-            <div class="comment-form-header">
-                <div class="comment-author-avatar">
-                    {% if user.avatar_url %}
-                        <img src="{{ user.avatar_url }}" alt="Profilbild" class="profile-image">
-                    {% else %}
-                        <div class="profile-avatar-placeholder">
-                            {{ (user.display_name or user.username)[0].upper() }}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="comment-author-name">{{ user.display_name or user.username }}</div>
-            </div>
-            <div class="comment-form-body">
-                <textarea name="content" 
-                          placeholder="Antwort auf {{ comment.display_name or comment.username }}..." 
+    <div class="comment-content">
+        <div class="comment-text" id="commentText_{{ comment.id }}">
+            {{ comment.content|nl2br }}
+        </div>
+        
+        <!-- Edit form (hidden by default) -->
+        <div id="editForm_{{ comment.id }}" class="comment-edit-form" style="display: none;">
+            <form onsubmit="updateComment(event, {{ comment.id }})">
+                <textarea class="form-textarea" 
+                          id="editContent_{{ comment.id }}"
                           maxlength="2000" 
-                          required></textarea>
-                <div class="comment-form-actions">
-                    <div class="char-counter">
-                        <span class="char-count">0</span> / 2000
-                    </div>
-                    <div class="reply-actions">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="hideReplyForm({{ comment.id }})">
-                            Abbrechen
-                        </button>
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="bi bi-send"></i> Antworten
-                        </button>
-                    </div>
+                          rows="3"
+                          required>{{ comment.content }}</textarea>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-check"></i> Speichern
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" 
+                            onclick="cancelEdit({{ comment.id }})">
+                        <i class="bi bi-x"></i> Abbrechen
+                    </button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
     
     <!-- Replies -->
     {% if comment.replies %}
     <div class="comment-replies">
         {% for reply in comment.replies %}
-            <div class="comment-item reply-comment" data-comment-id="{{ reply.id }}">
+            <div class="comment-item comment-reply" data-comment-id="{{ reply.id }}">
                 <div class="comment-header">
                     <div class="comment-author">
-                        <div class="comment-author-avatar">
+                        <div class="comment-avatar">
                             {% if reply.avatar_url %}
                                 <img src="{{ reply.avatar_url }}" alt="Profilbild" class="profile-image">
                             {% else %}
@@ -99,30 +91,243 @@
                         </div>
                         <div class="comment-author-info">
                             <div class="comment-author-name">{{ reply.display_name or reply.username }}</div>
-                            <div class="comment-date">{{ reply.created_at | time_ago }}</div>
-                            {% if reply.updated_at and reply.updated_at != reply.created_at %}
-                            <div class="comment-edited">(bearbeitet)</div>
-                            {% endif %}
+                            <div class="comment-timestamp">
+                                <i class="bi bi-clock"></i>
+                                {{ reply.created_at|datetime_format }}
+                                {% if reply.updated_at and reply.updated_at != reply.created_at %}
+                                <span class="comment-edited">
+                                    <i class="bi bi-pencil"></i> bearbeitet
+                                </span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     
-                    {% if reply.author_id == user.id %}
                     <div class="comment-actions">
-                        <button class="comment-action-btn" onclick="editComment({{ reply.id }})" title="Bearbeiten">
+                        <button type="button" class="comment-action-btn" 
+                                onclick="showCommentForm({{ comment.id }})"
+                                title="Antworten">
+                            <i class="bi bi-reply"></i>
+                        </button>
+                        
+                        {% if reply.author_id == user.id or user.has_management_role() %}
+                        <button type="button" class="comment-action-btn" 
+                                onclick="editComment({{ reply.id }})"
+                                title="Bearbeiten">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="comment-action-btn delete-btn" onclick="deleteComment({{ reply.id }})" title="Löschen">
+                        <button type="button" class="comment-action-btn comment-delete" 
+                                onclick="deleteComment({{ reply.id }})"
+                                title="Löschen">
                             <i class="bi bi-trash"></i>
                         </button>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
                 
-                <div class="comment-content" id="commentContent{{ reply.id }}">
-                    {{ reply.content | nl2br }}
+                <div class="comment-content">
+                    <div class="comment-text" id="commentText_{{ reply.id }}">
+                        {{ reply.content|nl2br }}
+                    </div>
+                    
+                    <!-- Edit form for reply -->
+                    <div id="editForm_{{ reply.id }}" class="comment-edit-form" style="display: none;">
+                        <form onsubmit="updateComment(event, {{ reply.id }})">
+                            <textarea class="form-textarea" 
+                                      id="editContent_{{ reply.id }}"
+                                      maxlength="2000" 
+                                      rows="3"
+                                      required>{{ reply.content }}</textarea>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-check"></i> Speichern
+                                </button>
+                                <button type="button" class="btn btn-sm btn-secondary" 
+                                        onclick="cancelEdit({{ reply.id }})">
+                                    <i class="bi bi-x"></i> Abbrechen
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         {% endfor %}
     </div>
     {% endif %}
 </div>
+
+<script>
+// Comment editing functionality
+function editComment(commentId) {
+    const textDiv = document.getElementById(`commentText_${commentId}`);
+    const editForm = document.getElementById(`editForm_${commentId}`);
+    
+    textDiv.style.display = 'none';
+    editForm.style.display = 'block';
+    
+    const textarea = document.getElementById(`editContent_${commentId}`);
+    textarea.focus();
+    
+    // Set current editing comment
+    currentEditCommentId = commentId;
+}
+
+function cancelEdit(commentId) {
+    const textDiv = document.getElementById(`commentText_${commentId}`);
+    const editForm = document.getElementById(`editForm_${commentId}`);
+    
+    textDiv.style.display = 'block';
+    editForm.style.display = 'none';
+    
+    currentEditCommentId = null;
+}
+
+async function updateComment(event, commentId) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Speichert...';
+    
+    try {
+        const response = await fetch(`/forum/comment/${commentId}/edit`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update comment text
+            const textDiv = document.getElementById(`commentText_${commentId}`);
+            const newContent = document.getElementById(`editContent_${commentId}`).value;
+            textDiv.innerHTML = newContent.replace(/\n/g, '<br>');
+            
+            // Hide edit form
+            cancelEdit(commentId);
+            
+            // Show success message
+            showNotification('Kommentar erfolgreich aktualisiert', 'success');
+        } else {
+            alert('Fehler beim Aktualisieren des Kommentars: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Fehler beim Aktualisieren des Kommentars.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-check"></i> Speichern';
+    }
+}
+
+async function deleteComment(commentId) {
+    if (!confirm('Möchten Sie diesen Kommentar wirklich löschen?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/forum/comment/${commentId}/delete`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Remove comment from UI
+            const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+            commentElement.remove();
+            
+            // Update comment count
+            updateCommentCount();
+            
+            showNotification('Kommentar erfolgreich gelöscht', 'success');
+        } else {
+            alert('Fehler beim Löschen des Kommentars: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Fehler beim Löschen des Kommentars.');
+    }
+}
+
+function updateCommentCount() {
+    const commentElements = document.querySelectorAll('.comment-item:not(.comment-reply)');
+    const count = commentElements.length;
+    
+    const commentCountSpan = document.getElementById('commentCount');
+    if (commentCountSpan) {
+        commentCountSpan.textContent = `${count} Kommentar${count !== 1 ? 'e' : ''}`;
+    }
+    
+    const commentsHeader = document.querySelector('.comments-header h2');
+    if (commentsHeader) {
+        commentsHeader.innerHTML = `<i class="bi bi-chat-dots"></i> Kommentare (${count})`;
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+        <button type="button" onclick="this.parentElement.remove()">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+    
+    // Add to top right of screen
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 250px;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    if (type === 'success') {
+        notification.style.borderLeft = '4px solid var(--success-color)';
+        notification.querySelector('i').style.color = 'var(--success-color)';
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 4000);
+}
+
+// Add CSS animations
+if (!document.querySelector('#notification-animations')) {
+    const style = document.createElement('style');
+    style.id = 'notification-animations';
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>

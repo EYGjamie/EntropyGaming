@@ -5,225 +5,356 @@
 
 {% block page_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-2col.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="forum-container">
+    <div class="forum-container-2col">
+        <!-- Forum Header -->
         <div class="forum-header">
             <h1><i class="bi bi-chat-dots"></i> Forum</h1>
             <div class="forum-actions">
                 <a href="{{ url_for('forum.create_post') }}" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Neuer Post
                 </a>
+                {% if 'Projektleitung' in roles or 'Developer' in roles or 'Head Management' in roles %}
                 <a href="{{ url_for('forum.manage_categories') }}" class="btn btn-secondary">
-                    <i class="bi bi-tags"></i> Kategorien
+                    <i class="bi bi-gear"></i> Kategorien verwalten
                 </a>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Search and Filter Section -->
-        <div class="forum-search-section">
-            <form method="GET" class="search-form">
-                <div class="search-row">
-                    <div class="search-input-group">
-                        <input type="text" 
-                               name="search" 
-                               value="{{ current_search }}" 
-                               placeholder="Durchsuche Posts nach Stichworten..."
-                               class="search-input">
-                        <button type="submit" class="search-btn">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <select name="category" class="category-filter">
-                            <option value="">Alle Kategorien</option>
-                            {% for category in categories %}
-                            <option value="{{ category.id }}" 
-                                    {% if current_category_filter == category.id|string %}selected{% endif %}>
-                                {{ category.name }} ({{ category.post_count }})
-                            </option>
-                            {% endfor %}
-                        </select>
-                        
-                        {% if current_search or current_category_filter %}
-                        <a href="{{ url_for('forum.index') }}" class="clear-filter">
-                            <i class="bi bi-x-lg"></i> Filter löschen
-                        </a>
-                        {% endif %}
-                    </div>
+        <div class="forum-layout-2col">
+            <!-- Left Sidebar: Categories -->
+            <div class="forum-sidebar">
+                <div class="sidebar-header">
+                    <h3><i class="bi bi-tags-fill"></i> Kategorien</h3>
                 </div>
-            </form>
-        </div>
 
-        <!-- Posts List -->
-        <div class="forum-posts">
-            {% if posts_data.posts %}
-                {% for post in posts_data.posts %}
-                <div class="post-card {% if post.is_unread %}unread{% endif %}">
-                    <div class="post-header">
-                        <div class="post-title-section">
-                            <h3 class="post-title">
-                                <a href="{{ url_for('forum.view_post', post_id=post.id) }}">
-                                    {{ post.title }}
-                                    {% if post.is_unread %}
-                                    <span class="unread-indicator" title="Ungelesen">●</span>
+                <div class="categories-list">
+                    <!-- All Categories Option -->
+                    <div class="category-item {% if not selected_category %}active{% endif %}">
+                        <a href="{{ url_for('forum.index') }}" class="category-link">
+                            <div class="category-info">
+                                <span class="category-name">
+                                    <i class="bi bi-grid"></i> Alle Kategorien
+                                </span>
+                                <span class="category-count">
+                                    {{ categories|sum(attribute='post_count') }}
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Uncategorized Posts -->
+                    <div class="category-item {% if selected_category == 0 %}active{% endif %}">
+                        <a href="{{ url_for('forum.index', category=0) }}" class="category-link">
+                            <div class="category-info">
+                                <span class="category-name">
+                                    <i class="bi bi-question-circle"></i> Nicht kategorisiert
+                                </span>
+                                <span class="category-count">
+                                    {% set uncategorized_count = posts_data.posts|selectattr('category_name', 'none')|list|length if not selected_category else 0 %}
+                                    {{ uncategorized_count }}
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Dynamic Categories -->
+                    {% for category in categories %}
+                    <div class="category-item {% if selected_category == category.id %}active{% endif %}">
+                        <a href="{{ url_for('forum.index', category=category.id) }}" class="category-link">
+                            <div class="category-info">
+                                <span class="category-name">
+                                    <i class="bi bi-folder"></i> {{ category.name }}
+                                    {% if category.required_roles %}
+                                    <i class="bi bi-lock-fill" title="Eingeschränkte Kategorie"></i>
                                     {% endif %}
-                                </a>
-                            </h3>
-                            {% if post.category_name %}
-                            <span class="post-category">{{ post.category_name }}</span>
+                                </span>
+                                <span class="category-count">{{ category.post_count }}</span>
+                            </div>
+                            {% if category.description %}
+                            <div class="category-description">{{ category.description }}</div>
                             {% endif %}
-                        </div>
-                        
-                        <div class="post-meta">
-                            <span class="post-author">
-                                {% if post.author_avatar %}
-                                    <img src="{{ post.author_avatar }}" 
-                                         alt="Profilbild" class="post-author-avatar">
-                                {% else %}
-                                    <div class="post-author-placeholder">
-                                        {{ (post.author_display_name or post.author_name)[0].upper() }}
-                                    </div>
-                                {% endif %}
-                                {{ post.author_display_name or post.author_name }}
-                            </span>
-                            <span class="post-date">
-                                <i class="bi bi-clock"></i>
-                                {{ post.created_at | strftime('%d.%m.%Y %H:%M') }}
-                            </span>
-                            {% if post.attachment_count > 0 %}
-                            <span class="post-attachments">
-                                <i class="bi bi-paperclip"></i>
-                                {{ post.attachment_count }} Datei(en)
-                            </span>
-                            {% endif %}
-                            {% if post.comment_count > 0 %}
-                            <span class="post-comments">
-                                <i class="bi bi-chat"></i>
-                                {{ post.comment_count }} Kommentar{{ 'e' if post.comment_count != 1 else '' }}
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="post-preview">
-                        {{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}
-                    </div>
-                    
-                    <div class="post-actions">
-                        <a href="{{ url_for('forum.view_post', post_id=post.id) }}" class="btn btn-outline">
-                            Weiterlesen
                         </a>
-                        {% if post.is_unread %}
-                        <button class="btn btn-link mark-read-btn" data-post-id="{{ post.id }}">
-                            Als gelesen markieren
-                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Search Section in Sidebar -->
+                <div class="sidebar-search">
+                    <form method="GET" class="search-form">
+                        {% if selected_category %}
+                        <input type="hidden" name="category" value="{{ selected_category }}">
+                        {% endif %}
+                        <div class="search-input-group">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ current_search }}" 
+                                   placeholder="Posts durchsuchen..."
+                                   class="search-input">
+                            <button type="submit" class="search-btn">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        {% if current_search %}
+                        <a href="{% if selected_category %}{{ url_for('forum.index', category=selected_category) }}{% else %}{{ url_for('forum.index') }}{% endif %}" class="clear-search">
+                            <i class="bi bi-x"></i> Suche löschen
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Content: Posts -->
+            <div class="forum-content">
+                <!-- Content Header -->
+                <div class="content-header">
+                    <div class="content-title">
+                        {% if selected_category %}
+                            {% set category_name = categories|selectattr('id', 'equalto', selected_category)|map(attribute='name')|first %}
+                            <h2><i class="bi bi-folder-open"></i> {{ category_name or 'Kategorie' }}</h2>
+                        {% elif selected_category == 0 %}
+                            <h2><i class="bi bi-question-circle"></i> Nicht kategorisiert</h2>
+                        {% elif current_search %}
+                            <h2><i class="bi bi-search"></i> Suchergebnisse für "{{ current_search }}"</h2>
+                        {% else %}
+                            <h2><i class="bi bi-grid"></i> Alle Posts</h2>
                         {% endif %}
                     </div>
-                </div>
-                {% endfor %}
-
-                <!-- Pagination -->
-                {% if posts_data.pages > 1 %}
-                <div class="pagination">
-                    {% if posts_data.current_page > 1 %}
-                    <a href="{{ url_for('forum.index', page=posts_data.current_page-1, search=current_search, category=current_category_filter) }}" 
-                       class="pagination-btn">
-                        <i class="bi bi-chevron-left"></i> Zurück
-                    </a>
-                    {% endif %}
-                    
-                    <span class="pagination-info">
-                        Seite {{ posts_data.current_page }} von {{ posts_data.pages }}
-                    </span>
-                    
-                    {% if posts_data.current_page < posts_data.pages %}
-                    <a href="{{ url_for('forum.index', page=posts_data.current_page+1, search=current_search, category=current_category_filter) }}" 
-                       class="pagination-btn">
-                        Weiter <i class="bi bi-chevron-right"></i>
-                    </a>
-                    {% endif %}
-                </div>
-                {% endif %}
-            {% else %}
-                <div class="no-posts">
-                    <div class="no-posts-icon">
-                        <i class="bi bi-chat-dots"></i>
+                    <div class="content-meta">
+                        <span class="posts-count">
+                            <i class="bi bi-file-text"></i> {{ posts_data.total }} Posts
+                        </span>
                     </div>
-                    <h3>Keine Posts gefunden</h3>
-                    {% if current_search or current_category_filter %}
-                    <p>Keine Posts entsprechen den aktuellen Suchkriterien.</p>
-                    <a href="{{ url_for('forum.index') }}" class="btn btn-secondary">
-                        Alle Posts anzeigen
-                    </a>
+                </div>
+
+                <!-- Posts List -->
+                <div class="posts-list">
+                    {% if posts_data.posts %}
+                        {% for post in posts_data.posts %}
+                        <article class="post-card {% if post.is_unread %}unread{% endif %}">
+                            <div class="post-header">
+                                <div class="post-title-section">
+                                    <h3 class="post-title">
+                                        <a href="{{ url_for('forum.view_post', post_id=post.id) }}">
+                                            {{ post.title }}
+                                        </a>
+                                        {% if post.is_unread %}
+                                        <span class="unread-indicator" title="Ungelesen">
+                                            <i class="bi bi-circle-fill"></i>
+                                        </span>
+                                        {% endif %}
+                                    </h3>
+                                    
+                                    {% if post.summary %}
+                                    <div class="post-summary">
+                                        {{ post.summary }}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="post-meta">
+                                        <div class="post-author">
+                                            {% if post.author_avatar %}
+                                                <img src="{{ post.author_avatar }}" alt="Profilbild" class="post-author-avatar">
+                                            {% else %}
+                                                <div class="post-author-placeholder">
+                                                    {{ (post.author_display_name or post.author_name)[0].upper() }}
+                                                </div>
+                                            {% endif %}
+                                            <span class="author-name">{{ post.author_display_name or post.author_name }}</span>
+                                        </div>
+                                        
+                                        <div class="post-timestamps">
+                                            <span class="post-date">
+                                                <i class="bi bi-clock"></i>
+                                                {{ post.created_at|datetime_format }}
+                                            </span>
+                                            {% if post.updated_at and post.updated_at != post.created_at %}
+                                            <span class="post-updated">
+                                                <i class="bi bi-pencil"></i>
+                                                Bearbeitet {{ post.updated_at|datetime_format }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="post-stats">
+                                    {% if post.attachment_count > 0 %}
+                                    <span class="stat-item attachments" title="{{ post.attachment_count }} Datei(en)">
+                                        <i class="bi bi-paperclip"></i>
+                                        <span class="stat-count">{{ post.attachment_count }}</span>
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if post.comment_count > 0 %}
+                                    <span class="stat-item comments" title="{{ post.comment_count }} Kommentar(e)">
+                                        <i class="bi bi-chat-dots"></i>
+                                        <span class="stat-count">{{ post.comment_count }}</span>
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if not selected_category and post.category_name %}
+                                    <span class="stat-item category" title="Kategorie">
+                                        <i class="bi bi-tag"></i>
+                                        <span class="category-tag">{{ post.category_name }}</span>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="post-actions">
+                                <a href="{{ url_for('forum.view_post', post_id=post.id) }}" class="btn btn-sm btn-outline">
+                                    <i class="bi bi-eye"></i> Ansehen
+                                </a>
+                                {% if post.author_id == user.id or user.has_management_role() %}
+                                <a href="{{ url_for('forum.edit_post', post_id=post.id) }}" class="btn btn-sm btn-secondary">
+                                    <i class="bi bi-pencil"></i> Bearbeiten
+                                </a>
+                                {% endif %}
+                            </div>
+                        </article>
+                        {% endfor %}
+
+                        <!-- Pagination -->
+                        {% if posts_data.pages > 1 %}
+                        <div class="pagination-container">
+                            <nav class="pagination">
+                                {% if posts_data.current_page > 1 %}
+                                <a href="{{ url_for('forum.index', page=posts_data.current_page-1, category=selected_category, search=current_search) }}" 
+                                   class="page-link prev">
+                                    <i class="bi bi-chevron-left"></i> Zurück
+                                </a>
+                                {% endif %}
+
+                                <span class="page-info">
+                                    Seite {{ posts_data.current_page }} von {{ posts_data.pages }}
+                                </span>
+
+                                {% if posts_data.current_page < posts_data.pages %}
+                                <a href="{{ url_for('forum.index', page=posts_data.current_page+1, category=selected_category, search=current_search) }}" 
+                                   class="page-link next">
+                                    Weiter <i class="bi bi-chevron-right"></i>
+                                </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                        {% endif %}
+
                     {% else %}
-                    <p>Noch keine Posts im Forum vorhanden.</p>
-                    <a href="{{ url_for('forum.create_post') }}" class="btn btn-primary">
-                        Ersten Post erstellen
-                    </a>
+                        <!-- Empty State -->
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="bi bi-chat-dots"></i>
+                            </div>
+                            <h3>Keine Posts gefunden</h3>
+                            {% if current_search %}
+                            <p>Deine Suche nach "{{ current_search }}" ergab keine Treffer.</p>
+                            <a href="{% if selected_category %}{{ url_for('forum.index', category=selected_category) }}{% else %}{{ url_for('forum.index') }}{% endif %}" class="btn btn-outline">
+                                <i class="bi bi-x"></i> Suche zurücksetzen
+                            </a>
+                            {% elif selected_category %}
+                            <p>In dieser Kategorie wurden noch keine Posts erstellt.</p>
+                            {% else %}
+                            <p>Noch keine Posts im Forum vorhanden.</p>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('forum.create_post') }}" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i> Ersten Post erstellen
+                            </a>
+                        </div>
                     {% endif %}
                 </div>
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
 
-{% if error %}
-<div class="alert alert-error">
-    {{ error }}
+<!-- Quick Actions Floating Button (Mobile) -->
+<div class="mobile-quick-actions">
+    <div class="quick-actions-btn" onclick="toggleQuickActions()">
+        <i class="bi bi-three-dots"></i>
+    </div>
+    <div class="quick-actions-menu" id="quickActionsMenu">
+        <a href="{{ url_for('forum.create_post') }}" class="quick-action">
+            <i class="bi bi-plus-lg"></i> Neuer Post
+        </a>
+        <a href="{{ url_for('forum.index') }}" class="quick-action">
+            <i class="bi bi-house"></i> Alle Posts
+        </a>
+        {% if 'Projektleitung' in roles or 'Developer' in roles or 'Head Management' in roles %}
+        <a href="{{ url_for('forum.manage_categories') }}" class="quick-action">
+            <i class="bi bi-gear"></i> Kategorien
+        </a>
+        {% endif %}
+    </div>
 </div>
-{% endif %}
 {% endblock %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/forum.js') }}"></script>
+{% block page_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Mark as read functionality
-    const markReadButtons = document.querySelectorAll('.mark-read-btn');
-    markReadButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const postId = this.dataset.postId;
-            const postCard = this.closest('.post-card');
-            
-            fetch(`/forum/api/mark-read/${postId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    postCard.classList.remove('unread');
-                    this.remove();
-                    
-                    // Remove unread indicator
-                    const unreadIndicator = postCard.querySelector('.unread-indicator');
-                    if (unreadIndicator) {
-                        unreadIndicator.remove();
-                    }
-                    
-                    ForumUtils.showNotification('Post als gelesen markiert', 'success');
-                }
-            })
-            .catch(error => {
-                console.error('Error marking post as read:', error);
-                ForumUtils.showNotification('Fehler beim Markieren des Posts', 'error');
-            });
-        });
-    });
+// Mobile quick actions toggle
+function toggleQuickActions() {
+    const menu = document.getElementById('quickActionsMenu');
+    menu.classList.toggle('active');
+}
 
-    // Auto-submit search form on category change
-    const categoryFilter = document.querySelector('.category-filter');
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', function() {
-            this.closest('form').submit();
-        });
+// Close quick actions when clicking outside
+document.addEventListener('click', function(event) {
+    const quickActions = document.querySelector('.mobile-quick-actions');
+    const menu = document.getElementById('quickActionsMenu');
+    
+    if (!quickActions.contains(event.target)) {
+        menu.classList.remove('active');
     }
 });
+
+// Auto-refresh post counts every 30 seconds
+setInterval(function() {
+    fetch('/forum/api/unread-count')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.count > 0) {
+                // Update unread indicators if needed
+                updateUnreadIndicators(data.count);
+            }
+        })
+        .catch(error => console.log('Unread count update failed:', error));
+}, 30000);
+
+function updateUnreadIndicators(count) {
+    // Update page title with unread count
+    const originalTitle = document.title.replace(/\(\d+\) /, '');
+    document.title = count > 0 ? `(${count}) ${originalTitle}` : originalTitle;
+}
+
+// Mark posts as read when viewed
+document.querySelectorAll('.post-card a[href*="/post/"]').forEach(link => {
+    link.addEventListener('click', function() {
+        const postCard = this.closest('.post-card');
+        if (postCard.classList.contains('unread')) {
+            postCard.classList.remove('unread');
+        }
+    });
+});
+
+// Responsive sidebar toggle for mobile
+function toggleSidebar() {
+    document.querySelector('.forum-sidebar').classList.toggle('active');
+}
+
+// Add mobile sidebar toggle button if needed
+if (window.innerWidth <= 768) {
+    const header = document.querySelector('.forum-header');
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'btn btn-outline mobile-sidebar-toggle';
+    toggleBtn.innerHTML = '<i class="bi bi-list"></i> Kategorien';
+    toggleBtn.onclick = toggleSidebar;
+    header.querySelector('.forum-actions').prepend(toggleBtn);
+}
 </script>
 {% endblock %}

@@ -7,30 +7,47 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum-view.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum-comments.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="forum-container">
+        <!-- Navigation -->
         <div class="post-navigation">
             <a href="{{ url_for('forum.index') }}" class="nav-btn">
                 <i class="bi bi-arrow-left"></i> Zurück zum Forum
             </a>
-            <div class="post-actions">
-                {% if post.author_id == user.id %}
-                <button class="btn btn-secondary" title="Bearbeiten (coming soon)" disabled>
-                    <i class="bi bi-pencil"></i> Bearbeiten (coming soon)
-                </button>
+            <div class="post-actions-nav">
+                {% if post.author_id == user.id or user.has_management_role() %}
+                <a href="{{ url_for('forum.edit_post', post_id=post.id) }}" class="btn btn-secondary">
+                    <i class="bi bi-pencil"></i> Bearbeiten
+                </a>
                 {% endif %}
+                <button class="btn btn-outline" onclick="sharePost()">
+                    <i class="bi bi-share"></i> Teilen
+                </button>
             </div>
         </div>
 
+        <!-- Post Content -->
         <article class="post-detail">
             <header class="post-detail-header">
                 <div class="post-title-section">
                     <h1 class="post-detail-title">{{ post.title }}</h1>
                     {% if post.category_name %}
-                    <span class="post-category">{{ post.category_name }}</span>
+                    <div class="post-category-info">
+                        <a href="{{ url_for('forum.index', category=post.category_id) }}" class="post-category">
+                            <i class="bi bi-tag"></i> {{ post.category_name }}
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if post.summary %}
+                    <div class="post-summary">
+                        <i class="bi bi-info-circle"></i>
+                        {{ post.summary }}
+                    </div>
                     {% endif %}
                 </div>
                 
@@ -47,12 +64,16 @@
                         </div>
                         <div class="author-details">
                             <div class="author-name">{{ post.author_display_name or post.author_name }}</div>
-                            <div class="post-date">
-                                <i class="bi bi-clock"></i>
-                                Erstellt am {{ post.created_at | strftime('%d.%m.%Y um %H:%M') }}
+                            <div class="post-timestamps">
+                                <div class="post-date">
+                                    <i class="bi bi-clock"></i>
+                                    Erstellt {{ post.created_at|datetime_format }}
+                                </div>
                                 {% if post.updated_at and post.updated_at != post.created_at %}
-                                <br><i class="bi bi-pencil"></i>
-                                Bearbeitet am {{ post.updated_at | strftime('%d.%m.%Y um %H:%M') }}
+                                <div class="post-updated">
+                                    <i class="bi bi-pencil"></i>
+                                    Bearbeitet {{ post.updated_at|datetime_format }}
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -60,56 +81,66 @@
                 </div>
             </header>
 
+            <!-- Post Content with Markdown -->
             <div class="post-content">
-                {{ post.content | nl2br }}
+                <div class="content-body">
+                    {% if post.content_html %}
+                        {{ post.content_html|safe }}
+                    {% else %}
+                        {{ post.content|nl2br }}
+                    {% endif %}
+                </div>
             </div>
 
+            <!-- Attachments -->
             {% if attachments %}
             <div class="post-attachments">
                 <h3 class="attachments-title">
-                    <i class="bi bi-paperclip"></i>
+                    <i class="bi bi-paperclip"></i> 
                     Anhänge ({{ attachments|length }})
                 </h3>
-                <div class="attachments-list">
+                <div class="attachments-grid">
                     {% for attachment in attachments %}
-                    <div class="attachment-item">
+                    <div class="attachment-item" data-attachment-id="{{ attachment.id }}">
+                        <div class="attachment-icon">
+                            {% set file_ext = attachment.original_filename.split('.')[-1].lower() %}
+                            {% if file_ext in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                <i class="bi bi-image text-info"></i>
+                            {% elif file_ext in ['pdf'] %}
+                                <i class="bi bi-file-pdf text-danger"></i>
+                            {% elif file_ext in ['doc', 'docx'] %}
+                                <i class="bi bi-file-word text-primary"></i>
+                            {% elif file_ext in ['xlsx', 'xls'] %}
+                                <i class="bi bi-file-excel text-success"></i>
+                            {% elif file_ext in ['pptx', 'ppt'] %}
+                                <i class="bi bi-file-ppt text-warning"></i>
+                            {% elif file_ext in ['zip', 'rar'] %}
+                                <i class="bi bi-file-zip text-secondary"></i>
+                            {% else %}
+                                <i class="bi bi-file-earmark text-muted"></i>
+                            {% endif %}
+                        </div>
                         <div class="attachment-info">
-                            <div class="attachment-icon">
-                                {% set ext = attachment.original_filename.split('.')[-1].lower() %}
-                                {% if ext in ['jpg', 'jpeg', 'png', 'gif'] %}
-                                    <i class="bi bi-image"></i>
-                                {% elif ext == 'pdf' %}
-                                    <i class="bi bi-file-earmark-pdf"></i>
-                                {% elif ext in ['doc', 'docx'] %}
-                                    <i class="bi bi-file-earmark-word"></i>
-                                {% elif ext in ['xls', 'xlsx'] %}
-                                    <i class="bi bi-file-earmark-excel"></i>
-                                {% elif ext in ['ppt', 'pptx'] %}
-                                    <i class="bi bi-file-earmark-ppt"></i>
-                                {% else %}
-                                    <i class="bi bi-file-earmark"></i>
-                                {% endif %}
+                            <div class="attachment-name" title="{{ attachment.original_filename }}">
+                                {{ attachment.original_filename }}
                             </div>
-                            <div class="attachment-details">
-                                <div class="attachment-name">{{ attachment.original_filename }}</div>
-                                <div class="attachment-meta">
-                                    {% if attachment.file_size %}
-                                    <span class="file-size">{{ (attachment.file_size / 1024) | round(1) }} KB</span>
-                                    {% endif %}
-                                    <span class="upload-date">{{ attachment.created_at | strftime('%d.%m.%Y') }}</span>
-                                </div>
+                            <div class="attachment-size">
+                                {{ (attachment.file_size / 1024)|round(1) }} KB
                             </div>
                         </div>
                         <div class="attachment-actions">
-                            <a href="{{ url_for('forum.download_attachment', attachment_id=attachment.id) }}" 
-                               class="btn btn-primary btn-sm">
-                                <i class="bi bi-download"></i> Download
-                            </a>
-                            {% if attachment.original_filename.split('.')[-1].lower() in ['jpg', 'jpeg', 'png', 'gif'] %}
-                            <button class="btn btn-outline btn-sm" onclick="previewImage('{{ attachment.id }}', '{{ attachment.original_filename }}')">
-                                <i class="bi bi-eye"></i> Vorschau
+                            {% if file_ext in ['jpg', 'jpeg', 'png', 'gif'] %}
+                            <button type="button" class="btn btn-sm btn-outline" 
+                                    onclick="previewImage({{ attachment.id }}, '{{ attachment.original_filename }}')"
+                                    title="Vorschau">
+                                <i class="bi bi-eye"></i>
                             </button>
                             {% endif %}
+                            <a href="{{ url_for('forum.download_attachment', attachment_id=attachment.id) }}" 
+                               class="btn btn-sm btn-primary" 
+                               title="Herunterladen">
+                                <i class="bi bi-download"></i>
+                            </a>
                         </div>
                     </div>
                     {% endfor %}
@@ -117,75 +148,86 @@
             </div>
             {% endif %}
 
-            <footer class="post-footer">
-                <div class="post-stats">
-                    <span class="stat-item">
-                        <i class="bi bi-eye"></i>
-                        Post angesehen
-                    </span>
-                    {% if attachments %}
-                    <span class="stat-item">
-                        <i class="bi bi-paperclip"></i>
-                        {{ attachments|length }} Datei(en)
-                    </span>
-                    {% endif %}
-                    <span class="stat-item">
-                        <i class="bi bi-chat"></i>
-                        {{ comments|length }} Kommentar{{ 'e' if comments|length != 1 else '' }}
-                    </span>
+            <!-- Post Stats -->
+            <div class="post-stats">
+                <div class="stat-item">
+                    <i class="bi bi-eye"></i>
+                    <span>Aufrufe: <span id="viewCount">-</span></span>
                 </div>
-            </footer>
+                {% if attachments %}
+                <div class="stat-item">
+                    <i class="bi bi-paperclip"></i>
+                    <span>{{ attachments|length }} Anhang{% if attachments|length != 1 %}e{% endif %}</span>
+                </div>
+                {% endif %}
+                <div class="stat-item">
+                    <i class="bi bi-chat-dots"></i>
+                    <span id="commentCount">{{ comments|length }} Kommentar{% if comments|length != 1 %}e{% endif %}</span>
+                </div>
+            </div>
         </article>
 
         <!-- Comments Section -->
         <section class="comments-section">
             <div class="comments-header">
-                <h3><i class="bi bi-chat-dots"></i> Kommentare ({{ comments|length }})</h3>
+                <h2>
+                    <i class="bi bi-chat-dots"></i> 
+                    Kommentare ({{ comments|length }})
+                </h2>
+                <button type="button" class="btn btn-primary" onclick="showCommentForm(null)">
+                    <i class="bi bi-plus-lg"></i> Kommentar hinzufügen
+                </button>
             </div>
 
-            <!-- Comment Form -->
-            <div class="comment-form-container">
-                <form class="comment-form" id="mainCommentForm">
-                    <input type="hidden" name="post_id" value="{{ post.id }}">
-                    <div class="comment-form-header">
-                        <div class="comment-author-avatar">
-                            {% if user.avatar_url %}
-                                <img src="{{ user.avatar_url }}" alt="Profilbild" class="profile-image">
-                            {% else %}
-                                <div class="profile-avatar-placeholder">
-                                    {{ (user.display_name or user.username)[0].upper() }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="comment-author-name">{{ user.display_name or user.username }}</div>
-                    </div>
-                    <div class="comment-form-body">
-                        <textarea name="content" 
-                                  placeholder="Schreibe einen Kommentar..." 
-                                  maxlength="2000" 
+            <!-- New Comment Form -->
+            <div id="commentForm" class="comment-form" style="display: none;">
+                <div class="comment-form-header">
+                    <h4 id="commentFormTitle">Neuer Kommentar</h4>
+                    <button type="button" class="form-close-btn" onclick="hideCommentForm()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                <form id="newCommentForm" onsubmit="submitComment(event)">
+                    <input type="hidden" id="parentCommentId" name="parent_id" value="">
+                    <div class="form-group">
+                        <textarea id="commentContent" 
+                                  name="content" 
+                                  class="form-textarea" 
+                                  placeholder="Schreiben Sie Ihren Kommentar..."
+                                  rows="4"
+                                  maxlength="2000"
                                   required></textarea>
-                        <div class="comment-form-actions">
-                            <div class="char-counter">
-                                <span class="char-count">0</span> / 2000
-                            </div>
-                            <button type="submit" class="btn btn-primary" onclick="handleCommentSubmit(event)">
-                                <i class="bi bi-send"></i> Kommentieren
-                            </button>
+                        <div class="form-hint">
+                            <span id="commentCounter">0/2000</span> Zeichen
                         </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="submitCommentBtn">
+                            <i class="bi bi-send"></i> Kommentar posten
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="hideCommentForm()">
+                            <i class="bi bi-x"></i> Abbrechen
+                        </button>
                     </div>
                 </form>
             </div>
 
             <!-- Comments List -->
-            <div class="comments-list" id="commentsList">
+            <div class="comments-list">
                 {% if comments %}
                     {% for comment in comments %}
                         {% include 'forum/comment_item.html' %}
                     {% endfor %}
                 {% else %}
                     <div class="no-comments">
-                        <i class="bi bi-chat"></i>
-                        <p>Noch keine Kommentare vorhanden. Schreibe den ersten Kommentar!</p>
+                        <div class="no-comments-icon">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <h3>Noch keine Kommentare</h3>
+                        <p>Seien Sie der Erste, der einen Kommentar hinterlässt!</p>
+                        <button type="button" class="btn btn-primary" onclick="showCommentForm(null)">
+                            <i class="bi bi-plus-lg"></i> Ersten Kommentar schreiben
+                        </button>
                     </div>
                 {% endif %}
             </div>
@@ -195,20 +237,20 @@
 
 <!-- Image Preview Modal -->
 <div id="imageModal" class="modal" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content image-modal-content">
         <div class="modal-header">
             <h3 id="modalImageTitle">Bildvorschau</h3>
-            <button class="modal-close" onclick="closeImageModal()">
-                <i class="bi bi-x-lg"></i>
-            </button>
+            <div class="image-modal-actions">
+                <button type="button" class="btn btn-primary" onclick="downloadCurrentImage()">
+                    <i class="bi bi-download"></i> Herunterladen
+                </button>
+                <button type="button" class="modal-close" onclick="closeImageModal()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
         </div>
-        <div class="modal-body">
-            <img id="modalImage" src="" alt="Bildvorschau" style="max-width: 100%; height: auto;">
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-primary" onclick="downloadCurrentImage()">
-                <i class="bi bi-download"></i> Download
-            </button>
+        <div class="modal-body image-modal-body">
+            <img id="modalImage" src="" alt="Vorschau" class="preview-image">
         </div>
     </div>
 </div>
@@ -217,64 +259,46 @@
 <div id="shareModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Post teilen</h3>
-            <button class="modal-close" onclick="closeShareModal()">
-                <i class="bi bi-x-lg"></i>
+            <h3><i class="bi bi-share"></i> Post teilen</h3>
+            <button type="button" class="modal-close" onclick="closeShareModal()">
+                <i class="bi bi-x"></i>
             </button>
         </div>
         <div class="modal-body">
-            <div class="share-option">
-                <label>Link kopieren:</label>
-                <div class="copy-link-container">
-                    <input type="text" id="shareLink" value="{{ request.url }}" readonly>
-                    <button class="btn btn-secondary" onclick="copyShareLink()">
-                        <i class="bi bi-clipboard"></i> Kopieren
-                    </button>
+            <div class="share-options">
+                <div class="share-option">
+                    <label for="shareUrl">Link kopieren:</label>
+                    <div class="url-copy-group">
+                        <input type="text" id="shareUrl" class="form-input" readonly>
+                        <button type="button" class="btn btn-outline" onclick="copyToClipboard()">
+                            <i class="bi bi-clipboard"></i> Kopieren
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Edit Comment Modal -->
-<div id="editCommentModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Kommentar bearbeiten</h3>
-            <button class="modal-close" onclick="closeEditCommentModal()">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        <form id="editCommentForm">
-            <div class="modal-body">
-                <textarea name="content" 
-                          id="editCommentContent" 
-                          maxlength="2000" 
-                          required
-                          rows="4"></textarea>
-                <div class="char-counter">
-                    <span class="char-count">0</span> / 2000
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeEditCommentModal()">
-                    Abbrechen
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> Speichern
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-<script src="{{ url_for('static', filename='js/forum-comments.js') }}"></script>
 {% endblock %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/forum.js') }}"></script>
-
+{% block page_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 <script>
-// Global variables for comment functionality
+// Initialize highlighting for code blocks
+document.addEventListener('DOMContentLoaded', function() {
+    hljs.highlightAll();
+    
+    // Set share URL
+    document.getElementById('shareUrl').value = window.location.href;
+    
+    // Initialize comment counter
+    updateCommentCounter();
+    
+    // Load view count (could be implemented via API)
+    loadViewCount();
+});
+
+// Comment functionality
 let currentPostId = {{ post.id }};
 let currentEditCommentId = null;
 
@@ -286,6 +310,96 @@ window.currentUserAvatar = '<img src="{{ user.avatar_url }}" alt="Profilbild" cl
 {% else %}
 window.currentUserAvatar = '<div class="profile-avatar-placeholder">{{ (user.display_name or user.username)[0].upper() }}</div>';
 {% endif %}
+
+function showCommentForm(parentId = null) {
+    const form = document.getElementById('commentForm');
+    const title = document.getElementById('commentFormTitle');
+    const parentInput = document.getElementById('parentCommentId');
+    
+    if (parentId) {
+        title.textContent = 'Antwort verfassen';
+        parentInput.value = parentId;
+        
+        // Insert form after the parent comment
+        const parentComment = document.querySelector(`[data-comment-id="${parentId}"]`);
+        if (parentComment) {
+            parentComment.after(form);
+        }
+    } else {
+        title.textContent = 'Neuer Kommentar';
+        parentInput.value = '';
+        
+        // Move form to top of comments section
+        const commentsHeader = document.querySelector('.comments-header');
+        commentsHeader.after(form);
+    }
+    
+    form.style.display = 'block';
+    document.getElementById('commentContent').focus();
+}
+
+function hideCommentForm() {
+    const form = document.getElementById('commentForm');
+    form.style.display = 'none';
+    
+    // Clear form
+    document.getElementById('commentContent').value = '';
+    document.getElementById('parentCommentId').value = '';
+    updateCommentCounter();
+}
+
+function updateCommentCounter() {
+    const textarea = document.getElementById('commentContent');
+    const counter = document.getElementById('commentCounter');
+    
+    if (textarea && counter) {
+        const length = textarea.value.length;
+        counter.textContent = `${length}/2000`;
+        counter.className = length > 1900 ? 'counter-warning' : '';
+    }
+}
+
+// Add event listener for comment counter
+document.addEventListener('DOMContentLoaded', function() {
+    const commentTextarea = document.getElementById('commentContent');
+    if (commentTextarea) {
+        commentTextarea.addEventListener('input', updateCommentCounter);
+    }
+});
+
+async function submitComment(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitBtn = document.getElementById('submitCommentBtn');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Wird gepostet...';
+    
+    try {
+        const response = await fetch(`/forum/post/${currentPostId}/comment`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Reload page to show new comment
+            window.location.reload();
+        } else {
+            alert('Fehler beim Posten des Kommentars: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Fehler beim Posten des Kommentars.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-send"></i> Kommentar posten';
+    }
+}
 
 // Image preview functionality
 function previewImage(attachmentId, filename) {
@@ -308,58 +422,115 @@ function downloadCurrentImage() {
     window.location.href = `/forum/download/${attachmentId}`;
 }
 
+// Share functionality
+function sharePost() {
+    document.getElementById('shareModal').style.display = 'flex';
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+}
+
+function copyToClipboard() {
+    const urlInput = document.getElementById('shareUrl');
+    urlInput.select();
+    urlInput.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        document.execCommand('copy');
+        
+        // Show feedback
+        const btn = event.target.closest('button');
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Kopiert!';
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalContent;
+            btn.classList.remove('btn-success');
+        }, 2000);
+    } catch (err) {
+        console.error('Copy failed:', err);
+        alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
+    }
+}
+
+// Load view count (example implementation)
+function loadViewCount() {
+    // This could be implemented with an API call
+    // For now, just show a placeholder
+    document.getElementById('viewCount').textContent = '...';
+    
+    // Example API call:
+    /*
+    fetch(`/forum/api/post/${currentPostId}/views`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('viewCount').textContent = data.views || 0;
+        })
+        .catch(error => {
+            document.getElementById('viewCount').textContent = '0';
+        });
+    */
+}
+
 // Close modals when clicking outside
 window.addEventListener('click', function(event) {
     const imageModal = document.getElementById('imageModal');
     const shareModal = document.getElementById('shareModal');
-    const editModal = document.getElementById('editCommentModal');
     
     if (event.target === imageModal) {
         closeImageModal();
     }
+    
     if (event.target === shareModal) {
         closeShareModal();
     }
-    if (event.target === editModal) {
-        closeEditCommentModal();
-    }
 });
 
-// Keyboard navigation
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
         closeImageModal();
         closeShareModal();
-        closeEditCommentModal();
+        hideCommentForm();
     }
 });
 
-// Auto-expand long content with "Read more" functionality
+// Auto-save comment draft
+let commentDraftTimer;
+function saveCommentDraft() {
+    const content = document.getElementById('commentContent').value;
+    const parentId = document.getElementById('parentCommentId').value;
+    
+    if (content.trim()) {
+        localStorage.setItem(`comment_draft_${currentPostId}_${parentId || 'root'}`, content);
+    }
+}
+
+// Load comment draft
+function loadCommentDraft(parentId = null) {
+    const saved = localStorage.getItem(`comment_draft_${currentPostId}_${parentId || 'root'}`);
+    if (saved) {
+        document.getElementById('commentContent').value = saved;
+        updateCommentCounter();
+    }
+}
+
+// Auto-save functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const content = document.querySelector('.post-content');
-    if (content && content.scrollHeight > 600) {
-        content.style.maxHeight = '600px';
-        content.style.overflow = 'hidden';
-        content.style.position = 'relative';
-        
-        // Add gradient overlay
-        const gradient = document.createElement('div');
-        gradient.className = 'content-gradient';
-        content.appendChild(gradient);
-        
-        // Add expand button
-        const expandBtn = document.createElement('button');
-        expandBtn.className = 'btn btn-outline expand-btn';
-        expandBtn.innerHTML = '<i class="bi bi-chevron-down"></i> Vollständig anzeigen';
-        expandBtn.onclick = function() {
-            content.style.maxHeight = 'none';
-            content.style.overflow = 'visible';
-            gradient.remove();
-            expandBtn.remove();
-        };
-        
-        content.parentNode.insertBefore(expandBtn, content.nextSibling);
+    const commentTextarea = document.getElementById('commentContent');
+    if (commentTextarea) {
+        commentTextarea.addEventListener('input', function() {
+            clearTimeout(commentDraftTimer);
+            commentDraftTimer = setTimeout(saveCommentDraft, 2000);
+        });
     }
 });
+
+// Mark post as read (API call)
+fetch(`/forum/api/mark-read/${currentPostId}`, {
+    method: 'POST'
+}).catch(error => console.log('Mark as read failed:', error));
 </script>
 {% endblock %}
