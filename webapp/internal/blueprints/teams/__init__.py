@@ -341,7 +341,6 @@ def api_remove_member_edit(team_id):
         if not team:
             return jsonify({'error': 'Team nicht gefunden'}), 404
         
-        # API Call zum Discord Bot
         try:
             bot_response = requests.delete(
                 f'http://localhost:321/api/teams/member/delete/{user_id}',
@@ -350,11 +349,7 @@ def api_remove_member_edit(team_id):
             )
             
             if bot_response.status_code == 200:
-                # Auch aus lokaler DB entfernen
-                if team.remove_member(user_id):
-                    return jsonify({'success': True, 'message': 'Mitglied erfolgreich entfernt'})
-                else:
-                    return jsonify({'error': 'Mitglied vom Discord entfernt, aber DB-Fehler'}), 500
+                return jsonify({'success': True, 'message': 'Mitglied erfolgreich entfernt'})
             else:
                 return jsonify({'error': f'Discord Bot Fehler: {bot_response.status_code}'}), 500
                 
@@ -371,7 +366,7 @@ def api_remove_member_edit(team_id):
 @login_required
 def api_change_team_name(team_id):
     """API endpoint to change team name via Discord bot"""
-    if not User.has_management_role(g.user_roles):
+    if not User.has_management_role(g.user):
         return jsonify({'error': 'Keine Berechtigung'}), 403
     
     try:
@@ -422,7 +417,7 @@ def api_change_team_name(team_id):
 @login_required
 def api_delete_team(team_id):
     """API endpoint to delete a team via Discord bot"""
-    if not User.has_management_role(g.user_roles):
+    if not User.has_management_role(g.user):
         return jsonify({'error': 'Keine Berechtigung zum Löschen von Teams'}), 403
     
     try:

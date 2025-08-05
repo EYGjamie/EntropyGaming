@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 	"fmt"
-	"os"
 
 	"bot/database"
 	"bot/utils"
+	
 	"github.com/bwmarrin/discordgo"
 	"github.com/gorilla/mux"
 )
@@ -40,7 +40,7 @@ func (api *APIServer) handleDeleteTeamMember(w http.ResponseWriter, r *http.Requ
 
 	// 2. Team-Rolle ID aus team_areas holen
 	var teamRoleID string
-	err = database.DB.QueryRow("SELECT role_id FROM team_areas WHERE id = ? AND is_active = 'true'", teamID).Scan(&teamRoleID)
+	err = database.DB.QueryRow("SELECT role_id FROM team_areas WHERE id = ? AND is_active = 1", teamID).Scan(&teamRoleID)
 	if err != nil {
 		utils.LogAndNotifyAdmins(api.bot, "low", "Error", "team_handler.go", true, err, "Error getting team role for team_id: "+teamID)
 		http.Error(w, "Team nicht gefunden", http.StatusNotFound)
@@ -56,7 +56,7 @@ func (api *APIServer) handleDeleteTeamMember(w http.ResponseWriter, r *http.Requ
 	}
 
 	// 4. Diamond Teams Rolle entfernen
-	diamondTeamsRole := os.Getenv("ROLE_DIAMOND_TEAMS")
+	diamondTeamsRole := utils.GetIdFromDB(api.bot, "ROLE_DIAMOND_TEAMS")
 	if diamondTeamsRole != "" {
 		err = api.bot.GuildMemberRoleRemove(api.guildID, discordID, diamondTeamsRole)
 		if err != nil {
@@ -123,7 +123,7 @@ func (api *APIServer) handleChangeTeamName(w http.ResponseWriter, r *http.Reques
 	// 1. Team-Daten aus DB holen
 	var currentName, game, roleID, categoryID string
 	err := database.DB.QueryRow(
-		"SELECT team_name, game, role_id, category_id FROM team_areas WHERE id = ? AND is_active = 'true'", 
+		"SELECT team_name, game, role_id, category_id FROM team_areas WHERE id = ? AND is_active = 1", 
 		teamID,
 	).Scan(&currentName, &game, &roleID, &categoryID)
 	if err != nil {
@@ -232,7 +232,7 @@ func (api *APIServer) deleteTeamAreaLogic(catID string) error {
 	}
 
 	// 3. Diamond Teams Rolle von allen Team-Mitgliedern entfernen
-	diamondTeamsRole := os.Getenv("ROLE_DIAMOND_TEAMS")
+	diamondTeamsRole := utils.GetIdFromDB(api.bot, "ROLE_DIAMOND_TEAMS")
 	if diamondTeamsRole != "" {
 		var after string
 		for {
@@ -289,7 +289,7 @@ func (api *APIServer) deleteTeamAreaLogic(catID string) error {
 	}
 
 	// 7. DB-Eintrag deaktivieren
-	_, err = database.DB.Exec("UPDATE team_areas SET is_active = false WHERE category_id = ?", catID)
+	_, err = database.DB.Exec("UPDATE team_areas SET is_active = 0 WHERE category_id = ?", catID)
 	if err != nil {
 		utils.LogAndNotifyAdmins(api.bot, "low", "Error", "team_handler.go", true, err, fmt.Sprintf("Error updating team db entry %s", catID))
 	}
