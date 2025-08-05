@@ -146,6 +146,41 @@
                 </div>
             </div>
         </div>
+
+        <!-- Danger Zone Section - Team Löschen -->
+        <div class="col-12">
+            <div class="danger-zone-card">
+                <div class="danger-zone-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Team Löschen
+                    </h4>
+                </div>
+                <div class="danger-zone-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="danger-zone-title">Team permanent löschen</h5>
+                            <p class="danger-zone-description">
+                                <strong>Achtung:</strong> Diese Aktion löscht das Team unwiderruflich aus Discord und der Datenbank. 
+                                Alle Kanäle, Rollen und Mitgliedschaften gehen verloren.
+                            </p>
+                            <ul class="danger-zone-list">
+                                <li>Discord-Kategorie wird gelöscht</li>
+                                <li>Alle Text- und Voice-Kanäle werden entfernt</li>
+                                <li>Team-Rolle wird gelöscht</li>
+                                <li>Alle Mitgliedschaften werden entfernt</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <button type="button" 
+                                    class="btn btn-danger-zone"
+                                    onclick="deleteTeam('{{ team.team_name }}', '{{ team.category_id }}')">
+                                <i class="bi bi-trash3"></i> Team löschen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -163,6 +198,63 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-entropy" data-bs-dismiss="modal">Abbrechen</button>
                 <button type="button" class="btn btn-entropy-danger" id="confirmBtn">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Team Delete Confirmation Modal -->
+<div class="modal fade" id="deleteTeamModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content entropy-modal danger-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-danger"></i> 
+                    Team permanent löschen
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>Warnung!</strong> Diese Aktion kann nicht rückgängig gemacht werden.
+                </div>
+                
+                <p>Sie sind dabei, das Team <strong id="deleteTeamName"></strong> permanent zu löschen.</p>
+                
+                <h6 class="text-danger mb-3">Dies wird unwiderruflich:</h6>
+                <ul class="text">
+                    <li>Die Discord-Kategorie und alle Kanäle löschen</li>
+                    <li>Die Team-Rolle entfernen</li>
+                    <li>Alle Mitgliedschaften aus der Datenbank entfernen</li>
+                    <li>Das Team aus allen Übersichten entfernen</li>
+                </ul>
+                
+                <hr class="my-4">
+                
+                <div class="mb-3">
+                    <label for="deleteConfirmInput" class="form-label">
+                        Zur Bestätigung geben Sie den Team-Namen ein: <strong id="deleteTeamNameConfirm"></strong>
+                    </label>
+                    <input type="text" 
+                           class="form-control entropy-input" 
+                           id="deleteConfirmInput" 
+                           placeholder="Team-Namen hier eingeben..."
+                           autocomplete="off">
+                </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="deleteUnderstandCheck">
+                    <label class="form-check-label text" for="deleteUnderstandCheck">
+                        Ich verstehe, dass diese Aktion nicht rückgängig gemacht werden kann
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-entropy" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="bi bi-trash3"></i> Team permanent löschen
+                </button>
             </div>
         </div>
     </div>

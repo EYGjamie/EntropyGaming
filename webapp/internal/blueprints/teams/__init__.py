@@ -500,3 +500,94 @@ def api_change_team_name(team_id):
     except Exception as e:
         logging.error(f"Error changing team name for team {team_id}: {e}")
         return jsonify({'error': 'Interner Serverfehler'}), 500
+    
+# API Endpunkt für Team-Löschung mit Discord Bot API Call
+@teams_bp.route('/api/edit/<int:team_id>/delete_team', methods=['POST'])
+@login_required
+def api_delete_team(team_id):
+    """API endpoint to delete a team via Discord bot"""
+    if not User.has_management_role(g.user_roles):
+        return jsonify({'error': 'Keine Berechtigung zum Löschen von Teams'}), 403
+    
+    try:
+        data = request.get_json()
+        category_id = data.get('category_id')
+        team_name = data.get('team_name', '')
+        
+        if not category_id:
+            return jsonify({'error': 'Category ID ist erforderlich'}), 400
+        
+        # Team aus DB abrufen zur Validierung
+        team = Team.get_by_id(team_id)
+        if not team:
+            return jsonify({'error': 'Team nicht gefunden'}), 404
+        
+        # Validiere dass die category_id übereinstimmt
+        if str(team.category_id) != str(category_id):
+            return jsonify({'error': 'Category ID stimmt nicht überein'}), 400
+        
+        # API Call zum Discord Bot für Team-Löschung
+        try:
+            bot_response = requests.delete(
+                f'http://localhost:321/api/teams/delete/{category_id}',
+                json={
+                    'team_id': team_id,
+                    'team_name': team_name,
+                    'category_id': category_id
+                },
+                timeout=30  # Längerer Timeout da Löschung Zeit braucht
+            )
+            
+            if bot_response.status_code == 200:
+                # Team aus lokaler DB deaktivieren/löschen
+                db = get_db()
+                
+                # Soft Delete: Team als inaktiv markieren
+                db.execute(
+                    'UPDATE team_areas SET is_active = 0 WHERE id = ?',
+                    (team_id,)
+                )
+                
+                # Alle Team-Mitgliedschaften entfernen
+                db.execute(
+                    'DELETE FROM team_members WHERE team_id = ?',
+                    (team_id,)
+                )
+                
+                db.commit()
+                
+                # Log der Aktivität
+                from database.db_manager import log_activity
+                log_activity(
+                    user_id=g.user.id,
+                    action='delete_team',
+                    resource_type='team',
+                    resource_id=team_id,
+                    details=f"Team '{team_name}' (ID: {team_id}, Category: {category_id}) gelöscht"
+                )
+                
+                return jsonify({
+                    'success': True, 
+                    'message': f'Team "{team_name}" wurde erfolgreich gelöscht'
+                })
+            
+            elif bot_response.status_code == 404:
+                return jsonify({'error': 'Team-Kategorie im Discord nicht gefunden'}), 404
+            elif bot_response.status_code == 403:
+                return jsonify({'error': 'Bot hat keine Berechtigung zum Löschen'}), 403
+            else:
+                return jsonify({
+                    'error': f'Discord Bot Fehler: {bot_response.status_code}'
+                }), 500
+                
+        except requests.exceptions.Timeout:
+            return jsonify({'error': 'Timeout beim Kommunizieren mit Discord Bot'}), 500
+        except requests.exceptions.ConnectionError:
+            return jsonify({'error': 'Discord Bot ist nicht erreichbar'}), 500
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error calling Discord bot API for team deletion: {e}")
+            return jsonify({'error': 'Fehler beim Kommunizieren mit Discord Bot'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error deleting team {team_id}: {e}")
+        return jsonify({'error': 'Interner Serverfehler beim Löschen des Teams'}), 500
