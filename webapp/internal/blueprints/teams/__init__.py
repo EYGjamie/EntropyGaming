@@ -185,90 +185,6 @@ def manage(team_id):
         flash("Fehler beim Laden der Team-Verwaltung", "error")
         return redirect(url_for('teams.detail', team_id=team_id))
 
-@teams_bp.route('/api/manage/<int:team_id>/add_member', methods=['POST'])
-@login_required
-def api_add_member(team_id):
-    """API endpoint to add a member to a team"""
-    # Check permissions
-    if not User.has_management_role(g.user):
-        return jsonify({'error': 'Keine Berechtigung'}), 403
-    
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        role = data.get('role', 'Spieler')
-        
-        if not user_id:
-            return jsonify({'error': 'User ID fehlt'}), 400
-        
-        team = Team.get_by_id(team_id)
-        if not team:
-            return jsonify({'error': 'Team nicht gefunden'}), 404
-        
-        if team.add_member(user_id, role):
-            return jsonify({'success': True, 'message': 'Mitglied hinzugefügt'})
-        else:
-            return jsonify({'error': 'Fehler beim Hinzufügen des Mitglieds'}), 500
-            
-    except Exception as e:
-        logging.error(f"Error adding member to team {team_id}: {e}")
-        return jsonify({'error': 'Interner Serverfehler'}), 500
-
-@teams_bp.route('/api/manage/<int:team_id>/remove_member', methods=['POST'])
-@login_required
-def api_remove_member(team_id):
-    """API endpoint to remove a member from a team"""
-    if not User.has_management_role(g.user):
-        return jsonify({'error': 'Keine Berechtigung'}), 403
-    
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User ID fehlt'}), 400
-        
-        team = Team.get_by_id(team_id)
-        if not team:
-            return jsonify({'error': 'Team nicht gefunden'}), 404
-        
-        if team.remove_member(user_id):
-            return jsonify({'success': True, 'message': 'Mitglied entfernt'})
-        else:
-            return jsonify({'error': 'Fehler beim Entfernen des Mitglieds'}), 500
-            
-    except Exception as e:
-        logging.error(f"Error removing member from team {team_id}: {e}")
-        return jsonify({'error': 'Interner Serverfehler'}), 500
-
-@teams_bp.route('/api/manage/<int:team_id>/update_role', methods=['POST'])
-@login_required
-def api_update_member_role(team_id):
-    """API endpoint to update a member's role"""
-    # Check permissions
-    if not User.has_management_role(g.user):
-        return jsonify({'error': 'Keine Berechtigung'}), 403
-    
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        new_role = data.get('role', 'Spieler')
-        
-        if not user_id:
-            return jsonify({'error': 'User ID fehlt'}), 400
-        
-        team = Team.get_by_id(team_id)
-        if not team:
-            return jsonify({'error': 'Team nicht gefunden'}), 404
-        
-        if team.update_member_role(user_id, new_role):
-            return jsonify({'success': True, 'message': 'Rolle aktualisiert'})
-        else:
-            return jsonify({'error': 'Fehler beim Aktualisieren der Rolle'}), 500
-            
-    except Exception as e:
-        logging.error(f"Error updating member role in team {team_id}: {e}")
-        return jsonify({'error': 'Interner Serverfehler'}), 500
 
 @teams_bp.route('/api/stats')
 @login_required
@@ -429,7 +345,7 @@ def api_remove_member_edit(team_id):
         try:
             bot_response = requests.delete(
                 f'http://localhost:321/api/teams/member/delete/{user_id}',
-                params={'team_id': team_id},
+                params={'team_id': team_id,},
                 timeout=10
             )
             

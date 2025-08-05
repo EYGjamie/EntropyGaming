@@ -73,7 +73,6 @@
                                        value="{{ team.team_name }}"
                                        maxlength="50"
                                        required>
-                                <div class="form-text">2-50 Zeichen</div>
                             </div>
                             <div class="col-md-4">
                                 <button type="submit" class="btn btn-entropy w-100">
@@ -128,9 +127,8 @@
                                         {% endfor %}
                                     </select>
                                     <button type="button" 
-                                            class="btn btn-sm btn-entropy-danger"
-                                            onclick="removeMember({{ member.id }}, '{{ member.effective_name }}')">
-                                        <i class="bi bi-trash"></i> Entfernen
+                                            class="btn btn-entropy"
+                                            onclick="removeMember({{ member.id }}, '{{ member.effective_name }}')"> Entfernen
                                     </button>
                                 </div>
                             </div>

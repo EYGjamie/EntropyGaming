@@ -189,45 +189,7 @@ class Team:
         except Exception as e:
             logging.error(f"Error searching teams with members: {e}")
             return []
-    
-    def add_member(self, user_id, role='Spieler'):
-        """Add a user to the team with optional role"""
-        db = get_db()
-        
-        try:
-            db.execute('''
-                INSERT OR IGNORE INTO team_members (team_id, user_id, joined_at, role)
-                VALUES (?, ?, ?, ?)
-            ''', (self.id, user_id, datetime.now(), role))
-            db.commit()
-            
-            # Refresh members list
-            self.members = self._get_members()
-            return True
-            
-        except Exception as e:
-            logging.error(f"Error adding member {user_id} to team {self.id}: {e}")
-            return False
-    
-    def remove_member(self, user_id):
-        """Remove a user from the team"""
-        db = get_db()
-        
-        try:
-            result = db.execute('''
-                DELETE FROM team_members 
-                WHERE team_id = ? AND user_id = ?
-            ''', (self.id, user_id))
-            
-            db.commit()
-            
-            # Refresh members list
-            self.members = self._get_members()
-            return result.rowcount > 0
-            
-        except Exception as e:
-            logging.error(f"Error removing member {user_id} from team {self.id}: {e}")
-            return False
+
     
     def update_member_role(self, user_id, new_role):
         """Update a member's role in the team"""
@@ -242,7 +204,6 @@ class Team:
             
             db.commit()
             
-            # Refresh members list
             self.members = self._get_members()
             return result.rowcount > 0
             
