@@ -1,3 +1,4 @@
+# webapp/internal/config.py
 import os
 from dotenv import load_dotenv
 
@@ -51,43 +52,142 @@ class Config:
     # Forum-specific configuration
     FORUM_UPLOAD_FOLDER = os.path.join('static', 'uploads', 'forum')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
-    FORUM_ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xlsx', 'pptx'}
+    FORUM_ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xlsx', 'pptx', 'zip', 'rar'}
     
-    # Forum pagination
-    FORUM_POSTS_PER_PAGE = 20
-    FORUM_SEARCH_MIN_LENGTH = 3
+    # Grok AI API configuration for Forum Summary Generation
+    GROK_API_URL = os.getenv('GROK_API_URL', 'https://api.x.ai/v1/chat/completions')
+    GROK_API_KEY = os.getenv('GROK_API_KEY')
+    GROK_MODEL = os.getenv('GROK_MODEL', 'grok-beta')
     
-    # Forum file handling
-    FORUM_MAX_FILES_PER_POST = 10
-    FORUM_MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB per file
+    # AI Features Configuration
+    AI_SUMMARY_ENABLED = os.getenv('AI_SUMMARY_ENABLED', 'True').lower() == 'true' and bool(os.getenv('GROK_API_KEY'))
+    AI_SUMMARY_MAX_LENGTH = int(os.getenv('AI_SUMMARY_MAX_LENGTH', '150'))
+    AI_SUMMARY_TIMEOUT = int(os.getenv('AI_SUMMARY_TIMEOUT', '10'))
     
-    @staticmethod
-    def init_app(app):
-        # Create upload directories if they don't exist
-        upload_dir = os.path.join(app.static_folder, 'uploads', 'forum')
-        os.makedirs(upload_dir, exist_ok=True)
+    # Forum Feature Flags
+    FORUM_MARKDOWN_ENABLED = os.getenv('FORUM_MARKDOWN_ENABLED', 'True').lower() == 'true'
+    FORUM_ATTACHMENTS_ENABLED = os.getenv('FORUM_ATTACHMENTS_ENABLED', 'True').lower() == 'true'
+    FORUM_COMMENTS_ENABLED = os.getenv('FORUM_COMMENTS_ENABLED', 'True').lower() == 'true'
+    FORUM_CATEGORIES_ENABLED = os.getenv('FORUM_CATEGORIES_ENABLED', 'True').lower() == 'true'
+    FORUM_ROLE_PERMISSIONS_ENABLED = os.getenv('FORUM_ROLE_PERMISSIONS_ENABLED', 'True').lower() == 'true'
+    
+    # Rate Limiting Configuration
+    FORUM_POST_RATE_LIMIT = int(os.getenv('FORUM_POST_RATE_LIMIT', '5'))  # Posts per hour
+    FORUM_COMMENT_RATE_LIMIT = int(os.getenv('FORUM_COMMENT_RATE_LIMIT', '30'))  # Comments per hour
+    
+    # Content Moderation
+    FORUM_AUTO_MODERATION_ENABLED = os.getenv('FORUM_AUTO_MODERATION_ENABLED', 'False').lower() == 'true'
+    FORUM_PROFANITY_FILTER_ENABLED = os.getenv('FORUM_PROFANITY_FILTER_ENABLED', 'False').lower() == 'true'
+    
+    # Notification Settings
+    FORUM_EMAIL_NOTIFICATIONS = os.getenv('FORUM_EMAIL_NOTIFICATIONS', 'False').lower() == 'true'
+    FORUM_DISCORD_NOTIFICATIONS = os.getenv('FORUM_DISCORD_NOTIFICATIONS', 'False').lower() == 'true'
+    
+    @classmethod
+    def get_grok_headers(cls):
+        """Get headers for Grok API requests"""
+        if not cls.GROK_API_KEY:
+            return None
         
-        # Set up other forum-related initialization
-        pass
+        return {
+            'Authorization': f'Bearer {cls.GROK_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+    
+    @classmethod
+    def get_grok_payload(cls, content, max_tokens=50):
+        """Get payload for Grok API summary generation"""
+        return {
+            'model': cls.GROK_MODEL,
+            'messages': [
+                {
+                    'role': 'system',
+                    'content': f'Du bist ein Assistent, der prägnante und aussagekräftige Zusammenfassungen erstellt. Erstelle eine Kurzzusammenfassung (max. {cls.AI_SUMMARY_MAX_LENGTH} Zeichen) des folgenden Textes auf Deutsch. Die Zusammenfassung soll die wichtigsten Punkte erfassen und als Vorschau für den Post dienen.'
+                },
+                {
+                    'role': 'user',
+                    'content': content[:4000]  # Limit input to avoid API limits
+                }
+            ],
+            'max_tokens': max_tokens,
+            'temperature': 0.3,  # Lower temperature for more consistent summaries
+            'stream': False
+        }
+    
+    @classmethod
+    def is_feature_enabled(cls, feature):
+        """Check if a forum feature is enabled"""
+        feature_map = {
+            'markdown': cls.FORUM_MARKDOWN_ENABLED,
+            'attachments': cls.FORUM_ATTACHMENTS_ENABLED,
+            'comments': cls.FORUM_COMMENTS_ENABLED,
+            'categories': cls.FORUM_CATEGORIES_ENABLED,
+            'role_permissions': cls.FORUM_ROLE_PERMISSIONS_ENABLED,
+            'ai_summary': cls.AI_SUMMARY_ENABLED,
+            'auto_moderation': cls.FORUM_AUTO_MODERATION_ENABLED,
+            'profanity_filter': cls.FORUM_PROFANITY_FILTER_ENABLED,
+        }
+        return feature_map.get(feature, False)
 
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
+    TESTING = False
     
+    # Development-specific overrides
+    SESSION_COOKIE_SECURE = False
+    WTF_CSRF_ENABLED = False  # Disable CSRF for easier development
+    
+    # More verbose logging in development
+    FORUM_EMAIL_NOTIFICATIONS = False
+    FORUM_DISCORD_NOTIFICATIONS = False
+
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    SESSION_COOKIE_SECURE = True
+    TESTING = False
     
+    # Production security settings
+    SESSION_COOKIE_SECURE = True
+    WTF_CSRF_ENABLED = True
+    
+    # Enhanced security for production
+    PERMANENT_SESSION_LIFETIME = 3600  # 1 hour in production
+    
+    # Stricter rate limits in production
+    FORUM_POST_RATE_LIMIT = 3  # Posts per hour
+    FORUM_COMMENT_RATE_LIMIT = 20  # Comments per hour
+
 class TestingConfig(Config):
     """Testing configuration"""
+    DEBUG = True
     TESTING = True
+    
+    # Use in-memory database for testing
     DATABASE_PATH = ':memory:'
+    
+    # Disable external API calls during testing
+    AI_SUMMARY_ENABLED = False
+    FORUM_EMAIL_NOTIFICATIONS = False
+    FORUM_DISCORD_NOTIFICATIONS = False
+    BOT_API_ENABLED = False
+    
+    # Disable rate limiting for testing
+    FORUM_POST_RATE_LIMIT = 1000
+    FORUM_COMMENT_RATE_LIMIT = 1000
+    
+    # Disable CSRF for easier testing
     WTF_CSRF_ENABLED = False
 
+# Configuration mapping
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
     'testing': TestingConfig,
     'default': DevelopmentConfig
 }
+
+def get_config():
+    """Get configuration based on environment"""
+    env = os.getenv('FLASK_ENV', 'development')
+    return config.get(env, config['default'])
