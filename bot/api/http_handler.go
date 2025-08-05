@@ -1,3 +1,4 @@
+// bot/api/http_handler.go
 package api
 
 import (
@@ -13,12 +14,14 @@ import (
 
 type APIServer struct {
 	statsService *statsService.StatsService
+	bot          *discordgo.Session  // Bot-Session direkt hinzufügen
 	guildID      string
 }
 
 func NewAPIServer(bot *discordgo.Session, guildID string) *APIServer {
 	return &APIServer{
 		statsService: statsService.NewStatsService(bot),
+		bot:          bot,  // Bot-Session speichern
 		guildID:      guildID,
 	}
 }
@@ -30,9 +33,14 @@ func (api *APIServer) StartAPI() {
 	// CORS Middleware
 	r.Use(corsMiddleware)
 	
-	// API Routes
+	// Existing API Routes
 	r.HandleFunc("/api/stats", api.handleStats).Methods("GET")
 	r.HandleFunc("/api/health", api.handleHealth).Methods("GET")
+	
+	// New Team Management API Routes
+	r.HandleFunc("/api/teams/member/delete/{user_id}", api.handleDeleteTeamMember).Methods("DELETE")
+	r.HandleFunc("/api/teams/name/change/{team_id}", api.handleChangeTeamName).Methods("POST")
+	r.HandleFunc("/api/teams/delete/{category_id}", api.handleDeleteTeam).Methods("DELETE")
 	
 	port := os.Getenv("API_PORT")
 	if port == "" {
@@ -75,7 +83,7 @@ func (api *APIServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 		if r.Method == "OPTIONS" {
