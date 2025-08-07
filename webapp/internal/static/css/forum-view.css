@@ -288,6 +288,8 @@
     color: var(--entropy-gray-light);
     font-size: 0.9rem;
     font-weight: 500;
+    padding-left: 10px;
+    padding-bottom: 10px;
 }
 
 .stat-item {

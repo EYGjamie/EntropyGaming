@@ -43,12 +43,12 @@
                     </div>
                     {% endif %}
                     
-                    {% if post.summary %}
+                    <!--{% if post.summary %}
                     <div class="post-summary">
                         <i class="bi bi-info-circle"></i>
                         {{ post.summary }}
                     </div>
-                    {% endif %}
+                    {% endif %} -->
                 </div>
                 
                 <div class="post-meta-section">
@@ -150,10 +150,6 @@
 
             <!-- Post Stats -->
             <div class="post-stats">
-                <div class="stat-item">
-                    <i class="bi bi-eye"></i>
-                    <span>Aufrufe: <span id="viewCount">-</span></span>
-                </div>
                 {% if attachments %}
                 <div class="stat-item">
                     <i class="bi bi-paperclip"></i>
@@ -161,6 +157,7 @@
                 </div>
                 {% endif %}
                 <div class="stat-item">
+                    <i class="bi bi-arrow-right"></i>
                     <i class="bi bi-chat-dots"></i>
                     <span id="commentCount">{{ comments|length }} Kommentar{% if comments|length != 1 %}e{% endif %}</span>
                 </div>
