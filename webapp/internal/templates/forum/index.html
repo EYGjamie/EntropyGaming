@@ -34,6 +34,30 @@
                 </div>
 
                 <div class="categories-list">
+
+                    <!-- Search Section in Sidebar -->
+                <div class="sidebar-search">
+                    <form method="GET" class="search-form">
+                        {% if selected_category %}
+                        <input type="hidden" name="category" value="{{ selected_category }}">
+                        {% endif %}
+                        <div class="search-input-group">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ current_search }}" 
+                                   placeholder="Posts durchsuchen..."
+                                   class="search-input">
+                            <button type="submit" class="search-btn">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        {% if current_search %}
+                        <a href="{% if selected_category %}{{ url_for('forum.index', category=selected_category) }}{% else %}{{ url_for('forum.index') }}{% endif %}" class="clear-search">
+                            <i class="bi bi-x"></i> Suche löschen
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
                     <!-- All Categories Option -->
                     <div class="category-item {% if not selected_category %}active{% endif %}">
                         <a href="{{ url_for('forum.index') }}" class="category-link">
@@ -84,29 +108,7 @@
                     {% endfor %}
                 </div>
 
-                <!-- Search Section in Sidebar -->
-                <div class="sidebar-search">
-                    <form method="GET" class="search-form">
-                        {% if selected_category %}
-                        <input type="hidden" name="category" value="{{ selected_category }}">
-                        {% endif %}
-                        <div class="search-input-group">
-                            <input type="text" 
-                                   name="search" 
-                                   value="{{ current_search }}" 
-                                   placeholder="Posts durchsuchen..."
-                                   class="search-input">
-                            <button type="submit" class="search-btn">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                        {% if current_search %}
-                        <a href="{% if selected_category %}{{ url_for('forum.index', category=selected_category) }}{% else %}{{ url_for('forum.index') }}{% endif %}" class="clear-search">
-                            <i class="bi bi-x"></i> Suche löschen
-                        </a>
-                        {% endif %}
-                    </form>
-                </div>
+                
             </div>
 
             <!-- Right Content: Posts -->
