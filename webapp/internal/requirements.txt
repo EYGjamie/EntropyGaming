@@ -1,6 +1,50 @@
+# webapp/internal/requirements.txt
+
+# Core Flask Framework
 Flask==2.3.3
-python-dotenv==1.0.0
-requests==2.31.0
-Flask-Discord==0.1.64
-bcrypt==4.0.1
 Werkzeug==2.3.7
+
+# Environment and Configuration
+python-dotenv==1.0.0
+
+# Authentication and Security
+bcrypt==4.0.1
+Flask-Discord==0.1.64
+
+# HTTP Requests
+requests==2.31.0
+
+# Markdown Processing for Forum Posts
+markdown==3.5.1
+Pygments==2.16.1  # For syntax highlighting in code blocks
+
+# HTML Processing and Sanitization
+bleach==6.0.0  # For sanitizing HTML content
+html5lib==1.1  # HTML parser
+
+# Date and Time Utilities
+python-dateutil==2.8.2
+
+# File Processing
+python-magic==0.4.27  # For file type detection
+Pillow==10.0.1  # For image processing
+
+# Optional: Text Processing and Validation
+validators==0.22.0  # For URL and email validation
+profanity-check==1.0.3  # Optional: for content moderation
+
+# Optional: Rate Limiting
+Flask-Limiter==3.5.0  # For implementing rate limiting
+
+# Optional: Caching
+Flask-Caching==2.1.0  # For caching frequently accessed data
+
+# Development and Testing Dependencies (install with pip install -r requirements-dev.txt)
+# pytest==7.4.2
+# pytest-flask==1.2.0
+# coverage==7.3.2
+# flake8==6.0.0
+# black==23.9.1
+
+# Documentation
+# Sphinx==7.2.6  # For generating documentation
