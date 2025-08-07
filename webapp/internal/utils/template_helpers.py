@@ -1,7 +1,11 @@
-# webapp/internal/utils/template_helpers.py
 """
 Template helpers and filters for Jinja2 templates
 """
+
+from utils.helpers import (
+    format_datetime, format_timestamp, get_role_badge_class, 
+    get_status_badge_class, truncate_text, get_file_size_human
+)
 
 from datetime import datetime
 import re
@@ -222,6 +226,7 @@ def register_template_helpers(app):
     app.jinja_env.filters['strip_html'] = strip_html
     app.jinja_env.filters['excerpt'] = excerpt
     app.jinja_env.filters['role_class'] = role_badge_class
+    app.jinja_env.filters['status_badge_class'] = get_status_badge_class
     
     # Template functions (available as {{ function_name() }})
     app.jinja_env.globals['pluralize'] = pluralize
