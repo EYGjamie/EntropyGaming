@@ -1,52 +1,43 @@
-# Entropy Gaming
+Fischerei Umsetzung:
+    Stats Befehl für aktelle Stats
+        - Name
+        - Fische
+        - Coins
+        - Streak
+        - höchste Streak
+        - Erfahrung
 
-Das Projekt beinhaltet den Source Code für den internen Bot & die interne Webseite
+    Gear Befehl für das aktuelle Equipment
+        - Anzeige von Equipment
+            - Aktuelle Angeln + deren ~Haltbarkeit#
+        - Anzeige von Ködern
+            - Anzahl aller Köder + primär ausgewählter
+                - Verbrauch 1/Work
 
-## ToDo
+    Shop Befehl für kaufen von Equipment
+        - verschiedene Stufen von Angeln
+            - Standard (verschiedene Kostenstufen)
+            - Durch Streak freispielbare
+            - Durch Erfahrung freispielbare
 
-- Create Ticket als Befehl einbauen
-- Transcripts Ordner auslagern?
-- create_team_area Anzahl VoiceChannel hinzufügen?
+    Cooldown Befehl für aktuelle eigene Cooldowns
+        - Daily täglich 1 mal
+        - Work alle X Minuten
 
-## 📁 Projektstruktur
+    Daily Befehl für Daily Fisch (+Streak)
+        - Tägliche gratisch Fische
 
-```
-bot/                           # Discord Bot (Go)
-├── discord/                   # Bot-Logik
-├── database/                  # Datenbankverbindung
-├── handlers/                  # Command & Event Handler
-├── utils/                    # Utils
-├── database.db               # SQLite Datenbank
-└── transcripts/              # Ticket-Transkripte
+    Work Befehl zum Fischen
+        - 10x10 Feld mit möglichkeit Fische zu erhalten
+        - Angel entscheidet die Wahrscheinlichkeit
 
-webapp/                       # Webseite
-├── backend/                  # NestJS API Server
-│   ├── src/
-│   │   ├── auth/            # Authentifizierung
-│   │   ├── users/           # Benutzerverwaltung
-│   │   ├── roles/           # Rollensystem
-│   │   ├── permissions/     # Berechtigungssystem
-│   │   ├── profile/         # Benutzerprofil
-│   │   ├── tools/           # Discord Tools
-│   │   ├── comments/        # Kommentarsystem
-│   │   └── admin/           # Admin-Dashboard
-│   └── uploads/             # Datei-Uploads
-└── frontend/                # Angular App
-    ├── src/app/
-    │   ├── core/            # Services & Guards
-    │   ├── shared/          # Wiederverwendbare Komponenten
-    │   ├── features/        # Feature-Module
-    │   │   ├── auth/        # Login
-    │   │   ├── dashboard/   # Hauptdashboard
-    │   │   ├── profile/     # Benutzerprofile
-    │   │   ├── admin/       # Admin-Bereich
-    │   │   ├── tools/       # Discord Tools
-    │   │   └── users/       # Benutzerverwaltung
-    └── proxy.conf.json     # Proxy-Konfiguration
-```
-
-## 📄 Lizenz
-
-Dieses Projekt ist für interne Nutzung gedacht.
-
-**Hinweis:** Dies ist eine interne Webseite für Organisationsmitglieder. Der Zugang ist auf autorisierte Benutzer beschränkt.
+    Wechselkurs Befehl für Fisch - Geld Wechselkurs
+    Sell Befehl zum verkaufen von Fischen
+    Buy Befehl zum kaufen von Fischen
+    Leaderboard Befehl
+    Give Befehl zum verschenken
+    Stocks Befehl für virtuelle Aktien
+        - Anzahl Aktien?
+        - Wie werden sie simuliert?
+        - Markt geöffnet zwischen 7 und 22 Uhr
+    Coinflip
