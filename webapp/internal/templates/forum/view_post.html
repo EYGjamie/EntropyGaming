@@ -24,9 +24,6 @@
                     <i class="bi bi-pencil"></i> Bearbeiten
                 </a>
                 {% endif %}
-                <button class="btn btn-outline" onclick="sharePost()">
-                    <i class="bi bi-share"></i> Teilen
-                </button>
             </div>
         </div>
 
@@ -252,30 +249,6 @@
     </div>
 </div>
 
-<!-- Share Modal -->
-<div id="shareModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="bi bi-share"></i> Post teilen</h3>
-            <button type="button" class="modal-close" onclick="closeShareModal()">
-                <i class="bi bi-x"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="share-options">
-                <div class="share-option">
-                    <label for="shareUrl">Link kopieren:</label>
-                    <div class="url-copy-group">
-                        <input type="text" id="shareUrl" class="form-input" readonly>
-                        <button type="button" class="btn btn-outline" onclick="copyToClipboard()">
-                            <i class="bi bi-clipboard"></i> Kopieren
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block page_js %}
@@ -284,15 +257,8 @@
 // Initialize highlighting for code blocks
 document.addEventListener('DOMContentLoaded', function() {
     hljs.highlightAll();
-    
-    // Set share URL
-    document.getElementById('shareUrl').value = window.location.href;
-    
     // Initialize comment counter
     updateCommentCounter();
-    
-    // Load view count (could be implemented via API)
-    loadViewCount();
 });
 
 // Comment functionality
@@ -419,58 +385,6 @@ function downloadCurrentImage() {
     window.location.href = `/forum/download/${attachmentId}`;
 }
 
-// Share functionality
-function sharePost() {
-    document.getElementById('shareModal').style.display = 'flex';
-}
-
-function closeShareModal() {
-    document.getElementById('shareModal').style.display = 'none';
-}
-
-function copyToClipboard() {
-    const urlInput = document.getElementById('shareUrl');
-    urlInput.select();
-    urlInput.setSelectionRange(0, 99999); // For mobile devices
-    
-    try {
-        document.execCommand('copy');
-        
-        // Show feedback
-        const btn = event.target.closest('button');
-        const originalContent = btn.innerHTML;
-        btn.innerHTML = '<i class="bi bi-check"></i> Kopiert!';
-        btn.classList.add('btn-success');
-        
-        setTimeout(() => {
-            btn.innerHTML = originalContent;
-            btn.classList.remove('btn-success');
-        }, 2000);
-    } catch (err) {
-        console.error('Copy failed:', err);
-        alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
-    }
-}
-
-// Load view count (example implementation)
-function loadViewCount() {
-    // This could be implemented with an API call
-    // For now, just show a placeholder
-    document.getElementById('viewCount').textContent = '...';
-    
-    // Example API call:
-    /*
-    fetch(`/forum/api/post/${currentPostId}/views`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('viewCount').textContent = data.views || 0;
-        })
-        .catch(error => {
-            document.getElementById('viewCount').textContent = '0';
-        });
-    */
-}
-
 // Close modals when clicking outside
 window.addEventListener('click', function(event) {
     const imageModal = document.getElementById('imageModal');
@@ -525,9 +439,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Mark post as read (API call)
-fetch(`/forum/api/mark-read/${currentPostId}`, {
-    method: 'POST'
-}).catch(error => console.log('Mark as read failed:', error));
 </script>
 {% endblock %}
