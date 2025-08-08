@@ -291,6 +291,10 @@ function executeTeamDeletion() {
         return;
     }
     
+    // Speichere team name lokal bevor das Modal geschlossen wird
+    const teamName = deleteTeamData.name;
+    const categoryId = deleteTeamData.categoryId;
+    
     showLoading(true);
     
     // First call Flask API which will call Discord Bot
@@ -300,8 +304,8 @@ function executeTeamDeletion() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            category_id: deleteTeamData.categoryId,
-            team_name: deleteTeamData.name
+            category_id: categoryId,
+            team_name: teamName
         })
     })
     .then(handleApiResponse)
@@ -309,7 +313,8 @@ function executeTeamDeletion() {
         showLoading(false);
         
         if (data.success) {
-            showAlert('Erfolg', `Team "${deleteTeamData.name}" wurde erfolgreich gelöscht.`, 'success');
+            // Verwende die lokale Variable statt deleteTeamData.name
+            showAlert('Erfolg', `Team "${teamName}" wurde erfolgreich gelöscht.`, 'success');
             
             // Redirect to teams overview after delay
             setTimeout(() => {
