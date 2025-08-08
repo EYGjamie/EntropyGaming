@@ -72,21 +72,6 @@
                         </a>
                     </div>
 
-                    <!-- Uncategorized Posts -->
-                    <div class="category-item {% if selected_category == 0 %}active{% endif %}">
-                        <a href="{{ url_for('forum.index', category=0) }}" class="category-link">
-                            <div class="category-info">
-                                <span class="category-name">
-                                    <i class="bi bi-question-circle"></i> Nicht kategorisiert
-                                </span>
-                                <span class="category-count">
-                                    {% set uncategorized_count = posts_data.posts|selectattr('category_name', 'none')|list|length if not selected_category else 0 %}
-                                    {{ uncategorized_count }}
-                                </span>
-                            </div>
-                        </a>
-                    </div>
-
                     <!-- Dynamic Categories -->
                     {% for category in categories %}
                     <div class="category-item {% if selected_category == category.id %}active{% endif %}">
@@ -156,8 +141,8 @@
                                     <div class="post-summary">
                                         {{ post.summary }}
                                     </div>
-                                    {% endif %}
-                                    
+                                    <br>
+                                    {% endif %}      
                                     <div class="post-meta">
                                         <div class="post-author">
                                             {% if post.author_avatar %}
@@ -288,7 +273,7 @@
         <a href="{{ url_for('forum.index') }}" class="quick-action">
             <i class="bi bi-house"></i> Alle Posts
         </a>
-        {% if 'Projektleitung' in roles or 'Developer' in roles or 'Head Management' in roles %}
+        {% if 'Projektleitung' in roles or 'Developer' in roles %}
         <a href="{{ url_for('forum.manage_categories') }}" class="quick-action">
             <i class="bi bi-gear"></i> Kategorien
         </a>
