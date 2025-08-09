@@ -300,19 +300,6 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Auto-refresh post counts every 30 seconds
-setInterval(function() {
-    fetch('/forum/api/unread-count')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.count > 0) {
-                // Update unread indicators if needed
-                updateUnreadIndicators(data.count);
-            }
-        })
-        .catch(error => console.log('Unread count update failed:', error));
-}, 30000);
-
 function updateUnreadIndicators(count) {
     // Update page title with unread count
     const originalTitle = document.title.replace(/\(\d+\) /, '');

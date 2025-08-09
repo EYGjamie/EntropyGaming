@@ -96,7 +96,7 @@ func HandleCreateTeamArea(bot *discordgo.Session, bot_interaction *discordgo.Int
 			perms = append(perms, &discordgo.PermissionOverwrite{
 				ID: rID, 
 				Type: discordgo.PermissionOverwriteTypeRole, 
-				Allow: discordgo.PermissionViewChannel,
+				Allow: discordgo.PermissionViewChannel | discordgo.PermissionVoiceConnect,
 			})
 		}
 	}
