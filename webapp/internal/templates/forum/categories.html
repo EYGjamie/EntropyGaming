@@ -6,6 +6,7 @@
 {% block page_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum-categories.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum-category-create.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -24,39 +25,6 @@
         </div>
 
         <div class="categories-content">
-            <!-- Categories Overview -->
-            <div class="categories-stats">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="bi bi-folder"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ categories|length }}</h3>
-                        <p>Kategorien</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="bi bi-file-text"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ categories|sum(attribute='post_count') }}</h3>
-                        <p>Posts insgesamt</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="bi bi-shield-lock"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ categories|selectattr('required_roles')|list|length }}</h3>
-                        <p>Geschützte Kategorien</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Categories List -->
             <div class="categories-list">
                 {% if categories %}
@@ -111,10 +79,6 @@
                             <button type="button" class="btn btn-sm btn-outline" onclick="editCategory({{ category.id }})">
                                 <i class="bi bi-pencil"></i> Bearbeiten
                             </button>
-                            
-                            <a href="{{ url_for('forum.index', category=category.id) }}" class="btn btn-sm btn-info">
-                                <i class="bi bi-eye"></i> Posts ansehen
-                            </a>
                             
                             {% if category.post_count == 0 %}
                             <button type="button" class="btn btn-sm btn-danger" onclick="deleteCategory({{ category.id }})">
