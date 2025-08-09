@@ -6,6 +6,8 @@ from utils.helpers import (
     format_datetime, format_timestamp, get_role_badge_class, 
     get_status_badge_class, truncate_text, get_file_size_human
 )
+from utils.markdown_processor import markdown_to_html, markdown_to_html_with_math
+
 
 from datetime import datetime
 import re
@@ -48,47 +50,13 @@ def nl2br(value):
     escaped = html.escape(str(value))
     return Markup(escaped.replace('\n', '<br>\n'))
 
-def markdown_to_html(value):
-    """Convert Markdown to HTML"""
-    if value is None:
-        return ''
-    
-    # Configure markdown with extensions
-    md = markdown.Markdown(extensions=[
-        'codehilite',
-        'fenced_code',
-        'tables',
-        'toc',
-        'nl2br',
-        'sane_lists',
-        'footnotes',
-        'attr_list',
-        'def_list',
-        'admonition',
-        'meta',
-        'smarty',
-        'strikethrough',
-        'tasklist',
-        'markdown.extensions.legacy_attrs',
-        'markdown.extensions.legacy_em',
-        'markdown.extensions.legacy_strong',
-        'markdown.extensions.legacy_sub_superscript',
-        'markdown.extensions.legacy_footnotes',
-        'markdown.extensions.legacy_definitions',
-        'markdown.extensions.legacy_tables',
-        'markdown.extensions.legacy_codehilite',
-        'markdown.extensions.legacy_fenced_code',
-        'markdown.extensions.legacy_sane_lists',
-        'markdown.extensions.legacy_toc',
-        'markdown.extensions.legacy_nl2br',
-        'markdown.extensions.legacy_smartypants',
-        'markdown.extensions.legacy_strikethrough',
-        'markdown.extensions.legacy_tasklist',
-        'markdown.extensions.legacy_admonition',
-        'markdown.extensions.legacy_meta',
-    ])
-    
-    return Markup(md.convert(str(value)))
+def markdown_filter(value):
+    """Convert Markdown to HTML - Template filter"""
+    return markdown_to_html(value)
+
+def markdown_with_math_filter(value):
+    """Convert Markdown to HTML with math support - Template filter"""
+    return markdown_to_html_with_math(value)
 
 def timeago(value):
     """Return a human-readable time difference"""
@@ -246,6 +214,8 @@ def register_template_helpers(app):
     app.jinja_env.filters['datetime_format'] = datetime_format
     app.jinja_env.filters['nl2br'] = nl2br
     app.jinja_env.filters['markdown'] = markdown_to_html
+    app.jinja_env.filters['markdown_math'] = markdown_with_math_filter
+    app.jinja_env.filters['truncate_text'] = truncate_text
     app.jinja_env.filters['timeago'] = timeago
     app.jinja_env.filters['truncate_words'] = truncate_words
     app.jinja_env.filters['file_size'] = file_size_format
@@ -266,6 +236,8 @@ def register_template_helpers(app):
         'FORUM_ALLOWED_EXTENSIONS': ['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xlsx', 'pptx', 'zip', 'rar'],
         'MAX_FILE_SIZE_MB': 10
     })
+
+    
 
 def format_content_preview(content, length=200):
     """Format content for preview display"""

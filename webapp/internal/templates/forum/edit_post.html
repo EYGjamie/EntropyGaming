@@ -6,6 +6,7 @@
 {% block page_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/forum-editor.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/markdown-enhanced.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
 {% endblock %}
 
@@ -325,9 +326,8 @@
     </div>
 </div>
 
-<!-- Markdown Help Modal (reuse from create template) -->
 <div id="markdownHelpModal" class="modal" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content large-modal">
         <div class="modal-header">
             <h3><i class="bi bi-book"></i> Markdown Syntax Hilfe</h3>
             <button type="button" class="modal-close" onclick="closeMarkdownHelp()">
@@ -335,10 +335,11 @@
             </button>
         </div>
         <div class="modal-body">
-            <!-- Same content as create template -->
             <div class="markdown-help-content">
+                
+                <!-- Text Formatting -->
                 <div class="help-section">
-                    <h4>Text-Formatierung</h4>
+                    <h4><i class="bi bi-type"></i> Text-Formatierung</h4>
                     <div class="help-examples">
                         <div class="help-item">
                             <code>**fett**</code> → <strong>fett</strong>
@@ -350,13 +351,164 @@
                             <code>~~durchgestrichen~~</code> → <del>durchgestrichen</del>
                         </div>
                         <div class="help-item">
-                            <code>`code`</code> → <code>code</code>
+                            <code>`Code`</code> → <code>Code</code>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Add more help sections as in create template -->
+
+                <!-- Headers -->
+                <div class="help-section">
+                    <h4><i class="bi bi-hash"></i> Überschriften</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code># Überschrift 1</code>
+                        </div>
+                        <div class="help-item">
+                            <code>## Überschrift 2</code>
+                        </div>
+                        <div class="help-item">
+                            <code>### Überschrift 3</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lists -->
+                <div class="help-section">
+                    <h4><i class="bi bi-list-ul"></i> Listen</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <strong>Ungeordnete Liste:</strong><br>
+                            <code>- Element 1<br>- Element 2<br>&nbsp;&nbsp;- Unterelement</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Geordnete Liste:</strong><br>
+                            <code>1. Erstes Element<br>2. Zweites Element</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Aufgabenliste:</strong><br>
+                            <code>- [ ] Offene Aufgabe<br>- [x] Erledigte Aufgabe</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tables -->
+                <div class="help-section">
+                    <h4><i class="bi bi-table"></i> Tabellen</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>| Spalte 1 | Spalte 2 |<br>|----------|----------|<br>| Inhalt 1 | Inhalt 2 |</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Links and Images -->
+                <div class="help-section">
+                    <h4><i class="bi bi-link-45deg"></i> Links & Bilder</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>[Link Text](https://beispiel.de)</code>
+                        </div>
+                        <div class="help-item">
+                            <code>![Alt Text](bild-url.jpg)</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Blocks -->
+                <div class="help-section">
+                    <h4><i class="bi bi-code-square"></i> Code-Blöcke</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>```python<br>def hello():<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Hello World")<br>```</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mathematical Expressions -->
+                <div class="help-section">
+                    <h4><i class="bi bi-calculator"></i> Mathematik</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <strong>Inline:</strong> <code>$x^2 + y^2 = z^2$</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Block:</strong><br>
+                            <code>$$<br>E = mc^2<br>$$</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footnotes -->
+                <div class="help-section">
+                    <h4><i class="bi bi-journal-text"></i> Fußnoten</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>Text mit Fußnote[^1]<br><br>[^1]: Dies ist die Fußnote</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Definition Lists -->
+                <div class="help-section">
+                    <h4><i class="bi bi-card-list"></i> Definitionslisten</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>Begriff 1<br>:&nbsp;&nbsp;&nbsp;Definition des ersten Begriffs<br><br>Begriff 2<br>:&nbsp;&nbsp;&nbsp;Definition des zweiten Begriffs</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mermaid Diagrams -->
+                <div class="help-section">
+                    <h4><i class="bi bi-diagram-3"></i> Mermaid-Diagramme</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <strong>Flussdiagramm:</strong><br>
+                            <code>```mermaid<br>graph TD<br>&nbsp;&nbsp;&nbsp;&nbsp;A[Start] --> B{Entscheidung}<br>&nbsp;&nbsp;&nbsp;&nbsp;B -->|Ja| C[Aktion 1]<br>&nbsp;&nbsp;&nbsp;&nbsp;B -->|Nein| D[Aktion 2]<br>```</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Sequenzdiagramm:</strong><br>
+                            <code>```mermaid<br>sequenceDiagram<br>&nbsp;&nbsp;&nbsp;&nbsp;Alice->>Bob: Hallo Bob<br>&nbsp;&nbsp;&nbsp;&nbsp;Bob-->>Alice: Hallo Alice<br>```</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blockquotes -->
+                <div class="help-section">
+                    <h4><i class="bi bi-chat-quote"></i> Zitate</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <code>> Dies ist ein Zitat<br>> mit mehreren Zeilen</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Features -->
+                <div class="help-section">
+                    <h4><i class="bi bi-gear"></i> Erweiterte Features</h4>
+                    <div class="help-examples">
+                        <div class="help-item">
+                            <strong>Horizontal Line:</strong> <code>---</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Escape Characters:</strong> <code>\*nicht kursiv\*</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Admonitions:</strong><br>
+                            <code>!!! note "Hinweis"<br>&nbsp;&nbsp;&nbsp;&nbsp;Dies ist ein Hinweis</code>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeMarkdownHelp()">
+                Schließen
+            </button>
+            <a href="https://www.markdownguide.org/" target="_blank" class="btn btn-outline">
+                <i class="bi bi-box-arrow-up-right"></i> Erweiterte Dokumentation
+            </a>
         </div>
     </div>
 </div>
@@ -393,6 +545,7 @@
 {% block page_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/forum-editor-enhanced.js') }}"></script>
 <script>
 // Reuse ForumEditor class from create template
 // (Include the same ForumEditor class implementation)

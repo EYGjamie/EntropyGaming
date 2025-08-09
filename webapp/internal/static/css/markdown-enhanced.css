@@ -1,0 +1,379 @@
+/* webapp/internal/static/css/markdown-enhanced.css */
+
+/* ===== ENHANCED MARKDOWN STYLES ===== */
+
+.markdown-content {
+    line-height: 1.7;
+    color: var(--entropy-white-muted);
+}
+
+/* Headers */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    color: var(--entropy-white-primary);
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.markdown-content h1 { 
+    font-size: 2rem; 
+    border-bottom: 3px solid var(--entropy-red-primary);
+    padding-bottom: 10px;
+}
+
+.markdown-content h2 { 
+    font-size: 1.7rem; 
+    border-bottom: 2px solid var(--entropy-gray-dark);
+    padding-bottom: 8px;
+}
+
+.markdown-content h3 { font-size: 1.4rem; }
+.markdown-content h4 { font-size: 1.2rem; }
+.markdown-content h5 { font-size: 1.1rem; }
+.markdown-content h6 { font-size: 1rem; }
+
+/* Paragraphs */
+.markdown-content p {
+    margin-bottom: 15px;
+}
+
+/* Emphasis */
+.markdown-content strong {
+    color: var(--entropy-white-primary);
+    font-weight: 700;
+}
+
+.markdown-content em {
+    font-style: italic;
+    color: var(--entropy-white-primary);
+}
+
+/* ===== STRIKETHROUGH ===== */
+.markdown-content del {
+    text-decoration: line-through;
+    color: var(--entropy-white-muted);
+    opacity: 0.7;
+}
+
+/* ===== LISTS ===== */
+.markdown-content ul,
+.markdown-content ol {
+    margin: 15px 0;
+    padding-left: 30px;
+}
+
+.markdown-content ul {
+    list-style-type: disc;
+}
+
+.markdown-content ol {
+    list-style-type: decimal;
+}
+
+.markdown-content li {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+/* Nested lists */
+.markdown-content ul ul {
+    list-style-type: circle;
+    margin: 5px 0;
+}
+
+.markdown-content ul ul ul {
+    list-style-type: square;
+}
+
+.markdown-content ol ol {
+    list-style-type: lower-alpha;
+    margin: 5px 0;
+}
+
+.markdown-content ol ol ol {
+    list-style-type: lower-roman;
+}
+
+/* ===== TASK LISTS / CHECKLISTS ===== */
+.markdown-content input[type="checkbox"] {
+    margin-right: 8px;
+    margin-left: -20px;
+    accent-color: var(--entropy-red-primary);
+    cursor: not-allowed;
+}
+
+.markdown-content li:has(input[type="checkbox"]) {
+    list-style: none;
+    position: relative;
+}
+
+/* ===== TABLES ===== */
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: var(--entropy-black-medium);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius-small);
+    overflow: hidden;
+}
+
+.markdown-content table th {
+    background: var(--entropy-red-primary);
+    color: var(--entropy-white-primary);
+    font-weight: 600;
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 2px solid var(--entropy-red-dark);
+}
+
+.markdown-content table td {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--entropy-gray-dark);
+    vertical-align: top;
+}
+
+.markdown-content table tr:last-child td {
+    border-bottom: none;
+}
+
+.markdown-content table tr:nth-child(even) {
+    background: var(--entropy-black-light);
+}
+
+.markdown-content table tr:hover {
+    background: var(--entropy-gray-dark);
+}
+
+/* ===== FOOTNOTES ===== */
+.markdown-content .footnote {
+    font-size: 0.85rem;
+    color: var(--entropy-white-muted);
+    border-top: 1px solid var(--entropy-gray-dark);
+    margin-top: 30px;
+    padding-top: 15px;
+}
+
+.markdown-content a.footnote-ref {
+    color: var(--entropy-red-light);
+    text-decoration: none;
+    font-size: 0.8rem;
+    vertical-align: super;
+}
+
+.markdown-content a.footnote-ref:hover {
+    color: var(--entropy-red-primary);
+    text-decoration: underline;
+}
+
+/* ===== DEFINITION LISTS ===== */
+.markdown-content dl {
+    margin: 15px 0;
+}
+
+.markdown-content dt {
+    font-weight: 600;
+    color: var(--entropy-white-primary);
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.markdown-content dd {
+    margin-left: 20px;
+    margin-bottom: 10px;
+    color: var(--entropy-white-muted);
+    padding-left: 15px;
+    border-left: 3px solid var(--entropy-red-primary);
+}
+
+/* ===== MATHEMATICAL EXPRESSIONS ===== */
+.math-display {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    background: var(--entropy-black-medium);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius-small);
+    overflow-x: auto;
+}
+
+.math-inline {
+    background: var(--entropy-black-medium);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--entropy-gray-dark);
+}
+
+/* ===== MERMAID DIAGRAMS ===== */
+.mermaid {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: var(--entropy-white-primary);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius-small);
+    overflow-x: auto;
+    color: var(--entropy-black-primary);
+}
+
+/* ===== CODE BLOCKS ===== */
+.markdown-content code {
+    background: var(--entropy-black-medium);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    color: var(--entropy-red-light);
+    border: 1px solid var(--entropy-gray-dark);
+}
+
+.markdown-content pre {
+    background: var(--entropy-black-medium);
+    padding: 15px;
+    border-radius: var(--entropy-border-radius-small);
+    border: 1px solid var(--entropy-gray-dark);
+    overflow-x: auto;
+    margin: 15px 0;
+}
+
+.markdown-content pre code {
+    background: transparent;
+    padding: 0;
+    border: none;
+    color: var(--entropy-white-muted);
+}
+
+/* Syntax highlighting */
+.highlight {
+    background: var(--entropy-black-medium) !important;
+    color: var(--entropy-white-muted);
+    border-radius: var(--entropy-border-radius-small);
+    overflow-x: auto;
+}
+
+.highlight .c { color: #75715e; } /* Comment */
+.highlight .k { color: #f92672; } /* Keyword */
+.highlight .s { color: #e6db74; } /* String */
+.highlight .n { color: #f8f8f2; } /* Name */
+.highlight .o { color: #f92672; } /* Operator */
+.highlight .p { color: #f8f8f2; } /* Punctuation */
+.highlight .nb { color: #ae81ff; } /* Name.Builtin */
+.highlight .nf { color: #a6e22e; } /* Name.Function */
+.highlight .nc { color: #a6e22e; } /* Name.Class */
+.highlight .nn { color: #f8f8f2; } /* Name.Namespace */
+
+/* ===== LINKS ===== */
+.markdown-content a {
+    color: var(--entropy-red-light);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: var(--entropy-transition);
+}
+
+.markdown-content a:hover {
+    color: var(--entropy-red-primary);
+    border-bottom-color: var(--entropy-red-primary);
+}
+
+/* ===== BLOCKQUOTES ===== */
+.markdown-content blockquote {
+    margin: 20px 0;
+    padding: 15px 20px;
+    border-left: 4px solid var(--entropy-red-primary);
+    background: var(--entropy-black-medium);
+    border-radius: 0 var(--entropy-border-radius-small) var(--entropy-border-radius-small) 0;
+    font-style: italic;
+    color: var(--entropy-white-muted);
+}
+
+.markdown-content blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* ===== HORIZONTAL RULE ===== */
+.markdown-content hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--entropy-red-primary), transparent);
+    margin: 30px 0;
+}
+
+/* ===== ADMONITIONS ===== */
+.markdown-content .admonition {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: var(--entropy-border-radius-small);
+    border-left: 4px solid;
+}
+
+.markdown-content .admonition.note {
+    border-left-color: #3498db;
+    background: rgba(52, 152, 219, 0.1);
+}
+
+.markdown-content .admonition.warning {
+    border-left-color: #f39c12;
+    background: rgba(243, 156, 18, 0.1);
+}
+
+.markdown-content .admonition.danger {
+    border-left-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.markdown-content .admonition-title {
+    font-weight: 600;
+    color: var(--entropy-white-primary);
+    margin-bottom: 10px;
+}
+
+/* ===== TOC (Table of Contents) ===== */
+.markdown-content .toc {
+    background: var(--entropy-black-medium);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius-small);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.markdown-content .toc ul {
+    list-style: none;
+    padding-left: 15px;
+}
+
+.markdown-content .toc > ul {
+    padding-left: 0;
+}
+
+.markdown-content .toc a {
+    color: var(--entropy-white-muted);
+    text-decoration: none;
+}
+
+.markdown-content .toc a:hover {
+    color: var(--entropy-red-primary);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .markdown-content table {
+        font-size: 0.85rem;
+    }
+    
+    .markdown-content pre {
+        font-size: 0.8rem;
+    }
+    
+    .mermaid {
+        overflow-x: scroll;
+    }
+    
+    .math-display {
+        font-size: 0.9rem;
+    }
+}

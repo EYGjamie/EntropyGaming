@@ -647,3 +647,106 @@
         justify-content: center;
     }
 }
+
+/* Enhanced Modal Styles */
+.large-modal {
+    max-width: 90vw;
+    width: 1000px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: black;
+}
+
+.markdown-help-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 10px;
+}
+
+.help-section {
+    background: var(--entropy-black-medium);
+    border: 1px solid var(--entropy-gray-dark);
+    border-radius: var(--entropy-border-radius-small);
+    padding: 20px;
+}
+
+.help-section h4 {
+    color: var(--entropy-white-primary);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+}
+
+.help-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.help-item {
+    background: var(--entropy-black-light);
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid var(--entropy-red-primary);
+}
+
+.help-item code {
+    background: var(--entropy-black-primary);
+    color: var(--entropy-red-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.85rem;
+    display: block;
+    white-space: pre-line;
+    margin-bottom: 8px;
+}
+
+.help-item strong {
+    color: var(--entropy-white-primary);
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .large-modal {
+        width: 95vw;
+        max-width: none;
+    }
+    
+    .markdown-help-content {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .help-section {
+        padding: 15px;
+    }
+}
+
+/* Split View Styles */
+.editor-area.split-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.editor-area.split-view .markdown-editor,
+.editor-area.split-view .markdown-preview {
+    height: 500px;
+}
+
+.mode-toggle.active {
+    background: var(--entropy-red-primary);
+    color: var(--entropy-white-primary);
+}
+
+@media (max-width: 968px) {
+    .editor-area.split-view {
+        grid-template-columns: 1fr;
+    }
+}

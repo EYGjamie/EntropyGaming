@@ -17,6 +17,8 @@ requests==2.31.0
 # Markdown Processing for Forum Posts
 markdown==3.5.1
 Pygments==2.16.1  # For syntax highlighting in code blocks
+pymdown-extensions==10.3.1  # Additional markdown extensions
+markdown-math==0.8  # Mathematical expressions support
 
 # HTML Processing and Sanitization
 bleach==6.0.0  # For sanitizing HTML content
