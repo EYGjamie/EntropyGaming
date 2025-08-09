@@ -471,8 +471,9 @@ def generate_summary():
             return jsonify({'success': False, 'error': 'Kein Inhalt bereitgestellt.'})
         
         # Grok AI API call (you'll need to configure this)
-        grok_api_url = current_app.config.get('GROK_API_URL')
+        grok_api_url = "https://api.groq.com/openai/v1/chat/completions"
         grok_api_key = current_app.config.get('GROK_API_KEY')
+        grok_api_model = current_app.config.get('GROK_MODEL')
         
         if not grok_api_url or not grok_api_key:
             return jsonify({'success': False, 'error': 'Grok AI API nicht konfiguriert.'})
@@ -483,11 +484,11 @@ def generate_summary():
         }
         
         payload = {
-            'model': 'grok-beta',
+            'model': grok_api_model,
             'messages': [
                 {
                     'role': 'system',
-                    'content': 'Du bist ein Assistent, der prägnante und aussagekräftige Zusammenfassungen erstellt. Erstelle eine Kurzzusammenfassung (max. 150 Zeichen) des folgenden Textes auf Deutsch.'
+                    'content': 'Du bist ein Assistent, der prägnante und aussagekräftige Zusammenfassungen erstellt. Erstelle eine ausführliche Kurzzusammenfassung (max. 150 Zeichen) des folgenden Textes auf Deutsch.'
                 },
                 {
                     'role': 'user',
