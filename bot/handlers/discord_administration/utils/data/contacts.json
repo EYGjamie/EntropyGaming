@@ -9,7 +9,7 @@
         { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
         { "mention": "423480294948208661", "name": "Jamie (Leitung Akquise, Leitung Discord)" },
         { "mention": "803194058184327218", "name": "Philipp (Aufsicht Fortschritt)" },
-        { "mention": "295618441635823616", "name": "Orcin (Leitung Social Media)" },
+        { "mention": "295618441635823616", "name": "Ozzi (Leitung Social Media)" },
         { "mention": "1083463018899312641","name": "Justin (Leitung Sponsoren Akquise)" }
       ]
     },
@@ -19,7 +19,6 @@
         { "mention": "294188738764865538", "name": "Paul (Social Media Manager)" },
         { "mention": "797924751707471874", "name": "Fabian (Social Media Manager)" },
         { "mention": "799293966251196456", "name": "Marvin (Mediengestalter)" },
-        { "mention": "455104106466377729", "name": "Marcel (Assistenz Social Media Management)" },
         { "mention": "389944071596277770", "name": "Francine (Leitung Content Creator)" },
         { "mention": "622497595641692160", "name": "Lisa (Head of Design)" },
         { "mention": "346328694135980032", "name": "Aaron (Assistenz Design)" }
@@ -40,7 +39,6 @@
     {
       "title": "<:Entropy2:1225559069167980634> E-Sport:",
       "items": [
-        { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
         { "mention": "954103004460642385", "name": "Michael (Assistenz E-Sport)" },
         { "mention": "135787880273543168", "name": "Matthias (Manager <:RL:1224812865928691772> Main Team)" }
       ]
@@ -53,14 +51,11 @@
         { "mention": "317728272970547200", "name": "Eric (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "435444579983032320", "name": "Felix (Head of <:R6:1224812874942382140>)" },
         { "mention": "950755226380566609", "name": "Dominik (Head of <:R6:1224812874942382140>)" },
-        { "mention": "771054312650440716", "name": "Marcel (Head of <:R6:1224812874942382140>)" },
+        { "mention": "1159202923230806157", "name": "Dennis (Head of <:R6:1224812874942382140>)" },
         { "mention": "343791588075372556", "name": "Luca (Head of <:RL:1224812865928691772>)" },
         { "mention": "584803424504381450", "name": "Mario (Head of <:RL:1224812865928691772>)" },
         { "mention": "527534107308195840", "name": "Peter (Head of <:Valorant:1224812878087983104>)" },
         { "mention": "417065352804171778", "name": "Elli (Head of <:Valorant:1224812878087983104>)" },
-        { "mention": "1159202923230806157", "name": "Dennis (Head of <:Valorant:1224812878087983104>)" },
-        { "mention": "1083463018899312641", "name": "Justin (Head of <:CS2:1224812873436631202>)" },
-        { "mention": "295618441635823616", "name": "Orcin (Head of <:CS2:1224812873436631202>)" },
         { "mention": "317728272970547200", "name": "Eric (Head of <:CS2:1224812873436631202>)" }
       ]
     }
