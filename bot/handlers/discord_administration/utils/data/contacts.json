@@ -5,7 +5,7 @@
       "title": "<:Entropy2:1225559069167980634> Projektleitung:",
       "items": [
         { "mention": "249673733420089344", "name": "Michael (Gründer & Leitung von Entropy)" },
-        { "mention": "231076165773688842", "name": "Jerome (Leitung Tagesgeschäft, sportliche Direktion)" },
+        { "mention": "239149154339782666", "name": "Jerome (Leitung Tagesgeschäft, sportliche Direktion)" },
         { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
         { "mention": "423480294948208661", "name": "Jamie (Leitung Akquise, Leitung Discord)" },
         { "mention": "803194058184327218", "name": "Philipp (Aufsicht Fortschritt)" },
@@ -39,6 +39,7 @@
     {
       "title": "<:Entropy2:1225559069167980634> E-Sport:",
       "items": [
+        { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
         { "mention": "954103004460642385", "name": "Michael (Assistenz E-Sport)" },
         { "mention": "135787880273543168", "name": "Matthias (Manager <:RL:1224812865928691772> Main Team)" }
       ]
