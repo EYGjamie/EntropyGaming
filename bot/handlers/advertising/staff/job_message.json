@@ -5,10 +5,11 @@
   "jobs": [
     {
       "position": "<:Entropy2:1225559069167980634> Mitarbeiter der Projektleitung",
-      "department": "Projekt Management",
+      "department": "Projekt Management Entropy x Teufel",
       "description": "Als Mitarbeiter der Projektleitung arbeitest du an spannenden Projekten und bringst diese entweder in Zusammenarbeit mit anderen Bereichen des Managements oder in Einzelarbeit entscheidend voran",
       "requirements": [
-        "Du kümmerst dich um spannende Projekte innerhalb von Entropy und treibst diese entscheidend voran",
+        "Du kennst dich mit League of Legends Esport aus",
+        "Du holst das beste aus der Koorperation raus",
         "Du hast großes Interesse an den verschiedenen Facetten des E-Sports-Managements, bist flexibel und scheust nicht davor zurück, dich auch mal in dir bislang unbekannte Aufgabengebiete einzuarbeiten",
         "Du bist zuverlässig, langfristig motiviert und brennst darauf, Entropy nach vorne zu bringen",
         "Du möchtest ein aktiver und zentraler Punkt unserer Projektleitung sein und zeigst daher aus eigenem Antrieb heraus großes Interesse an allen Themen rund um Entropy",
@@ -24,15 +25,16 @@
         "Du arbeitest aktiv daran, neue Mitglieder für den Club zu begeistern",
         "Du planst Events, wie Watchparties, Cups oder Minigame-Abende für und mit unserer Community",
         "Du überlegst dir spannende Konzepte um die Community noch interessanter zu gestalten",
-        "Du förderst die Aktivität im Discord und stellst sicher, dass Regeln eingehalten werden"
+        "Du förderst die Aktivität im Discord und stellst sicher, dass Regeln eingehalten werden",
+        "Du findest neue Möglichkeiten die bestehenden Angebote des Clubs noch weiter zu verbessern"
       ]
     },
     {
       "position": "<:Entropy2:1225559069167980634> Social Media-Manager - Entropy & Diamond Club",
       "department": "Marketing & Content",
-      "description": "Du entwickelst und umsetzt unsere Social Media Strategie, erstellst ansprechenden Content und baust unsere Community auf allen Plattformen aus.",
+      "description": "Du mitentwickelst unsere Social Media Strategie und setzt sie um, erstellst ansprechenden Content und baust unsere Community auf allen Plattformen aus.",
       "requirements": [
-        "Du machst Posts zu unseren Matches, zu welchen du alle Informationen in unserem Kalender findest",
+        "Du erstellst/planst Posts zu den Matches unserer Pro & Club Teams",
         "Du interagierst mit unseren Followern.",
         "Du überlegst dir kreative Social Media-Posts und unterhaltsame Formate"
       ]
@@ -45,7 +47,8 @@
         "Du erstellst kreative TikTok-Videos zu unseren Teams oder lässt dir tolle Clips von unseren Profispielern geben.",
         "Du entwickelst unterhaltsame und trendgerechte Videoformate rund um unser Team.",
         "Du interagierst mit unserer Community über TikTok-Kommentare und Trends.",
-        "Du beobachtest aktuelle TikTok-Trends und setzt sie passend für unseren Content um."
+        "Du beobachtest aktuelle TikTok-Trends und setzt sie passend für unseren Content um.",
+        "Du schneidest / bearbeitest Videos selbstständig"
       ]
     },
     {
@@ -63,6 +66,7 @@
       "department": "Community Management",
       "description": " Ob Online- Turniere, Watchparties oder Spieleabende – deine Ideen und dein Organisationstalent sind gefragt! Wenn du Lust hast, Teil eines dynamischen Teams zu werden und den Alltag unserer Community mit einzigartigen Erlebnissen zu bereichern, dann bewirb dich jetzt und werde ein wichtiger Teil von Entropy.",
       "requirements": [
+        "Du brennst darauf dir neue Formate auszudenken und diese mit unserer Community umzusetzten"
       ]
     }
   ],
