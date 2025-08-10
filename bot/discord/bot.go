@@ -40,6 +40,9 @@ func StartBot() error {
 	msgTracker := tracking.NewMessageTracker(database.DB)
 	voiceVis := discord_administration_channel_voice.NewVoiceVisibilityTracker(database.DB)
 
+	// Create Voice
+	createVoiceTracker := discord_administration_channel_voice.NewCreateVoiceTracker(database.DB)
+
 	// Creation Discord-Session
 	bot, err := discordgo.New("Bot " + Token)
 	if err != nil {
@@ -69,6 +72,9 @@ func StartBot() error {
 
 	// Voice Visibility Tracker
 	bot.AddHandler(voiceVis.OnVoiceStateUpdate)
+
+	// Create Voice
+	bot.AddHandler(createVoiceTracker.OnVoiceStateUpdate)
 
 	// Register Quiz Handler
 	quiz.RegisterQuiz(bot)
