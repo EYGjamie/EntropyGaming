@@ -193,7 +193,16 @@ func RegisterCommands(bot *discordgo.Session) {
 			DefaultMemberPermissions: &adminPermission,
 		},
 
-		/*----------------------------------------------------------*/
+		/*----------------------------------------------------------*/	
+
+		// valo_event Command (sends the valorant event registration embed with button)
+		{
+			Name:                     "valo_event",
+			Description:              "Sendet das Valorant Event Anmelde-Embed mit Registrierungs-Button.",
+			DefaultMemberPermissions: &adminPermission,
+		},
+
+		/*----------------------------------------------------------*/	
 
 	}
 

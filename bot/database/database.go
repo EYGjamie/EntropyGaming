@@ -340,6 +340,37 @@ func createTables() {
 	}
 
 	/*==============================================*/
+	// VALO EVENT REGISTRATIONS TABLE
+	/*==============================================*/
+
+	valoEventRegistrationsTable := `
+		CREATE TABLE IF NOT EXISTS valo_event_registrations (
+			id                INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id           INTEGER NOT NULL,
+			discord_username  TEXT NOT NULL,
+			valorant_name     TEXT NOT NULL,
+			registered_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY(user_id) REFERENCES users(id),
+			UNIQUE(user_id)
+		);
+		`
+
+	_, err = DB.Exec(valoEventRegistrationsTable)
+	if err != nil {
+		log.Fatalf("Fehler beim Erstellen der valo_event_registrations-Tabelle: %v", err)
+	}
+
+	// Index für bessere Performance
+	valoEventIndex := `
+		CREATE INDEX IF NOT EXISTS idx_valo_event_user_id ON valo_event_registrations(user_id);
+		`
+
+	_, err = DB.Exec(valoEventIndex)
+	if err != nil {
+		log.Fatalf("Fehler beim Erstellen des valo_event Index: %v", err)
+	}
+
+	/*==============================================*/
 	// END OF TABLE CREATION
 	/*==============================================*/
 

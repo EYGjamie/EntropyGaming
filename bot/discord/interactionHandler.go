@@ -11,6 +11,7 @@ import (
 	"bot/handlers/discord_administration/utils"
 	"bot/handlers/quiz"
 	"bot/handlers/stats"
+	"bot/handlers/valo_event"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -50,6 +51,8 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {utils.UpdateAllUsers(bot, utils.GetIdFromDB(bot, "GUILD_ID"))}
 			case "sync_team_members":
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {discord_administration_team_areas.HandleSyncTeamMembers(bot, bot_interaction)}
+			case "valo_event":
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {valo_event.HandleValoEventCommand(bot, bot_interaction)}
 			default:
 				utils.LogAndNotifyAdmins(bot, "warn", "Warnung", "interactionHandler.go", true, nil, "unknown Slash Command: " + bot_interaction.ApplicationCommandData().Name)
 				return
@@ -95,6 +98,11 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 			case "quiz_get_role":
 				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
 				quiz.HandleQuizButton(bot, bot_interaction)
+
+			// Valo Event Button
+			case "valo_event_register":
+				utils.EnsureUser(bot, bot_interaction.Member.User.ID)
+				valo_event.HandleValoEventButton(bot, bot_interaction)
 				
 			default:
 				// Survey Interaction handler
@@ -135,6 +143,9 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 			// DM Survey-Modal
 			case "ticket_after_survey_modal":
 				surveys.HandleSurveyModalSubmit(bot, bot_interaction)
+
+			case "valo_event_modal":
+				valo_event.HandleValoEventModal(bot, bot_interaction)
 
 			// default in this case: Ticket-Submit Modal
 			// Überarbeitung nötig, da der default-Case eigentlich eine Fehlermeldung sein sollte, wenn die CustomID nicht existiert
