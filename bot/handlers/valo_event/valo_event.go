@@ -199,13 +199,13 @@ func HandleValoEventModal(bot *discordgo.Session, bot_interaction *discordgo.Int
 	}
 
 	// Rolle vergeben
-	// valoEventRoleID := utils.GetIdFromDB(bot, "ROLE_VALO_EVENT")
-	// if valoEventRoleID != "" {
-	// 	err = bot.GuildMemberRoleAdd(bot_interaction.GuildID, bot_interaction.Member.User.ID, valoEventRoleID)
-	// 	if err != nil {
-	// 		utils.LogAndNotifyAdmins(bot, "medium", "Error", "valo_event.go", true, err, "Fehler beim Vergeben der Valo Event Rolle")
-	// 	}
-	// }
+	valoEventRoleID := utils.GetIdFromDB(bot, "ROLE_VALO_EVENT")
+	if valoEventRoleID != "" {
+		err = bot.GuildMemberRoleAdd(bot_interaction.GuildID, bot_interaction.Member.User.ID, valoEventRoleID)
+		if err != nil {
+			utils.LogAndNotifyAdmins(bot, "medium", "Error", "valo_event.go", true, err, "Fehler beim Vergeben der Valo Event Rolle")
+			}
+	}
 
 	// Erfolgreiche Anmeldung bestätigen
 	bot.InteractionRespond(bot_interaction.Interaction, &discordgo.InteractionResponse{
