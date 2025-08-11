@@ -13,19 +13,20 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+// Vereinfachte Struktur für Stellenanzeigen
 type JobMessage struct {
-	Title       string      `json:"title"`
-	Description string      `json:"description"`
-	Jobs        []JobListing `json:"jobs"`
-	Footer      string      `json:"footer"`
-	Color       int         `json:"color"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	Jobs        []JobListing  `json:"jobs"`
+	Footer      string        `json:"footer"`
+	Color       int           `json:"color"`
+	JobsURL     string        `json:"jobs_url"` 
 }
 
+// Vereinfachte Job-Struktur - nur noch Bezeichnung und kurze Beschreibung
 type JobListing struct {
-	Position    string `json:"position"`
-	Department  string `json:"department"`
-	Description string `json:"description"`
-	Requirements []string `json:"requirements"`
+	Position    string `json:"position"`   
+	Description string `json:"description"` 
 }
 
 type AdvertisingStaffManager struct {
@@ -49,7 +50,7 @@ func NewAdvertisingStaffManager(session *discordgo.Session) (*AdvertisingStaffMa
 
 	c := cron.New(cron.WithLocation(location))
 	configPath := filepath.Join("handlers", "advertising", "staff", "job_message.json")
-	return &AdvertisingStaffManager{session:session, cron:c, channels: channels, configPath: configPath}, nil
+	return &AdvertisingStaffManager{session: session, cron: c, channels: channels, configPath: configPath}, nil
 }
 
 func (asm *AdvertisingStaffManager) Start(bot *discordgo.Session) error {
@@ -97,7 +98,7 @@ func (asm *AdvertisingStaffManager) sendWeeklyJobAdvertisement() error {
 		_, err := asm.session.ChannelMessageSendEmbed(channelID, embed)
 		if err != nil {
 			sendErrors = append(sendErrors, fmt.Sprintf("Channel %s: %v", channelID, err))
-			utils.LogAndNotifyAdmins(asm.session, "medium" , "Error", "advertising_staff.go", true, err , "Error sending staff ads in Channel" + channelID)
+			utils.LogAndNotifyAdmins(asm.session, "medium", "Error", "advertising_staff.go", true, err, "Error sending staff ads in Channel"+channelID)
 		}
 	}
 
@@ -111,7 +112,7 @@ func (asm *AdvertisingStaffManager) sendWeeklyJobAdvertisement() error {
 func (asm *AdvertisingStaffManager) loadJobMessage() (*JobMessage, error) {
 	data, err := os.ReadFile(asm.configPath)
 	if err != nil {
-		utils.LogAndNotifyAdmins(asm.session, "high", "Error", "advertising_staff.go", true, err, "Failed to read job message file: " + asm.configPath)
+		utils.LogAndNotifyAdmins(asm.session, "high", "Error", "advertising_staff.go", true, err, "Failed to read job message file: "+asm.configPath)
 		return nil, nil
 	}
 	var jobMessage JobMessage
@@ -122,6 +123,7 @@ func (asm *AdvertisingStaffManager) loadJobMessage() (*JobMessage, error) {
 	return &jobMessage, nil
 }
 
+// Vereinfachte Embed-Erstellung - kompakter und übersichtlicher
 func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *discordgo.MessageEmbed {
 	embed := &discordgo.MessageEmbed{
 		Title:       jobMessage.Title,
@@ -130,19 +132,20 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 		Timestamp:   time.Now().Format(time.RFC3339),
 	}
 
+	// Stellenanzeigen als kompakte Fields
 	for _, job := range jobMessage.Jobs {
-		fieldValue := fmt.Sprintf("**Bereich:** %s\n\n%s", job.Department, job.Description)
-		
-		if len(job.Requirements) > 0 {
-			fieldValue += "\n\n**Aufgaben:**"
-			for _, req := range job.Requirements {
-				fieldValue += fmt.Sprintf("\n• %s", req)
-			}
-		}
-
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-			Name:   "# "+job.Position,
-			Value:  fieldValue,
+			Name:   job.Position,
+			Value:  job.Description,
+			Inline: true, // Inline für kompaktere Darstellung
+		})
+	}
+
+	// Jobs-Link als separates Field
+	if jobMessage.JobsURL != "" {
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+			Name:   "🔗 Vollständige Stellenausschreibungen",
+			Value:  fmt.Sprintf("[Hier findest du alle Details zu unseren Stellenangeboten](%s)", jobMessage.JobsURL),
 			Inline: false,
 		})
 	}
@@ -156,7 +159,7 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 	return embed
 }
 
-func InitializeAdvertisingStaff(bot *discordgo.Session) (*AdvertisingStaffManager) {
+func InitializeAdvertisingStaff(bot *discordgo.Session) *AdvertisingStaffManager {
 	if utils.GetIdFromDB(bot, "ADVERTISING_STAFF") != "true" {
 		utils.LogAndNotifyAdmins(bot, "info", "Info", "advertising_staff.go", false, nil, "Advertising Staff is disabled in the database configuration.")
 		return nil

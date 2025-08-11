@@ -2,73 +2,40 @@
   "title": "🚀 Karriere bei Entropy Gaming 🚀",
   "description": "**Werde Teil des Entropy Gaming Teams!**\n\nWir suchen motivierte Menschen, die unsere Vision teilen und mit uns gemeinsam die Zukunft des E-Sports gestalten möchten.\n\n💼 **Aktuelle Stellenausschreibungen:**",
   "color": 16711680,
+  "jobs_url": "https://entropygaming.de/jobs",
   "jobs": [
     {
-      "position": "<:Entropy2:1225559069167980634> Mitarbeiter der Projektleitung",
-      "department": "Projekt Management Entropy x Teufel",
-      "description": "Als Mitarbeiter der Projektleitung arbeitest du an spannenden Projekten und bringst diese entweder in Zusammenarbeit mit anderen Bereichen des Managements oder in Einzelarbeit entscheidend voran",
-      "requirements": [
-        "Du kennst dich mit League of Legends Esport aus",
-        "Du holst das beste aus der Koorperation raus",
-        "Du hast großes Interesse an den verschiedenen Facetten des E-Sports-Managements, bist flexibel und scheust nicht davor zurück, dich auch mal in dir bislang unbekannte Aufgabengebiete einzuarbeiten",
-        "Du bist zuverlässig, langfristig motiviert und brennst darauf, Entropy nach vorne zu bringen",
-        "Du möchtest ein aktiver und zentraler Punkt unserer Projektleitung sein und zeigst daher aus eigenem Antrieb heraus großes Interesse an allen Themen rund um Entropy",
-        "Du hast ein breitgefächertes Interesse am E-Sport und hältst dich über aktuelle Themen und Trends auf dem Laufenden"
-      ]
-    },
-
-    {
-      "position": "<:Entropy2:1225559069167980634> Community-Manager - Diamond Club",
-      "department": "Club Management",
-      "description": "Als Community-Manager hilfst du aktiv dabei, neue Mitglieder zu gewinnen und das Angebot des Clubs noch attraktiver zu gestalten.",
-      "requirements": [
-        "Du arbeitest aktiv daran, neue Mitglieder für den Club zu begeistern",
-        "Du planst Events, wie Watchparties, Cups oder Minigame-Abende für und mit unserer Community",
-        "Du überlegst dir spannende Konzepte um die Community noch interessanter zu gestalten",
-        "Du förderst die Aktivität im Discord und stellst sicher, dass Regeln eingehalten werden",
-        "Du findest neue Möglichkeiten die bestehenden Angebote des Clubs noch weiter zu verbessern"
-      ]
+      "position": "<:Entropy2:1225559069167980634> Projektmanager",
+      "description": "Hole das beste aus der Entropy x Teufel Kooperation heraus und koordiniere spannende Projekte."
     },
     {
-      "position": "<:Entropy2:1225559069167980634> Social Media-Manager - Entropy & Diamond Club",
-      "department": "Marketing & Content",
-      "description": "Du mitentwickelst unsere Social Media Strategie und setzt sie um, erstellst ansprechenden Content und baust unsere Community auf allen Plattformen aus.",
-      "requirements": [
-        "Du erstellst/planst Posts zu den Matches unserer Pro & Club Teams",
-        "Du interagierst mit unseren Followern.",
-        "Du überlegst dir kreative Social Media-Posts und unterhaltsame Formate"
-      ]
+      "position": "<:Entropy2:1225559069167980634> Community-Manager",
+      "description": "Hilf dabei, neue Mitglieder zu gewinnen und das Angebot des Diamond Clubs noch attraktiver zu gestalten."
     },
     {
-      "position": "<:Entropy2:1225559069167980634> TikTok-Manager ",
-      "department": "Marketing & Content Produktion",
-      "description": "Du erstellst Inhalte für unsere Social Media Kanäle, produzierst Videos und kümmerst dich um die kreative Gestaltung unserer Online-Präsenz.",
-      "requirements": [
-        "Du erstellst kreative TikTok-Videos zu unseren Teams oder lässt dir tolle Clips von unseren Profispielern geben.",
-        "Du entwickelst unterhaltsame und trendgerechte Videoformate rund um unser Team.",
-        "Du interagierst mit unserer Community über TikTok-Kommentare und Trends.",
-        "Du beobachtest aktuelle TikTok-Trends und setzt sie passend für unseren Content um.",
-        "Du schneidest / bearbeitest Videos selbstständig"
-      ]
+      "position": "<:Entropy2:1225559069167980634> Social Media-Manager",
+      "description": "Entwickle unsere Social Media Strategie, erstelle ansprechenden Content und baue unsere Community aus."
     },
     {
-      "position": "<:Entropy2:1225559069167980634> Content Creator-Manager - Entropy & Diamond Club",
-      "department": "Content Produktion",
-      "description": "Bist du begeistert von der Creator-Welt und möchtest aktiv daran mitwirken, Talente zu fördern, spannenden Content zu planen und unsere Marke weiterzuentwickeln? Dann ist diese Position genau richtig für dich.",
-      "requirements": [
-        "Betreuung & Zusammenarbeit: Du arbeitest eng mit unseren Content Creatorn zusammen, um kreative Projekte und Aktionen zu entwickeln und erfolgreich umzusetzen",
-        "Trendmonitoring: Du hältst unsere Creator kontinuierlich über aktuelle Entwicklungen und relevante Neuigkeiten in der digitalen Welt auf dem Laufenden",
-        "Talentakquise: Du identifizierst und rekrutierst vielversprechende neue Talente, die die Entropy-Familie erweitern und gemeinsam mit uns neue Erfolge feiern wollen"
-      ]
+      "position": "<:Entropy2:1225559069167980634> TikTok-Manager",
+      "description": "Erstelle kreative TikTok-Videos und entwickle unterhaltsame, trendgerechte Videoformate für unser Team."
     },
     {
-      "position": "<:Entropy2:1225559069167980634> Event-Manager - Diamond Club",
-      "department": "Community Management",
-      "description": " Ob Online- Turniere, Watchparties oder Spieleabende – deine Ideen und dein Organisationstalent sind gefragt! Wenn du Lust hast, Teil eines dynamischen Teams zu werden und den Alltag unserer Community mit einzigartigen Erlebnissen zu bereichern, dann bewirb dich jetzt und werde ein wichtiger Teil von Entropy.",
-      "requirements": [
-        "Du brennst darauf dir neue Formate auszudenken und diese mit unserer Community umzusetzten"
-      ]
+      "position": "<:Entropy2:1225559069167980634> Content Creator-Manager",
+      "description": "Betreue Content Creator, identifiziere neue Talente und entwickle kreative Projekte zur Markenentwicklung."
+    },
+    {
+      "position": "<:Entropy2:1225559069167980634> Event-Manager",
+      "description": "Organisiere Online-Turniere, Watchparties und Spieleabende für unsere Diamond Club Community."
+    },
+    {
+      "position": "<:Entropy2:1225559069167980634> Club-Manager",
+      "description": "Leite einen der Club Bereiche und bringe deine Ideen ein, um den Diamond Club weiterzuentwickeln."
+    },
+    {
+      "position": "<:Entropy2:1225559069167980634> Entwickler",
+      "description": "Optimiere unsere Interne Website, entwickle neue Features und verbessere die Nutzererfahrung. (Go, Python, JavaScript)"
     }
   ],
-  "footer": "\n\n💬 Interesse geweckt? Erstelle ein Ticket in unserem Discord Server!\n🔗 Entropy Gaming - Wo Leidenschaft auf Professionalität trifft!"
+  "footer": "💬 Interesse geweckt? Erstelle ein Ticket in unserem Discord Server!\n🔗 Entropy Gaming - Wo Leidenschaft auf Professionalität trifft!"
 }
