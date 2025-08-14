@@ -135,8 +135,6 @@
                             <th scope="col">Spieler</th>
                             <th scope="col">Discord</th>
                             <th scope="col">Valorant</th>
-                            <th scope="col">Registriert</th>
-                            <th scope="col">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -166,19 +164,6 @@
                             </td>
                             <td class="align-middle">
                                 <span class="valorant-name">{{ reg.valorant_name }}</span>
-                            </td>
-                            <td class="align-middle">
-                                <div>
-                                    <i class="bi bi-calendar me-1 text"></i>
-                                    <span class="text"> {{ reg.registered_at|datetime_format }} </span>
-                                    <br>
-                                    <small class="text">{{ reg.registered_at|timeago }}</small>
-                                </div>
-                            </td>
-                            <td class="align-middle">
-                                <span class="badge bg-success">
-                                    <i class="bi bi-check-circle me-1"></i>Angemeldet
-                                </span>
                             </td>
                         </tr>
                         {% endfor %}
