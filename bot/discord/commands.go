@@ -35,7 +35,16 @@ func RegisterCommands(bot *discordgo.Session) {
 			DefaultMemberPermissions: &adminPermission,
 		},
 
-		/*----------------------------------------------------------*/	
+		/*----------------------------------------------------------*/
+
+		// create_ticket Command (creates a ticket)
+		{
+			Name:                     "create_ticket",
+			Description:              "Erstelle ein Ticket.",
+			DefaultMemberPermissions: nil,
+		},
+
+		/*----------------------------------------------------------*/
 
 		// ticket_response Command (sends a standard response for applications)
 		{

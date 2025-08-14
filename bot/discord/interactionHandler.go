@@ -30,6 +30,9 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 		switch bot_interaction.ApplicationCommandData().Name {
 			case "ticket_view":
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleDeveloper) {tickets.HandleTicketView(bot, bot_interaction)}
+			case "create_ticket":
+				utils.EnsureUser(bot, bot_interaction.Member.User.ID) 
+				tickets.HandleTicketView(bot, bot_interaction)
 			case "ticket_response":
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {discord_administration_utils.HandleTicketResponse(bot, bot_interaction)}
 			case "create_team_area":
