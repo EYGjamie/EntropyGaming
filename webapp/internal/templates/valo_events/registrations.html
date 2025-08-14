@@ -1,0 +1,255 @@
+<!-- webapp/internal/templates/valo_events/registrations.html -->
+{% extends "base.html" %}
+
+{% block title %}Valorant Event Registrierungen{% endblock %}
+
+{% block page_css %}
+<style>
+.text {
+    color: #fff;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--bs-border-color);
+}
+
+.default-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.valorant-name {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 1.2em;
+}
+
+.registration-card {
+    transition: all 0.2s ease;
+    border: 1px solid var(--bs-border-color);
+}
+
+.registration-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: #dc2626;
+}
+
+.stats-header {
+    background: transparent;
+    color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .avatar, .default-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="stats-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="bi bi-trophy"></i>
+                    Valorant Event Registrierungen
+                </h1>
+                <p class="mb-0 opacity-75">Übersicht aller angemeldeten Teilnehmer für das Event</p>
+            </div>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {{ error }}
+    </div>
+    {% endif %}
+
+        <!-- Summary Footer -->
+    <div class="mt-4">
+        <div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <h4 class="text-primary">{{ total_count }}</h4>
+                        <p class="textmb-0">Gesamt Anmeldungen</p>
+                    </div>
+                    <div class="col-md-5">
+                        <h4 class="text-success">{{ registrations|length }}</h4>
+                        <p class="text mb-0">Angezeigte Einträge</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if registrations %}
+    <!-- Desktop Table View -->
+    <div class="d-none d-lg-block">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-list me-2"></i>Registrierte Teilnehmer
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Spieler</th>
+                            <th scope="col">Discord</th>
+                            <th scope="col">Valorant</th>
+                            <th scope="col">Registriert</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in registrations %}
+                        <tr>
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    {% if reg.avatar_url %}
+                                        <img src="{{ reg.avatar_url }}" alt="Avatar" class="avatar me-3">
+                                    {% else %}
+                                        <div class="default-avatar me-3">
+                                            {{ reg.display_name[0].upper() if reg.display_name else '?' }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="text">{{ reg.display_name or 'Unbekannt' }}</div>
+                                        {% if reg.nickname and reg.nickname != reg.display_name %}
+                                            <small class="text">{{ reg.nickname }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <div>
+                                    <span class="badge bg-primary">{{ reg.discord_username }}</span>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <span class="valorant-name">{{ reg.valorant_name }}</span>
+                            </td>
+                            <td class="align-middle">
+                                <div>
+                                    <i class="bi bi-calendar me-1 text"></i>
+                                    <span class="text"> {{ reg.registered_at|datetime_format }} </span>
+                                    <br>
+                                    <small class="text">{{ reg.registered_at|timeago }}</small>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Angemeldet
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="d-lg-none">
+        {% for reg in registrations %}
+        <div class="card registration-card mb-3">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-3">
+                        {% if reg.avatar_url %}
+                            <img src="{{ reg.avatar_url }}" alt="Avatar" class="avatar">
+                        {% else %}
+                            <div class="default-avatar">
+                                {{ reg.display_name[0].upper() if reg.display_name else '?' }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-9">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="card-title mb-1">{{ reg.display_name or 'Unbekannt' }}</h6>
+                                <p class="card-text mb-1">
+                                    <small class="text">
+                                        <i class="bi bi-discord me-1"></i>
+                                        {{ reg.discord_username }}
+                                    </small>
+                                </p>
+                                <p class="card-text mb-1">
+                                    <span class="valorant-name">
+                                        <i class="bi bi-crosshairs me-1"></i>
+                                        {{ reg.valorant_name }}
+                                    </span>
+                                </p>
+                                <p class="card-text">
+                                    <small class="text">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ reg.registered_at|timeago }}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary mb-2">{{ loop.index }}</span>
+                                <br>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <i class="bi bi-people text" style="font-size: 4rem;"></i>
+        <h4 class="text mt-3">Keine Registrierungen gefunden</h4>
+        <p class="text">Es haben sich noch keine Spieler für das Valorant Event angemeldet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
