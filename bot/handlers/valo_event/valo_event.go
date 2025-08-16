@@ -19,7 +19,7 @@ func HandleValoEventCommand(bot *discordgo.Session, bot_interaction *discordgo.I
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name:   "📅 Event Details",
-				Value:  "Anmeldeschluss: 30.08.2025 18:00 Uhr\nEventstart: 31.08.2025 14:00 Uhr\nTreffen: 31.08.2025 um 13:30 Uhr im Discord",
+				Value:  "Anmeldeschluss: 30.08.2025 18:00 Uhr\nEventstart: 31.08.2025 14:00 Uhr\nTreffen: 31.08.2025 um 13:30 Uhr im Discord\nDauer: In etwa 2 Stunden",
 				Inline: false,
 			},
 			{
