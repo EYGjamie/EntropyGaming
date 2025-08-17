@@ -213,6 +213,33 @@ func RegisterCommands(bot *discordgo.Session) {
 
 		/*----------------------------------------------------------*/	
 
+		{
+			Name:        "profilbild-gen",
+			Description: "Erstellt ein Profilbild oder Banner",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "type",
+					Description: "Typ des Profilbildes",
+					Required:    true,
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{Name: "Standard", Value: "default"},
+						{Name: "Team Logo (Management only)", Value: "dark"},
+						{Name: "Banner", Value: "banner"},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "name",
+					Description: "Nickname für das Profilbild",
+					Required:    true,
+					MaxLength:   50,
+				},
+			},
+		},
+
+		/*----------------------------------------------------------*/
+
 	}
 
 	// Register commands on specific guild

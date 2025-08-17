@@ -9,7 +9,8 @@ Fischerei Umsetzung:
 
     Gear Befehl für das aktuelle Equipment
         - Anzeige von Equipment
-            - Aktuelle Angeln + deren ~Haltbarkeit#
+            - Aktuelle Angeln + deren ~Haltbarkeit
+                Haltbarkeit wird nicht in % angezeigt sondern durch Wörter ersetzt. D.h. 100% = Neu, bis 85% = "Wie Neu", usw...
         - Anzeige von Ködern
             - Anzahl aller Köder + primär ausgewählter
                 - Verbrauch 1/Work

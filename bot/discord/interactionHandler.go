@@ -12,6 +12,7 @@ import (
 	"bot/handlers/quiz"
 	"bot/handlers/stats"
 	"bot/handlers/valo_event"
+	"bot/handlers/pb_gen"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -54,6 +55,8 @@ func interactionHandler(bot *discordgo.Session, bot_interaction *discordgo.Inter
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {utils.UpdateAllUsers(bot, utils.GetIdFromDB(bot, "GUILD_ID"))}
 			case "sync_team_members":
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {discord_administration_team_areas.HandleSyncTeamMembers(bot, bot_interaction)}
+			case "profilbild-gen":
+				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleDiamondClub) {pb_gen.HandleProfilbildGenCommand(bot, bot_interaction)}
 			case "valo_event":
 				if utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleProjektleitung) {valo_event.HandleValoEventCommand(bot, bot_interaction)}
 			default:
