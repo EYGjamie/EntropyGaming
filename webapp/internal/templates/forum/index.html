@@ -260,26 +260,6 @@
         </div>
     </div>
 </div>
-
-<!-- Quick Actions Floating Button (Mobile) -->
-<div class="mobile-quick-actions">
-    <div class="quick-actions-btn" onclick="toggleQuickActions()">
-        <i class="bi bi-three-dots"></i>
-    </div>
-    <div class="quick-actions-menu" id="quickActionsMenu">
-        <a href="{{ url_for('forum.create_post') }}" class="quick-action">
-            <i class="bi bi-plus-lg"></i> Neuer Post
-        </a>
-        <a href="{{ url_for('forum.index') }}" class="quick-action">
-            <i class="bi bi-house"></i> Alle Posts
-        </a>
-        {% if 'Projektleitung' in roles or 'Developer' in roles %}
-        <a href="{{ url_for('forum.manage_categories') }}" class="quick-action">
-            <i class="bi bi-gear"></i> Kategorien
-        </a>
-        {% endif %}
-    </div>
-</div>
 {% endblock %}
 
 {% block page_js %}
