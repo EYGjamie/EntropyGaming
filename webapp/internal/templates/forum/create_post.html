@@ -239,40 +239,10 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Post Settings -->
-                    <div class="sidebar-section">
-                        <div class="sidebar-section-header">
-                            <h4><i class="bi bi-gear"></i> Einstellungen</h4>
-                        </div>
-                        
-                        <div class="settings-options">
-                            <!-- Future: Pin post, comments enabled, etc. -->
-                            <div class="setting-item">
-                                <input type="checkbox" id="notifyFollowers" name="notify_followers" checked>
-                                <label for="notifyFollowers">Follower benachrichtigen</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="sidebar-section">
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="bi bi-send"></i> 
-                                {% if post %}Änderungen speichern{% else %}Post veröffentlichen{% endif %}
-                            </button>
-                            
-                            <button type="button" class="btn btn-outline btn-block" onclick="saveDraft()">
-                                <i class="bi bi-save"></i> Als Entwurf speichern
-                            </button>
-                            
-                            <a href="{% if post %}{{ url_for('forum.view_post', post_id=post.id) }}{% else %}{{ url_for('forum.index') }}{% endif %}" 
-                               class="btn btn-secondary btn-block">
-                                <i class="bi bi-x-lg"></i> Abbrechen
-                            </a>
-                        </div>
-                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="bi bi-send"></i> 
+                        {% if post %}Änderungen speichern{% else %}Post veröffentlichen{% endif %}
+                    </button>      
                 </div>
             </div>
         </form>

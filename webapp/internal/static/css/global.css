@@ -27,7 +27,7 @@
     --entropy-info: #0891b2;
     
     /* Gradients */
-    --entropy-gradient-main: linear-gradient(135deg, var(--entropy-red-primary) 0%, var(--entropy-red-dark) 100%);
+    --entropy-gradient-main: linear-gradient(135deg, var(--entropy-red-primary) 0%, var(--entropy-red-dark) 0%);
     --entropy-gradient-hover: linear-gradient(135deg, var(--entropy-red-dark) 0%, var(--entropy-red-primary) 100%);
     --entropy-gradient-accent: linear-gradient(135deg, var(--entropy-black-light) 0%, var(--entropy-black-medium) 100%);
     

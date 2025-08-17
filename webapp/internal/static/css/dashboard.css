@@ -10,20 +10,6 @@
     color: #ffffff;
 }
 
-.welcome-header::before {
-    content: '';
-    position: absolute;
-    top: -30%;
-    right: -15%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, 
-        rgba(220, 38, 38, 0.12) 0%, 
-        rgba(220, 38, 38, 0.06) 40%, 
-        transparent 70%);
-    animation: pulse-slow 8s ease-in-out infinite;
-    z-index: 1;
-}
 
 .welcome-header::after {
     content: '';
