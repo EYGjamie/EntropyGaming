@@ -36,9 +36,16 @@
   },
   { 
     "id": 6, 
-    "name": "TBD", 
+    "name": "Jerome", 
     "position": "Projektleitung", 
     "specific": "Club Management & Operations",
+    "parentIds": [1] 
+  },
+  { 
+    "id": 33, 
+    "name": "Ryu", 
+    "position": "Projektleitung", 
+    "specific": "Sponorsoring & Partnerschaften",
     "parentIds": [1] 
   },
   { 
@@ -77,10 +84,10 @@
     "parentIds": [5] 
   },
   { 
-    "id": 9, 
-    "name": "Marcel", 
+    "id": 30, 
+    "name": "Fabi \"BleibClean\"", 
     "position": "Social Media Manager", 
-    "specific": "n.A.",
+    "specific": "Match-Coverage",
     "parentIds": [5] 
   },
   { 
@@ -132,26 +139,19 @@
     "specific": "Valorant Team Management",
     "parentIds": [10, 11, 12] 
   },
+    { 
+    "id": 31, 
+    "name": "Elli", 
+    "position": "Bereichsleitung Valorant", 
+    "specific": "Valorant Team Management",
+    "parentIds": [10, 11, 12] 
+  },
   { 
     "id": 25, 
     "name": "Zain", 
     "position": "Eventmanagement", 
     "specific": "Tournament & Event Organisation",
     "parentIds": [10, 11, 12] 
-  },
-  { 
-    "id": 15, 
-    "name": "Dominik", 
-    "position": "Bereichsleitung Rainbow Six Siege", 
-    "specific": "Rainbow Six Siege Management",
-    "parentIds": [16] 
-  },
-  { 
-    "id": 22, 
-    "name": "OsirisGCC", 
-    "position": "Bereichsleitung Rainbow Six Siege", 
-    "specific": "Rainbow Six Siege Management",
-    "parentIds": [16] 
   },
   { 
     "id": 23, 
@@ -166,5 +166,26 @@
     "position": "Bereichsleitung Rocket League", 
     "specific": "Rocket League Management",
     "parentIds": [18] 
+  },
+  { 
+    "id": 32, 
+    "name": "Michi", 
+    "position": "Leitung Esports", 
+    "specific": "Betreuung und Koordination der E-Sport Teams",
+    "parentIds": [3] 
+  },
+  { 
+    "id": 34, 
+    "name": "Yuuna", 
+    "position": "Head of Design", 
+    "specific": "Grafik Design & visuelle Inhalte",
+    "parentIds": [5] 
+  },
+  { 
+    "id": 35, 
+    "name": "xskellex", 
+    "position": "Designer", 
+    "specific": "Grafik Design & visuelle Inhalte",
+    "parentIds": [34] 
   }
 ]
