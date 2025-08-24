@@ -64,40 +64,50 @@
                                 <select class="form-select entropy-input" id="event_type" name="event_type">
                                     <option value="general" {% if event.event_type == 'general' %}selected{% endif %}>Allgemein</option>
                                     <option value="meeting" {% if event.event_type == 'meeting' %}selected{% endif %}>Meeting</option>
-                                    <option value="tournament" {% if event.event_type == 'tournament' %}selected{% endif %}>Turnier</option>
-                                    <option value="training" {% if event.event_type == 'training' %}selected{% endif %}>Training</option>
+                                    <option value="tournament" {% if event.event_type == 'tournament' %}selected{% endif %}>Spieltag</option>
                                     <option value="event" {% if event.event_type == 'event' %}selected{% endif %}>Veranstaltung</option>
                                     <option value="deadline" {% if event.event_type == 'deadline' %}selected{% endif %}>Deadline</option>
-                                    <option value="holiday" {% if event.event_type == 'holiday' %}selected{% endif %}>Feiertag</option>
+                                    <option value="abwesenheit" {% if event.event_type == 'abwesenheit' %}selected{% endif %}>Abwesenheit</option>
                                 </select>
                             </div>
                             
                             <div class="col-12 mb-3">
                                 <label class="form-label">Farbe</label>
+                                <div class="color-legend mb-2">
+                                    <small class="text">
+                                        <strong>Farblegende:</strong>
+                                        <span class="color-legend-item"><span class="color-dot" style="background-color: #dc2626;"></span> Abwesenheit</span>
+                                        <span class="color-legend-item"><span class="color-dot" style="background-color: #16a34a;"></span> Projektleitung</span>
+                                        <span class="color-legend-item"><span class="color-dot" style="background-color: #0891b2;"></span> Diamond Club</span>
+                                        <span class="color-legend-item"><span class="color-dot" style="background-color: #ca8a04;"></span> Event/Veranstaltung</span>
+                                        <span class="color-legend-item"><span class="color-dot" style="background-color: #9333ea;"></span> Allgemein</span>
+                                        <span class="color-legend-item"><span class="color-dot" style="background-color: #f97316;"></span> Social Media</span>
+                                    </small>
+                                </div>
                                 <div class="d-flex gap-2 flex-wrap">
                                     <div class="color-option">
                                         <input type="radio" name="color" value="#dc2626" id="color1" {% if event.color == '#dc2626' %}checked{% endif %}>
-                                        <label for="color1" class="color-label" style="background-color: #dc2626;"></label>
+                                        <label for="color1" class="color-label" style="background-color: #dc2626;" title="Rot - Wichtig/Deadline"></label>
                                     </div>
                                     <div class="color-option">
                                         <input type="radio" name="color" value="#16a34a" id="color2" {% if event.color == '#16a34a' %}checked{% endif %}>
-                                        <label for="color2" class="color-label" style="background-color: #16a34a;"></label>
+                                        <label for="color2" class="color-label" style="background-color: #16a34a;" title="Grün - Training/Sport"></label>
                                     </div>
                                     <div class="color-option">
                                         <input type="radio" name="color" value="#0891b2" id="color3" {% if event.color == '#0891b2' %}checked{% endif %}>
-                                        <label for="color3" class="color-label" style="background-color: #0891b2;"></label>
+                                        <label for="color3" class="color-label" style="background-color: #0891b2;" title="Blau - Meeting/Termin"></label>
                                     </div>
                                     <div class="color-option">
                                         <input type="radio" name="color" value="#ca8a04" id="color4" {% if event.color == '#ca8a04' %}checked{% endif %}>
-                                        <label for="color4" class="color-label" style="background-color: #ca8a04;"></label>
+                                        <label for="color4" class="color-label" style="background-color: #ca8a04;" title="Gelb - Event/Veranstaltung"></label>
                                     </div>
                                     <div class="color-option">
                                         <input type="radio" name="color" value="#9333ea" id="color5" {% if event.color == '#9333ea' %}checked{% endif %}>
-                                        <label for="color5" class="color-label" style="background-color: #9333ea;"></label>
+                                        <label for="color5" class="color-label" style="background-color: #9333ea;" title="Lila - Turnier"></label>
                                     </div>
                                     <div class="color-option">
                                         <input type="radio" name="color" value="#f97316" id="color6" {% if event.color == '#f97316' %}checked{% endif %}>
-                                        <label for="color6" class="color-label" style="background-color: #f97316;"></label>
+                                        <label for="color6" class="color-label" style="background-color: #f97316;" title="Orange - Feiertag/Besonders"></label>
                                     </div>
                                 </div>
                             </div>

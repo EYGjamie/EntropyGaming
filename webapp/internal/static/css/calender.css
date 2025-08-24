@@ -326,6 +326,29 @@
     transform: scale(1.1);
 }
 
+/* Color Legend */
+.color-legend {
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.color-legend-item {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.5rem;
+    margin-bottom: 0.25rem;
+    color: #fff;
+}
+
+.color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 /* Event Color Indicator */
 .event-color-indicator {
     width: 20px;

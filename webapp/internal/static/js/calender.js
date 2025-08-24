@@ -46,7 +46,10 @@ class Calendar {
         const eventDiv = document.createElement('div');
         eventDiv.className = `event-item type-${event.event_type}`;
         eventDiv.style.backgroundColor = event.color;
-        eventDiv.textContent = event.title;
+        
+        // Event-Typ zu Titel hinzufügen
+        const eventTypeText = this.getEventTypeText(event.event_type);
+        eventDiv.textContent = `${eventTypeText}: ${event.title}`;
         eventDiv.dataset.eventId = event.id;
         
         // Multi-day event styling
@@ -72,6 +75,20 @@ class Calendar {
         });
         
         return eventDiv;
+    }
+    
+    getEventTypeText(eventType) {
+        const typeMap = {
+            'general': 'Allgemein',
+            'meeting': 'Meeting',
+            'tournament': 'Turnier',
+            'training': 'Training',
+            'event': 'Veranstaltung',
+            'deadline': 'Deadline',
+            'holiday': 'Feiertag',
+            'abwesenheit': 'Abwesenheit'
+        };
+        return typeMap[eventType] || 'Event';
     }
     
     formatDateForId(date) {
@@ -113,10 +130,11 @@ class Calendar {
         
         const dateStr = this.formatDisplayDate(event.start_date, event.end_date);
         const timeStr = this.formatDisplayTime(event);
+        const eventTypeText = this.getEventTypeText(event.event_type);
         
         eventDiv.innerHTML = `
             <div class="mobile-event-date">${dateStr}</div>
-            <div class="mobile-event-title">${event.title}</div>
+            <div class="mobile-event-title">${eventTypeText}: ${event.title}</div>
             <div class="mobile-event-time">${timeStr}</div>
         `;
         
@@ -264,7 +282,7 @@ class Calendar {
         }
     }
     
-    navigateCalendar(direction) {
+    async navigateCalendar(direction) {
         if (this.currentView === 'month') {
             if (direction === 'prev') {
                 this.currentDate.setMonth(this.currentDate.getMonth() - 1);
@@ -285,10 +303,11 @@ class Calendar {
             }
         }
         
+        // Da das Kalender-Grid server-seitig generiert wird, müssen wir die Seite neu laden
         this.reloadCalendar();
     }
     
-    goToToday() {
+    async goToToday() {
         this.currentDate = new Date();
         this.reloadCalendar();
     }
@@ -297,6 +316,44 @@ class Calendar {
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth() + 1;
         window.location.href = `/calender?year=${year}&month=${month}`;
+    }
+    
+    async loadEventsForCurrentMonth() {
+        try {
+            const year = this.currentDate.getFullYear();
+            const month = this.currentDate.getMonth() + 1;
+            
+            const response = await fetch(`/calender/api/events?year=${year}&month=${month}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    this.events = data.events;
+                    
+                    // Alle bestehenden Events entfernen
+                    document.querySelectorAll('.event-item').forEach(item => item.remove());
+                    
+                    // Neue Events rendern
+                    this.renderEvents();
+                }
+            }
+        } catch (error) {
+            console.error('Error loading events:', error);
+        }
+    }
+    
+    updateCalendarHeader() {
+        const monthNames = [
+            'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+            'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+        ];
+        
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth();
+        
+        const headerElement = document.querySelector('h4.mb-0.text-light');
+        if (headerElement) {
+            headerElement.textContent = `${monthNames[month]} ${year}`;
+        }
     }
     
     selectDay(dayElement) {
