@@ -141,7 +141,7 @@ if __name__ == "__main__":
     import os
     
     # Verbindung zur Datenbank
-    db_path = r"c:\Users\Jamie\Documents\GitHub\EntropyGaming\db\data\entropy.db"
+    db_path = "db/data/entropy.db"
     print(f"Verwende Datenbank: {db_path}")
     
     with sqlite3.connect(db_path) as db:
