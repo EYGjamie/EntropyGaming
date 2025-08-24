@@ -414,7 +414,7 @@ def can_edit_event(event, user, user_roles):
         return True
     
     # Admins können alle Events bearbeiten
-    if 'admin' in user_roles or 'moderator' in user_roles:
+    if 'Projektleitung' in user_roles:
         return True
     
     return False
