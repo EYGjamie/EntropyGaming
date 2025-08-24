@@ -188,7 +188,7 @@ func HandleConfirmDelete(bot *discordgo.Session, bot_interaction *discordgo.Inte
 					&discordgo.Button{
 						Label: "View Transcript",
 						Style: discordgo.LinkButton,
-						URL:   fmt.Sprintf("http://www.entropygaming-tickets.de/tickets/%d", ticketID),
+						URL:   fmt.Sprintf("http://www.entropygaming-tickets.de/ticket/%d", ticketID),
 					},
 				},
 			},
