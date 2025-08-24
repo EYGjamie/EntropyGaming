@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} bearbeiten - Kalender{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calender.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card entropy-card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-pencil me-2"></i>
+                        Event bearbeiten
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="editEventForm">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="title" class="form-label">Titel *</label>
+                                <input type="text" class="form-control entropy-input" id="title" name="title" value="{{ event.title }}" required>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">Beschreibung</label>
+                                <textarea class="form-control entropy-input" id="description" name="description" rows="4">{{ event.description }}</textarea>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="start_date" class="form-label">Startdatum *</label>
+                                <input type="date" class="form-control entropy-input" id="start_date" name="start_date" value="{{ event.start_date }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="start_time" class="form-label">Startzeit</label>
+                                <input type="time" class="form-control entropy-input" id="start_time" name="start_time" value="{{ event.start_time }}" {% if event.all_day %}disabled{% endif %}>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="end_date" class="form-label">Enddatum</label>
+                                <input type="date" class="form-control entropy-input" id="end_date" name="end_date" value="{{ event.end_date }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="end_time" class="form-label">Endzeit</label>
+                                <input type="time" class="form-control entropy-input" id="end_time" name="end_time" value="{{ event.end_time }}" {% if event.all_day %}disabled{% endif %}>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="all_day" name="all_day" {% if event.all_day %}checked{% endif %}>
+                                    <label class="form-check-label" for="all_day">
+                                        Ganztägig
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="event_type" class="form-label">Event Typ</label>
+                                <select class="form-select entropy-input" id="event_type" name="event_type">
+                                    <option value="general" {% if event.event_type == 'general' %}selected{% endif %}>Allgemein</option>
+                                    <option value="meeting" {% if event.event_type == 'meeting' %}selected{% endif %}>Meeting</option>
+                                    <option value="tournament" {% if event.event_type == 'tournament' %}selected{% endif %}>Turnier</option>
+                                    <option value="training" {% if event.event_type == 'training' %}selected{% endif %}>Training</option>
+                                    <option value="event" {% if event.event_type == 'event' %}selected{% endif %}>Veranstaltung</option>
+                                    <option value="deadline" {% if event.event_type == 'deadline' %}selected{% endif %}>Deadline</option>
+                                    <option value="holiday" {% if event.event_type == 'holiday' %}selected{% endif %}>Feiertag</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Farbe</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <div class="color-option">
+                                        <input type="radio" name="color" value="#dc2626" id="color1" {% if event.color == '#dc2626' %}checked{% endif %}>
+                                        <label for="color1" class="color-label" style="background-color: #dc2626;"></label>
+                                    </div>
+                                    <div class="color-option">
+                                        <input type="radio" name="color" value="#16a34a" id="color2" {% if event.color == '#16a34a' %}checked{% endif %}>
+                                        <label for="color2" class="color-label" style="background-color: #16a34a;"></label>
+                                    </div>
+                                    <div class="color-option">
+                                        <input type="radio" name="color" value="#0891b2" id="color3" {% if event.color == '#0891b2' %}checked{% endif %}>
+                                        <label for="color3" class="color-label" style="background-color: #0891b2;"></label>
+                                    </div>
+                                    <div class="color-option">
+                                        <input type="radio" name="color" value="#ca8a04" id="color4" {% if event.color == '#ca8a04' %}checked{% endif %}>
+                                        <label for="color4" class="color-label" style="background-color: #ca8a04;"></label>
+                                    </div>
+                                    <div class="color-option">
+                                        <input type="radio" name="color" value="#9333ea" id="color5" {% if event.color == '#9333ea' %}checked{% endif %}>
+                                        <label for="color5" class="color-label" style="background-color: #9333ea;"></label>
+                                    </div>
+                                    <div class="color-option">
+                                        <input type="radio" name="color" value="#f97316" id="color6" {% if event.color == '#f97316' %}checked{% endif %}>
+                                        <label for="color6" class="color-label" style="background-color: #f97316;"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ url_for('calender.view_event', event_id=event.id) }}" class="btn btn-outline-light">
+                                <i class="bi bi-x-circle me-1"></i>Abbrechen
+                            </a>
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="bi bi-check-circle me-1"></i>Änderungen speichern
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ganztägig Checkbox Handler
+    const allDayCheckbox = document.getElementById('all_day');
+    const startTimeInput = document.getElementById('start_time');
+    const endTimeInput = document.getElementById('end_time');
+    
+    allDayCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            startTimeInput.disabled = true;
+            endTimeInput.disabled = true;
+            startTimeInput.value = '';
+            endTimeInput.value = '';
+        } else {
+            startTimeInput.disabled = false;
+            endTimeInput.disabled = false;
+        }
+    });
+    
+    // Enddatum automatisch setzen
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    startDateInput.addEventListener('change', function() {
+        if (!endDateInput.value || endDateInput.value < this.value) {
+            endDateInput.value = this.value;
+        }
+    });
+    
+    // Form Validation
+    const form = document.getElementById('editEventForm');
+    form.addEventListener('submit', function(e) {
+        const startDate = new Date(startDateInput.value + ' ' + (startTimeInput.value || '00:00'));
+        const endDate = new Date((endDateInput.value || startDateInput.value) + ' ' + (endTimeInput.value || '23:59'));
+        
+        if (endDate < startDate) {
+            e.preventDefault();
+            alert('Das Enddatum kann nicht vor dem Startdatum liegen.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

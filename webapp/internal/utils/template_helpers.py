@@ -207,6 +207,93 @@ def role_badge_class(role):
     
     return role_classes.get(role, 'role-default')
 
+def format_date_filter(date_str):
+    """Formatiert ein Datum für die Anzeige"""
+    if not date_str:
+        return ''
+    
+    try:
+        # Handle different date formats
+        if isinstance(date_str, str):
+            # Try different formats
+            for fmt in ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S']:
+                try:
+                    date_obj = datetime.strptime(date_str, fmt)
+                    break
+                except ValueError:
+                    continue
+            else:
+                return date_str
+        else:
+            date_obj = date_str
+        
+        return date_obj.strftime('%d.%m.%Y')
+    except (ValueError, AttributeError):
+        return str(date_str)
+
+def format_datetime_filter(datetime_str):
+    """Formatiert ein Datum und Zeit für die Anzeige"""
+    if not datetime_str:
+        return ''
+    
+    try:
+        if isinstance(datetime_str, str):
+            # Try different formats
+            for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d']:
+                try:
+                    datetime_obj = datetime.strptime(datetime_str, fmt)
+                    break
+                except ValueError:
+                    continue
+            else:
+                return datetime_str
+        else:
+            datetime_obj = datetime_str
+        
+        return datetime_obj.strftime('%d.%m.%Y um %H:%M')
+    except (ValueError, AttributeError):
+        return str(datetime_str)
+
+def calculate_event_duration(start_date, start_time, end_date, end_time, all_day=False):
+    """Berechnet und formatiert die Dauer eines Events"""
+    try:
+        if all_day:
+            start = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end = datetime.strptime(end_date or start_date, '%Y-%m-%d').date()
+            
+            if start == end:
+                return "Ganztägig"
+            else:
+                days = (end - start).days + 1
+                return f"{days} Tag{'e' if days > 1 else ''}"
+        
+        # Mit Zeit
+        start_dt_str = f"{start_date} {start_time or '00:00'}"
+        end_dt_str = f"{end_date or start_date} {end_time or '23:59'}"
+        
+        start_dt = datetime.strptime(start_dt_str, '%Y-%m-%d %H:%M')
+        end_dt = datetime.strptime(end_dt_str, '%Y-%m-%d %H:%M')
+        
+        duration = end_dt - start_dt
+        
+        if duration.days > 0:
+            hours = duration.seconds // 3600
+            return f"{duration.days} Tag{'e' if duration.days > 1 else ''}, {hours} Stunde{'n' if hours != 1 else ''}"
+        else:
+            hours = duration.seconds // 3600
+            minutes = (duration.seconds % 3600) // 60
+            
+            if hours > 0:
+                if minutes > 0:
+                    return f"{hours} Stunde{'n' if hours != 1 else ''}, {minutes} Minute{'n' if minutes != 1 else ''}"
+                else:
+                    return f"{hours} Stunde{'n' if hours != 1 else ''}"
+            else:
+                return f"{minutes} Minute{'n' if minutes != 1 else ''}"
+    
+    except (ValueError, TypeError):
+        return "Unbekannt"
+
 def register_template_helpers(app):
     """Register all template helpers with the Flask app"""
     
@@ -224,9 +311,14 @@ def register_template_helpers(app):
     app.jinja_env.filters['role_class'] = role_badge_class
     app.jinja_env.filters['status_badge_class'] = get_status_badge_class
     
+    # Kalender-spezifische Filter
+    app.jinja_env.filters['format_date'] = format_date_filter
+    app.jinja_env.filters['format_datetime'] = format_datetime_filter
+    
     # Template functions (available as {{ function_name() }})
     app.jinja_env.globals['pluralize'] = pluralize
     app.jinja_env.globals['avatar_placeholder'] = avatar_placeholder
+    app.jinja_env.globals['calculate_duration'] = calculate_event_duration
     
     # Additional template globals
     app.jinja_env.globals['now'] = datetime.now

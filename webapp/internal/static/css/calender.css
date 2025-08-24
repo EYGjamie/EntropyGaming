@@ -1,0 +1,493 @@
+/* Kalender Styles - Entropy Gaming Theme */
+
+/* ===== KALENDER GRID ===== */
+.calendar-view {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    min-width: 700px;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--entropy-black-medium);
+    border-bottom: 2px solid var(--entropy-red-primary);
+}
+
+.calendar-weekday {
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+    color: var(--entropy-white-primary);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.calendar-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, minmax(120px, 1fr));
+    background: var(--entropy-black-light);
+}
+
+.calendar-day {
+    border: 1px solid var(--entropy-gray-dark);
+    padding: 0.5rem;
+    position: relative;
+    cursor: pointer;
+    background: var(--entropy-black-primary);
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-day.empty {
+    background: var(--entropy-gray-dark);
+    cursor: default;
+}
+
+.calendar-day.today {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: var(--entropy-red-primary);
+    box-shadow: inset 0 0 0 2px var(--entropy-red-primary);
+}
+
+.calendar-day.selected {
+    background: rgba(220, 38, 38, 0.2);
+    border-color: var(--entropy-red-bright);
+}
+
+.day-number {
+    font-weight: 600;
+    color: var(--entropy-white-primary);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.calendar-day.today .day-number {
+    color: var(--entropy-red-bright);
+}
+
+.day-events {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+/* ===== EVENT ITEMS ===== */
+.event-item {
+    background: var(--entropy-red-primary);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    position: relative;
+}
+
+.event-item.all-day {
+    background: linear-gradient(45deg, var(--entropy-red-primary), var(--entropy-red-dark));
+    border-left: 3px solid var(--entropy-red-bright);
+}
+
+.event-item.multi-day {
+    border-radius: 0;
+    margin: 0 -0.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.event-item.event-start {
+    border-radius: 3px 0 0 3px;
+    margin-left: 0;
+}
+
+.event-item.event-end {
+    border-radius: 0 3px 3px 0;
+    margin-right: 0;
+}
+
+/* Event Type Colors */
+.event-item.type-meeting { background: var(--entropy-info); }
+.event-item.type-tournament { background: var(--entropy-warning); }
+.event-item.type-training { background: var(--entropy-success); }
+.event-item.type-event { background: var(--entropy-red-primary); }
+.event-item.type-deadline { background: #dc2626; }
+.event-item.type-holiday { background: #9333ea; }
+.event-item.type-general { background: var(--entropy-gray-medium); }
+
+/* ===== WOCHENANSICHT ===== */
+.week-grid {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    grid-template-rows: 40px repeat(24, 30px);
+    background: var(--entropy-black-light);
+    border: 1px solid var(--entropy-gray-dark);
+}
+
+.week-time-slot {
+    padding: 0.25rem;
+    border-right: 1px solid var(--entropy-gray-dark);
+    border-bottom: 1px solid var(--entropy-gray-dark);
+    font-size: 0.8rem;
+    color: var(--entropy-gray-light);
+    text-align: center;
+}
+
+.week-day-header {
+    padding: 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    background: var(--entropy-black-medium);
+    border-bottom: 1px solid var(--entropy-gray-dark);
+    color: var(--entropy-white-primary);
+}
+
+.week-day-cell {
+    border-right: 1px solid var(--entropy-gray-dark);
+    border-bottom: 1px solid var(--entropy-gray-dark);
+    position: relative;
+    background: var(--entropy-black-primary);
+}
+
+/* ===== TAGESANSICHT ===== */
+.day-grid {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    grid-template-rows: repeat(24, 40px);
+    background: var(--entropy-black-light);
+    border: 1px solid var(--entropy-gray-dark);
+}
+
+.day-time-slot {
+    padding: 0.5rem;
+    border-right: 1px solid var(--entropy-gray-dark);
+    border-bottom: 1px solid var(--entropy-gray-dark);
+    font-size: 0.9rem;
+    color: var(--entropy-gray-light);
+    text-align: center;
+}
+
+.day-hour-cell {
+    border-bottom: 1px solid var(--entropy-gray-dark);
+    position: relative;
+    background: var(--entropy-black-primary);
+}
+
+/* ===== EVENT MODAL & FORMS ===== */
+.entropy-modal .modal-content {
+    background: var(--entropy-black-light) !important;
+    border: 1px solid var(--entropy-gray-dark);
+    color: var(--entropy-white-primary);
+}
+
+.entropy-modal .modal-header {
+    border-bottom: 1px solid var(--entropy-gray-dark);
+    background: var(--entropy-black-medium) !important;
+    color: var(--entropy-white-primary);
+}
+
+.entropy-modal .modal-footer {
+    border-top: 1px solid var(--entropy-gray-dark);
+    background: var(--entropy-black-medium) !important;
+}
+
+.entropy-modal .modal-body {
+    background: var(--entropy-black-light) !important;
+    color: var(--entropy-white-primary);
+}
+
+.entropy-modal .form-label {
+    color: var(--entropy-white-primary) !important;
+}
+
+.entropy-modal .form-control {
+    background: var(--entropy-black-medium) !important;
+    border: 1px solid var(--entropy-gray-dark) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+.entropy-modal .form-control:focus {
+    background: var(--entropy-black-medium) !important;
+    border-color: var(--entropy-red-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+.entropy-modal .form-select {
+    background: var(--entropy-black-medium) !important;
+    border: 1px solid var(--entropy-gray-dark) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+.entropy-modal .form-select:focus {
+    background: var(--entropy-black-medium) !important;
+    border-color: var(--entropy-red-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+.entropy-modal .form-check-label {
+    color: var(--entropy-white-primary) !important;
+}
+
+/* Zusätzliche Modal-Styles für Bootstrap Override */
+.modal-content {
+    background: var(--entropy-black-light) !important;
+    border: 1px solid var(--entropy-gray-dark) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+.modal-header {
+    background: var(--entropy-black-medium) !important;
+    color: var(--entropy-white-primary) !important;
+    border-bottom: 1px solid var(--entropy-gray-dark) !important;
+}
+
+.modal-body {
+    background: var(--entropy-black-light) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+.modal-footer {
+    background: var(--entropy-black-medium) !important;
+    border-top: 1px solid var(--entropy-gray-dark) !important;
+}
+
+.modal-title {
+    color: var(--entropy-white-primary) !important;
+}
+
+/* Form Controls in Modals */
+.modal .form-control,
+.modal .form-select {
+    background: var(--entropy-black-medium) !important;
+    border: 1px solid var(--entropy-gray-dark) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+.modal .form-control:focus,
+.modal .form-select:focus {
+    background: var(--entropy-black-medium) !important;
+    border-color: var(--entropy-red-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25) !important;
+    color: var(--entropy-white-primary) !important;
+}
+
+.modal .form-label {
+    color: var(--entropy-white-primary) !important;
+}
+
+.modal .form-check-label {
+    color: var(--entropy-white-primary) !important;
+}
+
+.modal .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Color Picker */
+.color-option {
+    position: relative;
+}
+
+.color-option input[type="radio"] {
+    display: none;
+}
+
+.color-label {
+    display: block;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.color-option input[type="radio"]:checked + .color-label {
+    border-color: var(--entropy-white-primary);
+    box-shadow: 0 0 0 2px var(--entropy-red-primary);
+}
+
+.color-option:hover .color-label {
+    transform: scale(1.1);
+}
+
+/* Event Color Indicator */
+.event-color-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .calendar-grid {
+        min-width: 100%;
+    }
+    
+    .calendar-body {
+        grid-template-rows: repeat(6, minmax(80px, 1fr));
+    }
+    
+    .calendar-day {
+        min-height: 80px;
+        padding: 0.25rem;
+    }
+    
+    .day-number {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .event-item {
+        font-size: 0.7rem;
+        padding: 1px 4px;
+    }
+    
+    .calendar-weekday {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Mobile Event List */
+    .mobile-event-item {
+        background: var(--entropy-black-medium);
+        border: 1px solid var(--entropy-gray-dark);
+        border-radius: 5px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-left: 4px solid var(--entropy-red-primary);
+    }
+    
+    .mobile-event-date {
+        font-size: 0.9rem;
+        color: var(--entropy-gray-light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .mobile-event-title {
+        font-weight: 600;
+        color: var(--entropy-white-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .mobile-event-time {
+        font-size: 0.8rem;
+        color: var(--entropy-gray-light);
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-body {
+        grid-template-rows: repeat(6, minmax(60px, 1fr));
+    }
+    
+    .calendar-day {
+        min-height: 60px;
+        padding: 0.125rem;
+    }
+    
+    .day-number {
+        font-size: 0.8rem;
+        margin-bottom: 0.125rem;
+    }
+    
+    .event-item {
+        font-size: 0.6rem;
+        padding: 1px 3px;
+    }
+    
+    .calendar-weekday {
+        padding: 0.25rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* ===== VIEW TOGGLE BUTTONS ===== */
+.btn-group .btn.active {
+    background: var(--entropy-red-primary);
+    border-color: var(--entropy-red-primary);
+    color: white;
+}
+
+/* ===== LOADING SPINNER ===== */
+#loadingSpinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2rem;
+    border-radius: 10px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.calendar-day {
+    animation: fadeIn 0.3s ease;
+}
+
+.event-item {
+    animation: fadeIn 0.4s ease;
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+.calendar-view::-webkit-scrollbar {
+    height: 8px;
+}
+
+.calendar-view::-webkit-scrollbar-track {
+    background: var(--entropy-black-light);
+}
+
+.calendar-view::-webkit-scrollbar-thumb {
+    background: var(--entropy-gray-dark);
+    border-radius: 4px;
+}
+
+.calendar-view::-webkit-scrollbar-thumb:hover {
+    background: var(--entropy-red-primary);
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .calendar-view {
+        overflow: visible;
+    }
+    
+    .calendar-grid {
+        min-width: 100%;
+    }
+    
+    .calendar-day {
+        background: white !important;
+        color: black !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    .event-item {
+        background: #333 !important;
+        color: white !important;
+    }
+}

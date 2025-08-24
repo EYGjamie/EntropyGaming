@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} - Event Details{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calender.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card entropy-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        Event Details
+                    </h3>
+                    <div class="d-flex gap-2">
+                        {% if event.created_by == user.discord_id or 'Projektleitung' in roles %}
+                        <a href="{{ url_for('calender.edit_event', event_id=event.id) }}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-pencil me-1"></i>Bearbeiten
+                        </a>
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-event-id="{{ event.id }}" onclick="deleteEvent(this.dataset.eventId)">
+                            <i class="bi bi-trash me-1"></i>Löschen
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="event-color-indicator" style="background-color: {{ event.color }};"></div>
+                                <h4 class="mb-0 ms-2">{{ event.title }}</h4>
+                            </div>
+                            <span class="badge bg-secondary">{{ event.event_type|title }}</span>
+                        </div>
+                        
+                        {% if event.description %}
+                        <div class="col-12 mb-3">
+                            <h6 class="text-light">Beschreibung</h6>
+                            <p class="text-light">{{ event.description }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-light">Startdatum</h6>
+                            <p class="text-light">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ event.start_date|format_date }}
+                                {% if not event.all_day and event.start_time %}
+                                    <br><i class="bi bi-clock me-1"></i>{{ event.start_time }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-light">Enddatum</h6>
+                            <p class="text-light">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ event.end_date|format_date }}
+                                {% if not event.all_day and event.end_time %}
+                                    <br><i class="bi bi-clock me-1"></i>{{ event.end_time }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        {% if event.all_day %}
+                        <div class="col-12 mb-3">
+                            <span class="badge bg-info">
+                                <i class="bi bi-clock me-1"></i>Ganztägig
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-12 mb-3">
+                            <h6 class="text-light">Event Dauer</h6>
+                            <p class="text-light">
+                                <i class="bi bi-hourglass me-1"></i>
+                                {{ calculate_duration(event.start_date, event.start_time, event.end_date, event.end_time, event.all_day) }}
+                            </p>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('calender.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Zurück zum Kalender
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Löschen Bestätigung Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content entropy-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Event löschen
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sind Sie sicher, dass Sie das Event "{{ event.title }}" löschen möchten?</p>
+                <p class="text-warning">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="bi bi-trash me-1"></i>Löschen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+let eventToDelete = null;
+
+function deleteEvent(eventId) {
+    eventToDelete = eventId;
+    const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    modal.show();
+}
+
+function confirmDelete() {
+    if (!eventToDelete) return;
+    
+    fetch(`/calender/event/${eventToDelete}/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '{{ url_for("calender.index") }}';
+        } else {
+            alert('Fehler beim Löschen des Events: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ein Fehler ist aufgetreten.');
+    })
+    .finally(() => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+        modal.hide();
+        eventToDelete = null;
+    });
+}
+
+function exportEvent(eventId) {
+    // ICS Export implementieren
+    const eventData = {
+        title: "{{ event.title }}",
+        description: "{{ event.description }}",
+        start_date: "{{ event.start_date }}",
+        start_time: "{{ event.start_time }}",
+        end_date: "{{ event.end_date }}",
+        end_time: "{{ event.end_time }}",
+        all_day: {{ 'true' if event.all_day else 'false' }}
+    };
+    
+    const icsContent = generateICS(eventData);
+    downloadICS(icsContent, eventData.title + '.ics');
+}
+
+function generateICS(eventData) {
+    const formatDate = (date, time, allDay = false) => {
+        const d = new Date(date + (time && !allDay ? ' ' + time : ''));
+        if (allDay) {
+            return d.toISOString().split('T')[0].replace(/-/g, '');
+        }
+        return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    };
+    
+    const startDate = formatDate(eventData.start_date, eventData.start_time, eventData.all_day);
+    const endDate = formatDate(eventData.end_date, eventData.end_time, eventData.all_day);
+    const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    
+    return `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Entropy Gaming//Calendar//DE
+BEGIN:VEVENT
+UID:${eventId}@entropy-gaming.de
+DTSTAMP:${now}Z
+DTSTART${eventData.all_day ? ';VALUE=DATE' : ''}:${startDate}
+DTEND${eventData.all_day ? ';VALUE=DATE' : ''}:${endDate}
+SUMMARY:${eventData.title}
+DESCRIPTION:${eventData.description || ''}
+END:VEVENT
+END:VCALENDAR`;
+}
+
+function downloadICS(content, filename) {
+    const blob = new Blob([content], { type: 'text/calendar' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function getCSRFToken() {
+    // CSRF Token aus Meta-Tag oder Cookie holen
+    const token = document.querySelector('meta[name="csrf-token"]');
+    return token ? token.getAttribute('content') : '';
+}
+</script>
+{% endblock %}

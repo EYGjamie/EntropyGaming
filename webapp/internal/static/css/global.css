@@ -114,6 +114,10 @@ a:hover {
     color: var(--entropy-red-primary);
 }
 
+.text-muted {
+    color: #fff;
+}
+
 /* ===== GRADIENT TEXT ===== */
 .gradient-text {
     background: var(--entropy-gradient-main);

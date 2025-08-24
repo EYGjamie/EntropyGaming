@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Kalender - Entropy Gaming{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calender.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Kalender Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="d-flex align-items-center">
+                            <h1 class="entropy-title mb-0">
+                                <i class="bi bi-calendar-event me-2"></i>
+                                Kalender
+                            </h1>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#createEventModal">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Event erstellen
+                            </button>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-light" onclick="changeView('month')" id="monthViewBtn">
+                                    <i class="bi bi-calendar3 me-1"></i>Monat
+                                </button>
+                                <button type="button" class="btn btn-outline-light" onclick="changeView('week')" id="weekViewBtn">
+                                    <i class="bi bi-calendar-week me-1"></i>Woche
+                                </button>
+                                <button type="button" class="btn btn-outline-light" onclick="changeView('day')" id="dayViewBtn">
+                                    <i class="bi bi-calendar-day me-1"></i>Tag
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kalender Navigation -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="">
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <button class="btn btn-outline-light btn-sm" id="prevMonthBtn">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <h4 class="mb-0 text-light">{{ calendar_data.month_name }} {{ calendar_data.year }}</h4>
+                            <button class="btn btn-outline-light btn-sm" id="nextMonthBtn">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-outline-light btn-sm" id="todayBtn">
+                                <i class="bi bi-calendar-check me-1"></i>Heute
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kalender Ansicht -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card entropy-card">
+                <div class="card-body p-0">
+                    <!-- Monatsansicht -->
+                    <div id="monthView" class="calendar-view">
+                        <div class="calendar-grid">
+                            <!-- Wochentage Header -->
+                            <div class="calendar-header">
+                                {% for weekday in calendar_data.weekdays %}
+                                <div class="calendar-weekday">{{ weekday }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Kalendertage -->
+                            <div class="calendar-body">
+                                {% for week in calendar_data.days %}
+                                    {% for day in week %}
+                                        {% if day == 0 %}
+                                            <div class="calendar-day empty"></div>
+                                        {% else %}
+                                            {% set is_today = (day == today.day and calendar_data.month == today.month and calendar_data.year == today.year) %}
+                                            <div class="calendar-day{% if is_today %} today{% endif %}" 
+                                                 data-date="{{ calendar_data.year }}-{{ '%02d'|format(calendar_data.month) }}-{{ '%02d'|format(day) }}"
+                                                 onclick="selectDay(this)">
+                                                <div class="day-number">{{ day }}</div>
+                                                <div class="day-events" id="events-{{ calendar_data.year }}-{{ '%02d'|format(calendar_data.month) }}-{{ '%02d'|format(day) }}">
+                                                    <!-- Events werden hier durch JavaScript eingefügt -->
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wochenansicht (versteckt) -->
+                    <div id="weekView" class="calendar-view d-none">
+                        <div class="week-grid">
+                            <!-- Wird durch JavaScript generiert -->
+                        </div>
+                    </div>
+
+                    <!-- Tagesansicht (versteckt) -->
+                    <div id="dayView" class="calendar-view d-none">
+                        <div class="day-grid">
+                            <!-- Wird durch JavaScript generiert -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Liste (mobile Ansicht) -->
+    <div class="row mt-4 d-md-none">
+        <div class="col-12">
+            <div class="card entropy-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Events diesen Monat</h5>
+                </div>
+                <div class="card-body">
+                    <div id="mobileEventsList">
+                        <!-- Events für mobile Ansicht -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event erstellen Modal -->
+<div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content entropy-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createEventModalLabel">
+                    <i class="bi bi-calendar-plus me-2"></i>Neues Event erstellen
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createEventForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="eventTitle" class="form-label">Titel *</label>
+                            <input type="text" class="form-control entropy-input" id="eventTitle" name="title" required>
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            <label for="eventDescription" class="form-label">Beschreibung</label>
+                            <textarea class="form-control entropy-input" id="eventDescription" name="description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="eventStartDate" class="form-label">Startdatum *</label>
+                            <input type="date" class="form-control entropy-input" id="eventStartDate" name="start_date" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="eventStartTime" class="form-label">Startzeit</label>
+                            <input type="time" class="form-control entropy-input" id="eventStartTime" name="start_time">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="eventEndDate" class="form-label">Enddatum</label>
+                            <input type="date" class="form-control entropy-input" id="eventEndDate" name="end_date">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="eventEndTime" class="form-label">Endzeit</label>
+                            <input type="time" class="form-control entropy-input" id="eventEndTime" name="end_time">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="eventAllDay" name="all_day">
+                                <label class="form-check-label" for="eventAllDay">
+                                    Ganztägig
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="eventType" class="form-label">Event Typ</label>
+                            <select class="form-select entropy-input" id="eventType" name="event_type">
+                                <option value="general">Allgemein</option>
+                                <option value="meeting">Meeting</option>
+                                <option value="tournament">Turnier</option>
+                                <option value="training">Training</option>
+                                <option value="event">Veranstaltung</option>
+                                <option value="deadline">Deadline</option>
+                                <option value="holiday">Feiertag</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            <label for="eventColor" class="form-label">Farbe</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <div class="color-option">
+                                    <input type="radio" name="color" value="#dc2626" id="color1" checked>
+                                    <label for="color1" class="color-label" style="background-color: #dc2626;"></label>
+                                </div>
+                                <div class="color-option">
+                                    <input type="radio" name="color" value="#16a34a" id="color2">
+                                    <label for="color2" class="color-label" style="background-color: #16a34a;"></label>
+                                </div>
+                                <div class="color-option">
+                                    <input type="radio" name="color" value="#0891b2" id="color3">
+                                    <label for="color3" class="color-label" style="background-color: #0891b2;"></label>
+                                </div>
+                                <div class="color-option">
+                                    <input type="radio" name="color" value="#ca8a04" id="color4">
+                                    <label for="color4" class="color-label" style="background-color: #ca8a04;"></label>
+                                </div>
+                                <div class="color-option">
+                                    <input type="radio" name="color" value="#9333ea" id="color5">
+                                    <label for="color5" class="color-label" style="background-color: #9333ea;"></label>
+                                </div>
+                                <div class="color-option">
+                                    <input type="radio" name="color" value="#f97316" id="color6">
+                                    <label for="color6" class="color-label" style="background-color: #f97316;"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="bi bi-check-circle me-1"></i>Event erstellen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content entropy-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventDetailsModalLabel">
+                    <i class="bi bi-calendar-event me-2"></i>Event Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="eventDetailsBody">
+                <!-- Event Details werden hier durch JavaScript eingefügt -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <div id="eventActionButtons">
+                    <!-- Action Buttons werden hier durch JavaScript eingefügt -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="d-none">
+    <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/calender.js') }}"></script>
+<script>
+    // Initialisierung mit Server-Daten
+    const initialEvents = {{ events | tojson | safe }};
+    const currentYear = {{ current_year }};
+    const currentMonth = {{ current_month }};
+    const todayDate = '{{ today.isoformat() }}';
+    
+    // Kalender initialisieren
+    document.addEventListener('DOMContentLoaded', function() {
+        window.calendarInstance = Calendar.init(initialEvents, currentYear, currentMonth);
+    });
+</script>
+{% endblock %}

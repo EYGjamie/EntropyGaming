@@ -28,6 +28,7 @@ def create_app(config_class=Config):
     from blueprints.api import api_bp
     from blueprints.forum import forum_bp
     from blueprints.valo_events import valo_events_bp
+    from blueprints.calender import calender_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -38,6 +39,7 @@ def create_app(config_class=Config):
     app.register_blueprint(api_bp)
     app.register_blueprint(forum_bp)
     app.register_blueprint(valo_events_bp)
+    app.register_blueprint(calender_bp)
     
     # Register template filters and globals
     from utils.template_helpers import register_template_helpers
