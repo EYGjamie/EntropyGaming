@@ -161,7 +161,7 @@ func (asm *AdvertisingStaffManager) createJobEmbed(jobMessage *JobMessage) *disc
 
 func InitializeAdvertisingStaff(bot *discordgo.Session) *AdvertisingStaffManager {
 	if utils.GetIdFromDB(bot, "ADVERTISING_STAFF") != "true" {
-		utils.LogAndNotifyAdmins(bot, "info", "Info", "advertising_staff.go", false, nil, "Advertising Staff is disabled in the database configuration.")
+		utils.LogAndNotifyAdmins(bot, "info", "Info", "advertising_staff.go", true, nil, "Advertising Staff is disabled in the database configuration.")
 		return nil
 	}
 
