@@ -505,15 +505,348 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
 <script src="{{ url_for('static', filename='js/forum-editor-enhanced.js') }}"></script>
 <script>
-// Reuse ForumEditor class from create template
-// (Include the same ForumEditor class implementation)
+// ForumEditor class implementation
+class ForumEditor {
+    constructor() {
+        this.contentEditor = document.getElementById('content');
+        this.previewArea = document.getElementById('preview');
+        this.currentMode = 'write';
+        this.initializeEditor();
+        this.initializeFileUpload();
+        this.initializeCounters();
+        this.setupAutoSave();
+    }
+    
+    initializeEditor() {
+        // Toolbar event listeners
+        document.querySelectorAll('.toolbar-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const action = btn.getAttribute('data-action');
+                this.handleToolbarAction(action);
+            });
+        });
+        
+        // Mode toggle
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const mode = btn.getAttribute('data-mode');
+                this.switchMode(mode);
+            });
+        });
+        
+        // Keyboard shortcuts
+        if (this.contentEditor) {
+            this.contentEditor.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'b':
+                            e.preventDefault();
+                            this.handleToolbarAction('bold');
+                            break;
+                        case 'i':
+                            e.preventDefault();
+                            this.handleToolbarAction('italic');
+                            break;
+                    }
+                }
+            });
+            
+            // Live preview update
+            this.contentEditor.addEventListener('input', () => {
+                this.updatePreview();
+                this.updateCounters();
+            });
+        }
+    }
+    
+    switchMode(mode) {
+        const writeModeBtn = document.querySelector('.mode-btn[data-mode="write"]');
+        const previewModeBtn = document.querySelector('.mode-btn[data-mode="preview"]');
+        
+        if (mode === 'write') {
+            this.currentMode = 'write';
+            if (this.contentEditor) this.contentEditor.style.display = 'block';
+            if (this.previewArea) this.previewArea.style.display = 'none';
+            if (writeModeBtn) writeModeBtn.classList.add('active');
+            if (previewModeBtn) previewModeBtn.classList.remove('active');
+        } else {
+            this.currentMode = 'preview';
+            if (this.contentEditor) this.contentEditor.style.display = 'none';
+            if (this.previewArea) this.previewArea.style.display = 'block';
+            if (writeModeBtn) writeModeBtn.classList.remove('active');
+            if (previewModeBtn) previewModeBtn.classList.add('active');
+            this.updatePreview();
+        }
+    }
+    
+    updatePreview() {
+        if (this.currentMode === 'preview' && this.previewArea && this.contentEditor) {
+            const content = this.contentEditor.value;
+            if (window.marked) {
+                const html = marked.parse(content);
+                const previewContent = this.previewArea.querySelector('.preview-content');
+                if (previewContent) {
+                    previewContent.innerHTML = html;
+                    
+                    // Highlight code blocks
+                    this.previewArea.querySelectorAll('pre code').forEach((block) => {
+                        if (window.hljs) {
+                            hljs.highlightElement(block);
+                        }
+                    });
+                }
+            }
+        }
+    }
+    
+    handleToolbarAction(action) {
+        if (!this.contentEditor) return;
+        
+        const start = this.contentEditor.selectionStart;
+        const end = this.contentEditor.selectionEnd;
+        const selectedText = this.contentEditor.value.substring(start, end);
+        let replacement = '';
+        
+        switch(action) {
+            case 'bold':
+                replacement = `**${selectedText || 'fetter Text'}**`;
+                break;
+            case 'italic':
+                replacement = `*${selectedText || 'kursiver Text'}*`;
+                break;
+            case 'strikethrough':
+                replacement = `~~${selectedText || 'durchgestrichener Text'}~~`;
+                break;
+            case 'heading':
+                replacement = `## ${selectedText || 'Überschrift'}`;
+                break;
+            case 'quote':
+                replacement = `> ${selectedText || 'Zitat'}`;
+                break;
+            case 'code':
+                replacement = `\`${selectedText || 'code'}\``;
+                break;
+            case 'codeblock':
+                replacement = `\`\`\`\n${selectedText || 'code hier'}\n\`\`\``;
+                break;
+            case 'link':
+                const url = prompt('URL eingeben:') || 'http://example.com';
+                replacement = `[${selectedText || 'Link Text'}](${url})`;
+                break;
+            case 'image':
+                const imgUrl = prompt('Bild URL eingeben:') || 'image.jpg';
+                replacement = `![${selectedText || 'Alt Text'}](${imgUrl})`;
+                break;
+            case 'list':
+                replacement = `- ${selectedText || 'Listenpunkt'}`;
+                break;
+            case 'table':
+                replacement = `| Spalte 1 | Spalte 2 |\n|----------|----------|\n| Zelle 1  | Zelle 2  |`;
+                break;
+            case 'help':
+                showMarkdownHelp();
+                return;
+        }
+        
+        if (replacement) {
+            this.insertAtCursor(replacement);
+        }
+    }
+    
+    insertAtCursor(text) {
+        if (!this.contentEditor) return;
+        
+        const start = this.contentEditor.selectionStart;
+        const end = this.contentEditor.selectionEnd;
+        const value = this.contentEditor.value;
+        
+        this.contentEditor.value = value.substring(0, start) + text + value.substring(end);
+        this.contentEditor.focus();
+        
+        // Set cursor position
+        const newPosition = start + text.length;
+        this.contentEditor.setSelectionRange(newPosition, newPosition);
+        
+        this.updateCounters();
+    }
+    
+    initializeFileUpload() {
+        const fileInput = document.getElementById('attachments');
+        const uploadArea = document.getElementById('fileUploadArea');
+        const fileList = document.getElementById('fileList');
+        
+        if (!uploadArea || !fileInput || !fileList) return;
+        
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const files = Array.from(e.dataTransfer.files);
+            this.handleFiles(files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            this.handleFiles(files);
+        });
+    }
+    
+    handleFiles(files) {
+        const fileList = document.getElementById('fileList');
+        if (!fileList) return;
+        
+        files.forEach(file => {
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                alert(`Datei "${file.name}" ist zu groß (max. 10MB)`);
+                return;
+            }
+            
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <i class="bi bi-file-earmark"></i>
+                    <span class="filename">${file.name}</span>
+                    <span class="filesize">${(file.size / 1024).toFixed(1)} KB</span>
+                </div>
+                <button type="button" class="remove-file-btn" onclick="this.parentElement.remove()">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+            fileList.appendChild(fileItem);
+        });
+    }
+    
+    initializeCounters() {
+        // Title counter
+        const titleInput = document.getElementById('title');
+        const titleCounter = document.getElementById('titleCounter');
+        
+        if (titleInput && titleCounter) {
+            titleInput.addEventListener('input', () => {
+                const length = titleInput.value.length;
+                titleCounter.textContent = `${length}/255`;
+                titleCounter.className = length > 240 ? 'counter-warning' : '';
+            });
+        }
+        
+        // Summary counter
+        const summaryInput = document.getElementById('summary');
+        const summaryCounter = document.getElementById('summaryCounter');
+        
+        if (summaryInput && summaryCounter) {
+            summaryInput.addEventListener('input', () => {
+                const length = summaryInput.value.length;
+                summaryCounter.textContent = `${length}/150`;
+                summaryCounter.className = length > 140 ? 'counter-warning' : '';
+            });
+        }
+        
+        // Initial count update
+        this.updateCounters();
+    }
+    
+    updateCounters() {
+        if (!this.contentEditor) return;
+        
+        const content = this.contentEditor.value;
+        const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+        const charCount = content.length;
+        
+        const wordCountEl = document.getElementById('wordCount');
+        const charCountEl = document.getElementById('charCount');
+        
+        if (wordCountEl) wordCountEl.textContent = `${wordCount} Wörter`;
+        if (charCountEl) charCountEl.textContent = `${charCount} Zeichen`;
+    }
+    
+    setupAutoSave() {
+        if (!this.contentEditor) return;
+        
+        let autoSaveTimer;
+        
+        this.contentEditor.addEventListener('input', () => {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                this.saveToLocalStorage();
+            }, 5000); // Auto-save after 5 seconds of inactivity
+        });
+        
+        // Load from localStorage on page load (only for create, not edit)
+        if (window.location.pathname.includes('/create')) {
+            this.loadFromLocalStorage();
+        }
+    }
+    
+    saveToLocalStorage() {
+        const titleEl = document.getElementById('title');
+        const summaryEl = document.getElementById('summary');
+        const categoryEl = document.getElementById('category_id');
+        
+        const data = {
+            title: titleEl ? titleEl.value : '',
+            content: this.contentEditor ? this.contentEditor.value : '',
+            summary: summaryEl ? summaryEl.value : '',
+            category: categoryEl ? categoryEl.value : '',
+            timestamp: Date.now()
+        };
+        
+        // Use different keys for create vs edit
+        const storageKey = window.location.pathname.includes('/edit/') 
+            ? `forum_post_edit_${window.location.pathname.split('/').pop()}`
+            : 'forum_post_draft';
+            
+        localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+    
+    loadFromLocalStorage() {
+        const saved = localStorage.getItem('forum_post_draft');
+        const titleEl = document.getElementById('title');
+        
+        if (saved && titleEl && !titleEl.value) { // Only load if form is empty
+            try {
+                const data = JSON.parse(saved);
+                if (Date.now() - data.timestamp < 86400000) { // Only if less than 24 hours old
+                    if (confirm('Es wurde ein gespeicherter Entwurf gefunden. Möchten Sie ihn laden?')) {
+                        if (titleEl) titleEl.value = data.title || '';
+                        if (this.contentEditor) this.contentEditor.value = data.content || '';
+                        
+                        const summaryEl = document.getElementById('summary');
+                        const categoryEl = document.getElementById('category_id');
+                        
+                        if (summaryEl) summaryEl.value = data.summary || '';
+                        if (categoryEl) categoryEl.value = data.category || '';
+                        
+                        this.updateCounters();
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading draft:', e);
+            }
+        }
+    }
+}
 
 // Edit-specific functionality
 document.addEventListener('DOMContentLoaded', function() {
     new ForumEditor();
     
     // Generate summary button
-    document.getElementById('generateSummaryBtn').addEventListener('click', generateSummary);
+    const generateBtn = document.getElementById('generateSummaryBtn');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', generateSummary);
+    }
     
     // Form validation
     document.getElementById('editPostForm').addEventListener('submit', function(e) {

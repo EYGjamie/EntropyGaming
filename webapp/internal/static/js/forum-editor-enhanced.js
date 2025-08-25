@@ -301,7 +301,7 @@ graph TD
 
     function setupMathSupport() {
         // Initialize MathJax if available
-        if (window.MathJax) {
+        if (window.MathJax && window.MathJax.startup && window.MathJax.startup.document) {
             window.MathJax.startup.document.updateDocument();
         }
     }
