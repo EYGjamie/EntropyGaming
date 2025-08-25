@@ -49,7 +49,7 @@
     
     <div class="comment-content">
         <div class="comment-text" id="commentText_{{ comment.id }}">
-            {{ comment.content|nl2br }}
+            {{ comment.content }}
         </div>
         
         <!-- Edit form (hidden by default) -->
@@ -57,6 +57,7 @@
             <form onsubmit="updateComment(event, {{ comment.id }})">
                 <textarea class="form-textarea" 
                           id="editContent_{{ comment.id }}"
+                          name="content"
                           maxlength="2000" 
                           rows="3"
                           required>{{ comment.content }}</textarea>
@@ -127,7 +128,7 @@
                 
                 <div class="comment-content">
                     <div class="comment-text" id="commentText_{{ reply.id }}">
-                        {{ reply.content|nl2br }}
+                        {{ reply.content }}
                     </div>
                     
                     <!-- Edit form for reply -->
@@ -135,6 +136,7 @@
                         <form onsubmit="updateComment(event, {{ reply.id }})">
                             <textarea class="form-textarea" 
                                       id="editContent_{{ reply.id }}"
+                                      name="content"
                                       maxlength="2000" 
                                       rows="3"
                                       required>{{ reply.content }}</textarea>
@@ -205,7 +207,7 @@ async function updateComment(event, commentId) {
             // Update comment text
             const textDiv = document.getElementById(`commentText_${commentId}`);
             const newContent = document.getElementById(`editContent_${commentId}`).value;
-            textDiv.innerHTML = newContent.replace(/\n/g, '<br>');
+            textDiv.textContent = newContent;
             
             // Hide edit form
             cancelEdit(commentId);

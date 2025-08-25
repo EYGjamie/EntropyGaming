@@ -279,7 +279,7 @@ function createCommentHTML(comment) {
         </div>
         
         <div class="comment-content" id="commentContent${comment.id}">
-            ${comment.content.replace(/\n/g, '<br>')}
+            ${comment.content}
         </div>
         
         <div class="comment-footer">
@@ -357,7 +357,7 @@ function createReplyHTML(comment) {
         </div>
         
         <div class="comment-content" id="commentContent${comment.id}">
-            ${comment.content.replace(/\n/g, '<br>')}
+            ${comment.content}
         </div>
     `;
 }
@@ -435,28 +435,20 @@ function hideReplyForm(commentId) {
  * Edit comment
  */
 function editComment(commentId) {
-    const commentContent = document.getElementById(`commentContent${commentId}`);
-    if (!commentContent) return;
+    // Use the inline edit system from comment_item.html
+    const textDiv = document.getElementById(`commentText_${commentId}`);
+    const editForm = document.getElementById(`editForm_${commentId}`);
     
-    // Get current content (remove HTML line breaks)
-    const currentContent = commentContent.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-    
-    // Show edit modal
-    const editModal = document.getElementById('editCommentModal');
-    const editTextarea = document.getElementById('editCommentContent');
-    
-    if (editModal && editTextarea) {
-        editTextarea.value = currentContent;
-        editModal.style.display = 'flex';
-        editTextarea.focus();
+    if (textDiv && editForm) {
+        textDiv.style.display = 'none';
+        editForm.style.display = 'block';
         
-        // Update character counter
-        const counter = editModal.querySelector('.char-counter .char-count');
-        if (counter) {
-            updateCharCounter(editTextarea, counter);
+        const textarea = document.getElementById(`editContent_${commentId}`);
+        if (textarea) {
+            textarea.focus();
         }
         
-        // Store current comment ID for submission
+        // Set current editing comment
         currentEditCommentId = commentId;
     }
 }
@@ -501,7 +493,7 @@ async function handleEditCommentSubmit(event) {
             // Update comment content in DOM
             const commentContent = document.getElementById(`commentContent${currentEditCommentId}`);
             if (commentContent) {
-                commentContent.innerHTML = data.content.replace(/\n/g, '<br>');
+                commentContent.textContent = data.content;
                 
                 // Add "edited" indicator if not already present
                 const commentHeader = commentContent.closest('.comment-item').querySelector('.comment-header');
@@ -514,7 +506,7 @@ async function handleEditCommentSubmit(event) {
                 }
             }
             
-            closeEditCommentModal();
+            cancelEdit(currentEditCommentId);
             ForumUtils.showNotification(data.message, 'success');
         } else {
             ForumUtils.showNotification(data.error, 'error');
@@ -580,18 +572,15 @@ async function deleteComment(commentId) {
 }
 
 /**
- * Close edit comment modal
+ * Cancel edit comment (inline system)
  */
-function closeEditCommentModal() {
-    const editModal = document.getElementById('editCommentModal');
-    if (editModal) {
-        editModal.style.display = 'none';
-        
-        // Reset form
-        const form = editModal.querySelector('form');
-        if (form) {
-            form.reset();
-        }
+function cancelEdit(commentId) {
+    const textDiv = document.getElementById(`commentText_${commentId}`);
+    const editForm = document.getElementById(`editForm_${commentId}`);
+    
+    if (textDiv && editForm) {
+        textDiv.style.display = 'block';
+        editForm.style.display = 'none';
         
         currentEditCommentId = null;
     }

@@ -732,7 +732,11 @@ def edit_comment(comment_id):
             resource_id=str(comment_id)
         )
         
-        return jsonify({'success': True})
+        return jsonify({
+            'success': True, 
+            'content': content,
+            'message': 'Kommentar erfolgreich aktualisiert'
+        })
         
     except Exception as e:
         logging.error(f"Error editing comment {comment_id}: {e}")
