@@ -103,6 +103,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
+    align-items: start;  /* Statt auto - für bessere Ausrichtung */
 }
 
 .form-section .form-group {
@@ -111,6 +112,16 @@
 
 .form-section .form-group:first-child {
     padding-top: 20px;
+}
+
+/* Spezielle Behandlung für Titel und Kategorie Row */
+.form-section .form-row .form-group {
+    padding: 0;  /* Kein padding bei form-row Kindern */
+}
+
+/* Zusätzlicher Abstand zwischen Grundinformationen und Kurzzusammenfassung */
+.form-section + .form-section {
+    margin-top: 35px;  /* Mehr Abstand zwischen Sektionen */
 }
 
 /* ===== FORM ELEMENTS ===== */
@@ -126,6 +137,38 @@
 
 .form-label .required {
     color: var(--entropy-red-primary);
+}
+
+/* ===== AI BUTTON ===== */
+.btn-ai {
+    background: linear-gradient(135deg, var(--entropy-red-primary), var(--entropy-red-dark));
+    color: var(--entropy-white-primary) !important;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--entropy-border-radius-small);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--entropy-transition);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.btn-ai:hover {
+    background: linear-gradient(135deg, var(--entropy-red-dark), var(--entropy-red-primary));
+    color: var(--entropy-white-primary) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-ai:disabled {
+    background: var(--entropy-gray-dark);
+    color: var(--entropy-gray-light) !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .form-input,
