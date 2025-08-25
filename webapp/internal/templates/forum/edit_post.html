@@ -271,54 +271,12 @@
                         </div>
                     </div>
 
-                    <!-- Edit Information -->
-                    <div class="sidebar-section">
-                        <div class="sidebar-section-header">
-                            <h4><i class="bi bi-info-circle"></i> Bearbeitungsinfo</h4>
-                        </div>
-                        
-                        <div class="edit-info">
-                            <div class="info-item">
-                                <label>Erstellt:</label>
-                                <span>{{ post.created_at|datetime_format }}</span>
-                            </div>
-                            {% if post.updated_at and post.updated_at != post.created_at %}
-                            <div class="info-item">
-                                <label>Zuletzt bearbeitet:</label>
-                                <span>{{ post.updated_at|datetime_format }}</span>
-                            </div>
-                            {% endif %}
-                            <div class="info-item">
-                                <label>Autor:</label>
-                                <span>{{ post.author_display_name or post.author_name }}</span>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Actions -->
-                    <div class="sidebar-section">
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="bi bi-check-circle"></i> 
-                                Änderungen speichern
-                            </button>
-                            
-                            <button type="button" class="btn btn-outline btn-block" onclick="saveDraft()">
-                                <i class="bi bi-save"></i> Als Entwurf speichern
-                            </button>
-                            
-                            <a href="{{ url_for('forum.view_post', post_id=post.id) }}" 
-                               class="btn btn-secondary btn-block">
-                                <i class="bi bi-x-lg"></i> Abbrechen
-                            </a>
-                            
-                            {% if user.has_management_role() %}
-                            <hr class="sidebar-divider">
-                            <button type="button" class="btn btn-danger btn-block" onclick="deletePost()">
-                                <i class="bi bi-trash"></i> Post löschen
-                            </button>
-                            {% endif %}
-                        </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="bi bi-check-circle"></i> 
+                            Änderungen speichern
+                        </button>      
                     </div>
                 </div>
             </div>
