@@ -18,15 +18,15 @@ func DeleteAllCommands(bot *discordgo.Session) {
 	for _, cmd := range commands {
 		err := bot.ApplicationCommandDelete(bot.State.User.ID, guildID, cmd.ID)
 		if err != nil {
-			utils.LogAndNotifyAdmins(bot, "info", "Error", "commands.go", true, err, "Fehler beim Löschen des Commands: " + cmd.Name)
-		} 
+			utils.LogAndNotifyAdmins(bot, "info", "Error", "commands.go", true, err, "Fehler beim Löschen des Commands: "+cmd.Name)
+		}
 	}
 }
 
 func RegisterCommands(bot *discordgo.Session) {
 	adminPermission := int64(discordgo.PermissionAdministrator)
 	commands := []*discordgo.ApplicationCommand{
-		/*----------------------------------------------------------*/	
+		/*----------------------------------------------------------*/
 
 		// ticket_view Command (sends the ticket view with 'Create Ticket' button)
 		{
@@ -52,17 +52,17 @@ func RegisterCommands(bot *discordgo.Session) {
 			Description: "Gibt Standardantwort für Bewerbungen aus",
 			Options: []*discordgo.ApplicationCommandOption{
 				{Type: discordgo.ApplicationCommandOptionString, Name: "variant", Description: "Antwort-Variante",
-				Required: true,
-				Choices: []*discordgo.ApplicationCommandOptionChoice{
-					{Name: "Pro-Team nicht möglich", Value: "pro_not_eligible"},
-					{Name: "Nicht für Pro beworben", Value: "not_applied_pro"},
+					Required: true,
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{Name: "Pro-Team nicht möglich", Value: "pro_not_eligible"},
+						{Name: "Nicht für Pro beworben", Value: "not_applied_pro"},
 					},
 				},
 			},
 			DefaultMemberPermissions: nil,
 		},
 
-		/*----------------------------------------------------------*/	
+		/*----------------------------------------------------------*/
 
 		// create_team_area Command (creates a team area with channels and roles)
 		{
@@ -86,9 +86,9 @@ func RegisterCommands(bot *discordgo.Session) {
 				{Type: discordgo.ApplicationCommandOptionBoolean, Name: "notes", Description: "Notes-Channel erstellen?", Required: true},
 			},
 			DefaultMemberPermissions: nil,
-    	},
+		},
 
-		/*----------------------------------------------------------*/	
+		/*----------------------------------------------------------*/
 
 		// delete_team_area Command (deletes a team area with channels and roles)
 		{
@@ -96,10 +96,10 @@ func RegisterCommands(bot *discordgo.Session) {
 			Description: "Löscht einen Team-Bereich komplett",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "category_id",
-				Description: "ID der Kategorie des Team-Bereichs",
-				Required:    true,
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "category_id",
+					Description: "ID der Kategorie des Team-Bereichs",
+					Required:    true,
 				},
 			},
 			DefaultMemberPermissions: nil,
@@ -109,8 +109,8 @@ func RegisterCommands(bot *discordgo.Session) {
 
 		// music Command (sends a help message for music commands)
 		{
-			Name:        "music",
-			Description: "Musik-Commands Help Liste",
+			Name:                     "music",
+			Description:              "Musik-Commands Help Liste",
 			DefaultMemberPermissions: nil,
 		},
 
@@ -118,8 +118,8 @@ func RegisterCommands(bot *discordgo.Session) {
 
 		// cplist Command (sends a list of CPs)
 		{
-			Name:        "cplist",
-			Description: "Sendet eine Liste der Contact Persons",
+			Name:                     "cplist",
+			Description:              "Sendet eine Liste der Contact Persons",
 			DefaultMemberPermissions: &adminPermission,
 		},
 
@@ -127,9 +127,18 @@ func RegisterCommands(bot *discordgo.Session) {
 
 		// quiz_role Command (sends a button to get the quiz role)
 		{
-			Name:        "quiz_role",
-			Description: "Sendet get Quiz-Rolle Button",
+			Name:                     "quiz_role",
+			Description:              "Sendet get Quiz-Rolle Button",
 			DefaultMemberPermissions: &adminPermission,
+		},
+
+		/*----------------------------------------------------------*/
+
+		// quiz_leaderboard Command (shows the top 25 quiz players)
+		{
+			Name:                     "quiz_leaderboard",
+			Description:              "Zeigt die besten 25 Quiz-Spieler an",
+			DefaultMemberPermissions: nil,
 		},
 
 		/*----------------------------------------------------------*/
@@ -158,11 +167,11 @@ func RegisterCommands(bot *discordgo.Session) {
 					Required:    true,
 					Choices:     surveys.CommandChoices(),
 				},
-        	},
+			},
 			DefaultMemberPermissions: &adminPermission,
 		},
 
-		/*----------------------------------------------------------*/	
+		/*----------------------------------------------------------*/
 
 		// Stats
 		{
@@ -177,7 +186,7 @@ func RegisterCommands(bot *discordgo.Session) {
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "to", 
+					Name:        "to",
 					Description: "End-Datum (YYYY-MM-DD, optional)",
 					Required:    false,
 				},
@@ -188,8 +197,8 @@ func RegisterCommands(bot *discordgo.Session) {
 
 		// Update Users
 		{
-			Name:        "update_users",
-			Description: "Updated alle User in der DB",
+			Name:                     "update_users",
+			Description:              "Updated alle User in der DB",
 			DefaultMemberPermissions: &adminPermission,
 		},
 
@@ -197,12 +206,12 @@ func RegisterCommands(bot *discordgo.Session) {
 
 		// Sync Team Members
 		{
-			Name: "sync_team_members",
-			Description: "Synchronisiert Team-Mitglieder mit der Datenbank",
+			Name:                     "sync_team_members",
+			Description:              "Synchronisiert Team-Mitglieder mit der Datenbank",
 			DefaultMemberPermissions: &adminPermission,
 		},
 
-		/*----------------------------------------------------------*/	
+		/*----------------------------------------------------------*/
 
 		// valo_event Command (sends the valorant event registration embed with button)
 		{
@@ -211,7 +220,7 @@ func RegisterCommands(bot *discordgo.Session) {
 			DefaultMemberPermissions: &adminPermission,
 		},
 
-		/*----------------------------------------------------------*/	
+		/*----------------------------------------------------------*/
 
 		{
 			Name:        "profilbild-gen",
@@ -246,8 +255,8 @@ func RegisterCommands(bot *discordgo.Session) {
 	for _, cmd := range commands {
 		_, err := bot.ApplicationCommandCreate(bot.State.User.ID, utils.GetIdFromDB(bot, "GUILD_ID"), cmd)
 		if err != nil {
-			utils.LogAndNotifyAdmins(bot, "warn", "Error", "commands.go", true, err, "Fehler beim Registrieren des Commands: " + cmd.Name)
+			utils.LogAndNotifyAdmins(bot, "warn", "Error", "commands.go", true, err, "Fehler beim Registrieren des Commands: "+cmd.Name)
 		}
 	}
 	log.Printf("Alle Commands erfolgreich registriert.")
-} 
+}
