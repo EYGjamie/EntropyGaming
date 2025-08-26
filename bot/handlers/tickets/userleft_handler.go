@@ -41,7 +41,22 @@ func CheckAndNotifyInactiveUsers(bot *discordgo.Session) {
 							Description: "Der Ersteller dieses Tickets ist nicht mehr auf dem Server.",
 							Color:       0xFF0000, // Rot
 						}
-						_, sendErr := bot.ChannelMessageSendEmbed(channelID, message)
+						// Button zum löschen des Tickets
+						components := []discordgo.MessageComponent{
+							discordgo.ActionsRow{
+								Components: []discordgo.MessageComponent{
+									discordgo.Button{
+										Label:    "Delete Ticket",
+										Style:    discordgo.DangerButton,
+										CustomID: "ticket_button_delete",
+									},
+								},
+							},
+						}
+						_, sendErr := bot.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
+							Embed:      message,
+							Components: components,
+						})
 						if sendErr != nil {
 							utils.LogAndNotifyAdmins(bot, "low", "Error", "userleft_handler.go", true, sendErr, "Fehler beim Senden der Nachricht an den Ticket-Kanal")
 						}
