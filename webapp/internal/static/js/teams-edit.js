@@ -163,7 +163,7 @@ function removeMember(userId, memberName) {
         return;
     }
     
-    const confirmMessage = `Möchten Sie "${memberName}" wirklich aus dem Team entfernen?\n\nDiese Aktion kann nicht rückgängig gemacht werden und entfernt das Mitglied auch aus Discord.`;
+    const confirmMessage = `Möchten Sie "${memberName}" wirklich aus dem Team entfernen?\n\nDiese Aktion entfernt ebenfalls die Rollen des Mitglieds auf dem Discord.`;
     
     document.getElementById('confirmMessage').textContent = confirmMessage;
     
