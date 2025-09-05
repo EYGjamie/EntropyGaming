@@ -50,7 +50,7 @@
   },
   { 
     "id": 11, 
-    "name": "Mini", 
+    "name": "Felix", 
     "position": "Club Leitung", 
     "specific": "Community Management & Operative Clubführung",
     "parentIds": [6] 
@@ -98,13 +98,6 @@
     "parentIds": [2] 
   },
   { 
-    "id": 14, 
-    "name": "Sechseck", 
-    "position": "Team Akquise", 
-    "specific": "Mitgliedergewinnung (Discord & Club)",
-    "parentIds": [2] 
-  },
-  { 
     "id": 24, 
     "name": "Michi", 
     "position": "E-Sports Support", 
@@ -127,12 +120,12 @@
   },
   { 
     "id": 21, 
-    "name": "NYC_1809", 
+    "name": "TBD", 
     "position": "Bereichsleitung Valorant", 
     "specific": "Valorant Team Management",
     "parentIds": [10, 11, 12] 
   },
-    { 
+  { 
     "id": 31, 
     "name": "Elli", 
     "position": "Bereichsleitung Valorant", 
@@ -148,7 +141,7 @@
   },
   { 
     "id": 23, 
-    "name": "RagzyEntropy", 
+    "name": "TBD", 
     "position": "Bereichsleitung Rainbow Six Siege", 
     "specific": "Rainbow Six Siege Management",
     "parentIds": [16] 

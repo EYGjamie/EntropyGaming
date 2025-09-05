@@ -29,7 +29,6 @@
       "items": [
         { "mention": "343791588075372556", "name": "Luca (Head of Discord)" },
         { "mention": "394861885066969098", "name": "Phyn (Head of Akquise)" },
-        { "mention": "473480564377255946", "name": "Sechseck (Head of Akquise)" },
         { "mention": "675797783671865453", "name": "Niclas (Head of Events)" },
         { "mention": "1100853275575722066", "name": "Ben (Head of Events)" }
       ]
@@ -46,13 +45,11 @@
       "title": "<:Entropy2:1225559069167980634> Community/ Diamond Club:",
       "items": [
         { "mention": "355308272028483595", "name": "Mella (Leitung <:DiamondClub:1229333849578799175>)" },
-        { "mention": "465879656973729802", "name": "Minii (Leitung <:DiamondClub:1229333849578799175>)" },
+        { "mention": "435444579983032320", "name": "Felix (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "317728272970547200", "name": "Eric (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "435444579983032320", "name": "Felix (Head of <:R6:1224812874942382140>)" },
-        { "mention": "1159202923230806157", "name": "Dennis (Head of <:R6:1224812874942382140>)" },
         { "mention": "343791588075372556", "name": "Luca (Head of <:RL:1224812865928691772>)" },
         { "mention": "584803424504381450", "name": "Mario (Head of <:RL:1224812865928691772>)" },
-        { "mention": "527534107308195840", "name": "Peter (Head of <:Valorant:1224812878087983104>)" },
         { "mention": "417065352804171778", "name": "Elli (Head of <:Valorant:1224812878087983104>)" },
         { "mention": "317728272970547200", "name": "Eric (Head of <:CS2:1224812873436631202>)" }
       ]
