@@ -105,13 +105,6 @@
     "parentIds": [2] 
   },
   { 
-    "id": 24, 
-    "name": "Michi", 
-    "position": "E-Sports Support", 
-    "specific": "E-Sport Team Management",
-    "parentIds": [3] 
-  },
-  { 
     "id": 16, 
     "name": "Felix", 
     "position": "Head of Rainbow Six Siege", 
