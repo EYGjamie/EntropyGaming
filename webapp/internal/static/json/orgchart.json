@@ -9,8 +9,8 @@
   { 
     "id": 2, 
     "name": "Jamie Rohner", 
-    "position": "Projektleitung", 
-    "specific": "CIO/CTO & Team Akquise",
+    "position": "Head of Discord", 
+    "specific": "CIO/CTO",
     "parentIds": [1] 
   },
   { 
@@ -29,7 +29,7 @@
   },
   { 
     "id": 5, 
-    "name": "Roskato", 
+    "name": "TBD", 
     "position": "Projektleitung", 
     "specific": "Content & Social Media Koordination",
     "parentIds": [1] 
@@ -82,6 +82,13 @@
     "position": "Social Media Manager", 
     "specific": "Match-Coverage",
     "parentIds": [5] 
+  },
+  {
+    "id": 36, 
+    "name": "Calvin", 
+    "position": "Head of Content Creation", 
+    "specific": "Koordination und Management der Content Creator",
+    "parentIds": [5]
   },
   { 
     "id": 20, 
