@@ -5,31 +5,28 @@
       "title": "<:Entropy2:1225559069167980634> Projektleitung:",
       "items": [
         { "mention": "249673733420089344", "name": "Michael (Gründer & Leitung von Entropy)" },
+        { "mention": "187194184648753152", "name": "Elias (COO)" },
         { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
-        { "mention": "803194058184327218", "name": "Philipp (Aufsicht Fortschritt)" }
+        { "mention": "803194058184327218", "name": "Philipp (Aufsicht Fortschritt)" },
+        { "mention": "317728272970547200", "name": "Eric (Leitung Club & Community)" }
       ]
     },
     {
       "title": "<:Entropy2:1225559069167980634> Social Media, Content- & Design-Management:",
       "items": [
         { "mention": "294188738764865538", "name": "Paul (Social Media Manager)" },
-        { "mention": "797924751707471874", "name": "Fabian (Social Media Manager)" },
         { "mention": "799293966251196456", "name": "Marvin (Mediengestalter)" },
         { "mention": "389944071596277770", "name": "Francine (Leitung Content Creator)" },
-        { "mention": "1194313182517411934", "name": "Calvin (Leitung Content Creator)" },
-        { "mention": "346328694135980032", "name": "Aaron (Assistenz Design)" }
+        {"mention": "346328694135980032", "name": "Aaron (Assistenz Design)"}
 
       ]
     },
-
     {
       "title": "<:Entropy2:1225559069167980634> Allgemeines Management:",
       "items": [
         { "mention": "423480294948208661", "name": "Jamie (Head of Discord)"},
         { "mention": "343791588075372556", "name": "Luca (Head of Discord)" },
-        { "mention": "394861885066969098", "name": "Phyn (Head of Akquise)" },
-        { "mention": "675797783671865453", "name": "Niclas (Head of Events)" },
-        { "mention": "1100853275575722066", "name": "Ben (Head of Events)" }
+        { "mention": "675797783671865453", "name": "Niclas (Head of Events)" }
       ]
     },
     {
@@ -45,9 +42,8 @@
         { "mention": "355308272028483595", "name": "Mella (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "435444579983032320", "name": "Felix (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "317728272970547200", "name": "Eric (Leitung <:DiamondClub:1229333849578799175>)" },
-        { "mention": "435444579983032320", "name": "Felix (Head of <:R6:1224812874942382140>)" },
+        { "mention": "667799117443104792", "name": "Jason (Head of <:R6:1224812874942382140>)" },
         { "mention": "343791588075372556", "name": "Luca (Head of <:RL:1224812865928691772>)" },
-        { "mention": "584803424504381450", "name": "Mario (Head of <:RL:1224812865928691772>)" },
         { "mention": "417065352804171778", "name": "Elli (Head of <:Valorant:1224812878087983104>)" },
         { "mention": "317728272970547200", "name": "Eric (Head of <:CS2:1224812873436631202>)" }
       ]
