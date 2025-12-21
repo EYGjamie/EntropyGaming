@@ -7,8 +7,10 @@
         { "mention": "249673733420089344", "name": "Michael (Gründer & Leitung von Entropy)" },
         { "mention": "187194184648753152", "name": "Elias (COO)" },
         { "mention": "211872448541491201", "name": "Fabian (Leitung E-Sport)" },
-        { "mention": "803194058184327218", "name": "Philipp (Prozesskoordination)" },
-        { "mention": "317728272970547200", "name": "Eric (Leitung Club & Community)" }
+        { "mention": "423480294948208661", "name": "Jamie (CTO/CIO & Head of Content)"},
+        { "mention": "317728272970547200", "name": "Eric (Leitung Club & Community)" },
+        { "mention": "803194058184327218", "name": "Philipp (Prozesskoordination)" }
+        
       ]
     },
     {
@@ -39,7 +41,6 @@
     {
       "title": "<:Entropy2:1225559069167980634> Community/ Diamond Club:",
       "items": [
-        { "mention": "355308272028483595", "name": "Mella (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "435444579983032320", "name": "Felix (Leitung <:DiamondClub:1229333849578799175>)" },
         { "mention": "667799117443104792", "name": "Jason (Head of <:R6:1224812874942382140>)" },
         { "mention": "343791588075372556", "name": "Luca (Head of <:RL:1442815698790387773>)" },
