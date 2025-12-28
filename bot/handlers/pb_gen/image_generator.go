@@ -38,7 +38,7 @@ func (ig *ImageGenerator) GenerateAvatar(data AvatarData) (io.Reader, error) {
 	var canvas *image.RGBA
 
 	switch data.BackgroundType {
-	case TypeBanner:
+	case TypeBanner, TypeESportBanner:
 		canvas, err = ig.generateBanner(backgroundImg, fontPath, data.Nickname)
 	case TypeDark:
 		canvas, err = ig.generateDarkProfile(backgroundImg, fontPath, data.Nickname)

@@ -30,8 +30,14 @@ func HandleProfilbildGenCommand(bot *discordgo.Session, bot_interaction *discord
 		}
 	case "banner":
 		profileType = TypeBanner
+	case "esport-banner":
+		profileType = TypeESportBanner
+		if !utils.CheckUserPermissions(bot, bot_interaction, utils.RequireRoleManagement) {
+			utils.SendErrorEmbed(bot, bot_interaction, "❌ Keine Berechtigung", "Du hast keine Berechtigung, ein eSport Banner zu generieren.", true)
+			return
+		}
 	default:
-		utils.SendErrorEmbed(bot, bot_interaction, "❌ Ungültiger Typ", "Der angegebene Typ ist ungültig. Bitte wähle eine der drei Möglichkeiten.", true)
+		utils.SendErrorEmbed(bot, bot_interaction, "❌ Ungültiger Typ", "Der angegebene Typ ist ungültig. Bitte wähle eine der verfügbaren Möglichkeiten.", true)
 		return
 	}
 
@@ -64,7 +70,7 @@ func HandleProfilbildGenCommand(bot *discordgo.Session, bot_interaction *discord
 	imageReader, err := generator.GenerateAvatar(avatarData)
 	if err != nil {
 		utils.LogAndNotifyAdmins(bot, "high", "Error", "pb_gen.go", true, err, "Fehler beim Generieren des Avatars")
-		
+
 		_, err = bot.InteractionResponseEdit(bot_interaction.Interaction, &discordgo.WebhookEdit{
 			Content: stringPtr("❌ Ein Fehler ist beim Generieren des Profilbildes aufgetreten."),
 		})
@@ -91,8 +97,8 @@ func HandleProfilbildGenCommand(bot *discordgo.Session, bot_interaction *discord
 	}
 
 	// Erfolgreiche Generierung loggen
-	utils.LogAndNotifyAdmins(bot, "info", "Info", "pb_gen.go", false, nil, 
-		fmt.Sprintf("Profilbild generiert für User %s (%s) - Typ: %s, Nickname: %s", 
+	utils.LogAndNotifyAdmins(bot, "info", "Info", "pb_gen.go", false, nil,
+		fmt.Sprintf("Profilbild generiert für User %s (%s) - Typ: %s, Nickname: %s",
 			bot_interaction.Member.User.Username, bot_interaction.Member.User.ID, typeValue, nickname))
 }
 

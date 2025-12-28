@@ -8,9 +8,10 @@ import (
 type ProfilePictureType string
 
 const (
-	TypeDefault ProfilePictureType = "default"
-	TypeDark    ProfilePictureType = "dark"
-	TypeBanner  ProfilePictureType = "banner"
+	TypeDefault      ProfilePictureType = "default"
+	TypeDark         ProfilePictureType = "dark"
+	TypeBanner       ProfilePictureType = "banner"
+	TypeESportBanner ProfilePictureType = "esport-banner"
 )
 
 // AvatarData enthält alle Informationen für die Avatar-Generierung
@@ -21,13 +22,14 @@ type AvatarData struct {
 
 // Konstanten für Dateipfade
 const (
-	FontUserLogo  = "data/fonts/squer1.ttf"
-	FontBanner    = "data/fonts/squer1.ttf"
-	FontTeamLogo  = "data/fonts/Cyberthrone.ttf"
-	
-	BGUserLogo = "data/bg/SpielerProfilbild.png"
-	BGBanner   = "data/bg/SpielerBanner.png"
-	BGTeamLogo = "data/bg/TeamProfilbildOld.png"
+	FontUserLogo = "data/fonts/squer1.ttf"
+	FontBanner   = "data/fonts/squer1.ttf"
+	FontTeamLogo = "data/fonts/Cyberthrone.ttf"
+
+	BGUserLogo     = "data/bg/SpielerProfilbild.png"
+	BGBanner       = "data/bg/SpielerBanner.png"
+	BGTeamLogo     = "data/bg/TeamProfilbildOld.png"
+	BGESportBanner = "data/bg/entropy_banner.png"
 )
 
 // Konstanten für Canvas-Größen
@@ -35,7 +37,7 @@ const (
 	DefaultCanvasWidth  = 1500
 	DefaultCanvasHeight = 1500
 	DefaultTextY        = 1180
-	
+
 	BannerLetterSpacing = 18
 	BannerAnchorX       = 0.60
 	BannerTextY         = 0.625
@@ -56,6 +58,8 @@ func (t ProfilePictureType) GetBackgroundPath() string {
 		return BGTeamLogo
 	case TypeBanner:
 		return BGBanner
+	case TypeESportBanner:
+		return BGESportBanner
 	default:
 		return BGUserLogo
 	}
@@ -69,6 +73,8 @@ func (t ProfilePictureType) GetFontPath() string {
 	case TypeDark:
 		return FontTeamLogo
 	case TypeBanner:
+		return FontBanner
+	case TypeESportBanner:
 		return FontBanner
 	default:
 		return FontUserLogo

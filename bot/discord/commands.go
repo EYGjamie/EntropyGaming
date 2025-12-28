@@ -235,6 +235,7 @@ func RegisterCommands(bot *discordgo.Session) {
 						{Name: "Standard", Value: "default"},
 						{Name: "Team Logo (Management only)", Value: "dark"},
 						{Name: "Banner", Value: "banner"},
+						{Name: "eSport Banner (Management only)", Value: "esport-banner"},
 					},
 				},
 				{
