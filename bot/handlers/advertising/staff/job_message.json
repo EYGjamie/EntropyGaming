@@ -5,14 +5,6 @@
   "jobs_url": "https://entropygaming.de/jobs",
   "jobs": [
     {
-      "position": "<:Entropy2:1225559069167980634> Projektmanager",
-      "description": "Hole das beste aus der Entropy x Teufel Kooperation heraus und koordiniere spannende Projekte."
-    },
-    {
-      "position": "<:Entropy2:1225559069167980634> Community-Manager",
-      "description": "Hilf dabei, neue Mitglieder zu gewinnen und das Angebot des Diamond Clubs noch attraktiver zu gestalten."
-    },
-    {
       "position": "<:Entropy2:1225559069167980634> Social Media-Manager",
       "description": "Entwickle unsere Social Media Strategie, erstelle ansprechenden Content und baue unsere Community aus."
     },
@@ -29,8 +21,16 @@
       "description": "Organisiere Online-Turniere, Watchparties und Spieleabende für unsere Diamond Club Community."
     },
     {
-      "position": "<:Entropy2:1225559069167980634> Club-Manager",
-      "description": "Leite einen der Club Bereiche und bringe deine Ideen ein, um den Diamond Club weiterzuentwickeln."
+      "position": "<:Entropy2:1225559069167980634> Spiel-Bereichsleiter",
+      "description": "Leite einen der Spiel Bereiche und bringe deine Ideen ein, um den Diamond Club weiterzuentwickeln."
+    },
+    {
+      "position": "<:Entropy2:1225559069167980634> Community-Manager",
+      "description": "Hilf dabei, neue Mitglieder zu gewinnen und das Angebot des Diamond Clubs noch attraktiver zu gestalten."
+    },
+    {
+      "position": "<:Entropy2:1225559069167980634> Team-Manager",
+      "description": "Betreue Teams im Pro/Community Bereich. Vereinbare Trainingszeiten, dokumentiere Spiele und Ergebnisse."
     },
     {
       "position": "<:Entropy2:1225559069167980634> Entwickler",
