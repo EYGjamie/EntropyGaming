@@ -54,6 +54,8 @@ func RegisterCommands(bot *discordgo.Session) {
 				{Type: discordgo.ApplicationCommandOptionString, Name: "variant", Description: "Antwort-Variante",
 					Required: true,
 					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{Name: "Diamond Club vorstellen", Value: "introduce_diamond_club"},
+						{Name: "Formular senden", Value: "send_form"},
 						{Name: "Pro-Team nicht möglich", Value: "pro_not_eligible"},
 						{Name: "Nicht für Pro beworben", Value: "not_applied_pro"},
 					},
