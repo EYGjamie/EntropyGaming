@@ -34,6 +34,7 @@ func HandleTicketResponse(bot *discordgo.Session, bot_interaction *discordgo.Int
 				"https://docs.google.com/forms/d/e/1FAIpQLScpklvRjqT_DJATEH__OwNCVdkMD6TXqiU3SJnSlrOByzHdCw/viewform\n" +
 				"Dabei ist zu beachten, das nur die mit einem Stern markierten Angaben wirklich wichtig sind, den Rest kannst du gerne weglassen wenn du magst. Wenn du fertig bist gib mir hier im Ticket bescheid.\n" +
 				"<:Entropy2:1225559069167980634> <:DiamondClub:1229333849578799175>")
+				
 	case "pro_not_eligible":
 		reply = fmt.Sprintf(
 			"Hi [@EINFÜGEN],\n\n" +
