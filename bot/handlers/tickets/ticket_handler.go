@@ -128,7 +128,7 @@ func HandleTicketDropdown(bot *discordgo.Session, bot_interaction *discordgo.Int
 // HandleGameDropdown zeigt ein Dropdown-Menü zur Auswahl eines Spiels an
 func ShowGameDropdown(bot *discordgo.Session, bot_interaction *discordgo.InteractionCreate) {
 	options := []discordgo.SelectMenuOption{
-		{Label: "League of Legends", Value: "ticket_game_lol"},
+		// {Label: "League of Legends", Value: "ticket_game_lol"},
 		{Label: "RainbowSix", Value: "ticket_game_r6"},
 		{Label: "CS2", Value: "ticket_game_cs2"},
 		{Label: "Valorant", Value: "ticket_game_valorant"},
